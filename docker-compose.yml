@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: username # The PostgreSQL user (useful to connect to the database)
+      POSTGRES_PASSWORD: password # The PostgreSQL password (useful to connect to the database)
+      POSTGRES_DB: default_database # The PostgreSQL default database (automatically created at first launch)
+  api:
+    build: api
+    image: bibleapp:server
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
