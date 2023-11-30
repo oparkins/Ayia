@@ -5,61 +5,93 @@ import (
 	"time"
 )
 
-type Bible struct {
+/** From Bible_Databases Project */
+type Bible_Version_Key struct {
 	gorm.Model
-	Description 	string
-	Name			string
-	Books			[]Book
+	ID				uint
+	Table           string
+	Abbreviation    string
+	Language        string
+	Version         string
+	Info_Text       string
+	Info_URL        string
+	Publisher       string
+	Copyright       string
+	Copyright_Info  string
 }
 
-type Book struct {
+/** From Bible_Databases Project */
+type Cross_Reference struct {
 	gorm.Model
-	Name 			string
-	Author			string
-	ShortName		string
-	Chapters		[]Chapter
-	Position		uint
-	BibleID			uint
+	VID				uint
+	Rank			int
+	Start_Verse		int
+	End_Verse		int
 }
 
-type Chapter struct {
+/** From Bible_Databases Project */
+type Key_English struct {
 	gorm.Model
-	Number			uint
-	Verses			[]Verse
-	BookID			uint
+	BookID			int
+	BookName		string
+	Testimate		string //Should probably be an enum for OT or NT
+	GenreID			int
 }
 
-type Verse struct {
+/** From Bible_Databases Project */
+type Key_Abbreviations_English struct {
 	gorm.Model
-	Number			uint
-	Words			[]Word `gorm:"many2many:verse_words;"`
+	Abbreviation	string
+	BookID			int
+	Prefered		bool
+}
+
+/** From Bible_Databases Project */
+type Key_Genre_English struct {
+	gorm.Model
+	Name			string			
+}
+
+/** From Bible_Databases Project */
+type T_KJV struct {
+	gorm.Model
+	BookID			int
+	ChaperID		int
+	VerseID			int
 	Text			string
-	ChapterID		uint
-	
+	Words			[]Word `gorm:"many2many:verse_words;"`
 }
 
 type Word struct {
 	gorm.Model
 	Word 			string
+	StrongsNumber	uint
 }
 
-type VerseWord struct {
+type Verse_Words struct {
+	gorm.Model
 	VerseID  		int `gorm:"primaryKey"`
 	WordID 			int `gorm:"primaryKey"`
 	Position		uint `gorm:"primaryKey"` //Position in the sentence
-	CreatedAt time.Time
-	DeletedAt gorm.DeletedAt
 }
 
 func SetupDB(db *gorm.DB) (ok bool) {
-	err := db.SetupJoinTable(&Verse{}, "Words", &VerseWord{})
+	err := db.SetupJoinTable(&Verse{}, "Words", &Verse_Words{})
 	if err != nil {
 		return false
 	}
-	db.AutoMigrate(&Bible{}, &Book{}, &Chapter{}, &Verse{}, &Word{}, &VerseWord{})
+	db.AutoMigrate(
+		&Bible_Version_Key{}, 
+		&Cross_Reference{}, 
+		&Key_English{}, 
+		&Key_Abbreviations_English{}, 
+		&Key_Genre_English{},
+		&T_KJV{},
+		&Word{},
+		&Verse_Words{}
+	)
 
 	return true
-
 }
 
 
