@@ -128,9 +128,14 @@ function getVersion( vers ) {
     // Fetch the index
     _fetchVersion( vers )
       .then( data => {
-        // Cache this data, converting the contained Maps and Buffers
-        Fs.writeFileSync( cachePath, _toJSON( data ) );
-        return resolve( data );
+        /* Cache this data, converting the contained Maps and Buffers
+         * to simple objects/strings.
+         */
+        const json  = _toJSON( data );
+        const obj   = JSON.parse( json );
+
+        Fs.writeFileSync( cachePath, json );
+        return resolve( obj );
       })
       .catch( err => {
         return reject( err );
