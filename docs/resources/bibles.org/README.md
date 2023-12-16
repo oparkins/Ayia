@@ -4,6 +4,14 @@ The American Bible Society has a nice [web API](https://bibles.org) to the
 This site allows you to download a local copy of bibles to your browser as
 indexdb databases.
 
+From the site:
+> Scripture texts in DBL are contained in an XML format known as
+> [USX](https://ubsicap.github.io/usx/). USX is an XML structure which is
+> aligned very tightly to the internal format used in Paratext by the
+> translation team. This close association with the translation environment
+> used to author the text provides additional assurance that the validated
+> content has not been altered by a complex conversion process.
+
 Source URL examples:
 - AMP
   - https://v2.api.bible/bibles/a81b73293d3080c9-01/books?include-chapters=true
