@@ -2,7 +2,7 @@
   "name": "bible.com",
   "version": "0.0.1",
   "description": "The [YouVersion Bible](https://bible.com/) allows you to download a large number of Bible versions.",
-  "main": "index.js",
+  "main": "lib/versions.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
