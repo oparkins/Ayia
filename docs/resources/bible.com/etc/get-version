@@ -7,9 +7,13 @@ async function main() {
   if (vers == null) { _usage( args ) }
 
   //const version   = await _findVersion( vers );
-  const version   = await Versions.getVersion( vers );
-
-  console.log('version[ %s ]:', vers, version);
+  Versions.getVersion( vers )
+    .then( version => {
+      console.log('version[ %s ]:', vers, version);
+    })
+    .catch(err => {
+      console.error('***', err);
+    });
 }
 
 main();

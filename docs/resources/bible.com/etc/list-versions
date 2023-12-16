@@ -4,14 +4,18 @@ const Versions  = require('..');
 async function main() {
   const args  = process.argv.slice(1);
 
-  const versions  = await Versions.getVersions();
-
-  versions.response.data.versions.forEach( vers => {
-    console.log('%s : %s : %s',
-                vers.abbreviation.padEnd( 10, ' '),
-                vers.local_abbreviation.padEnd( 10, ' '),
-                vers.title);
-  });
+  Versions.getVersions()
+    .then( versions => {
+      versions.response.data.versions.forEach( vers => {
+        console.log('%s : %s : %s',
+                    vers.abbreviation.padEnd( 10, ' '),
+                    vers.local_abbreviation.padEnd( 10, ' '),
+                    vers.title);
+      });
+    })
+    .catch(err => {
+      console.error('***', err);
+    });
 }
 
 main();
