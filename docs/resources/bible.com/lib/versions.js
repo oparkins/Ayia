@@ -191,7 +191,7 @@ function _toJSON( data ) {
  */
 function _fetch( url ) {
   return new Promise( (resolve, reject) => {
-    console.log('_fetch( %s ): ...', url);
+    //console.log('_fetch( %s ): ...', url);
 
     Https.get( url, (res) => {
       const { statusCode }  = res;
@@ -443,9 +443,11 @@ function _decodeYves( buf ) {
 function _processFile( file ) {
   return file.buffer()
     .then( buf => {
+      /*
       console.log('%s: %d => %d : %d',
                   file.path, file.compressedSize, file.uncompressedSize,
                   buf.length);
+      // */
 
       file.decoded = _decodeYves( buf );
       return file;
