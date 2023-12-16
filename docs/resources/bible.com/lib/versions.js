@@ -293,8 +293,12 @@ function _fetchVersions( lang='eng', type='all') {
 function _fetchVersion( vers ) {
   let fullRes = null;
 
-  return  findVersion( vers )
+  return findVersion( vers )
       .then( info => {
+        if (info == null) {
+          throw new Error(`Cannot find version ${vers}`);
+        }
+
         const re      = /^.*\/\//;
         const urlPath = info.offline.url.replace( re, '' );
 
