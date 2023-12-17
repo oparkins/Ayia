@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const Versions  = require('..');
 const Cheerio   = require('cheerio');
+const sprintf   = require('sprintf-js').sprintf;
 
 async function main() {
   const args  = process.argv.slice(1);
@@ -47,6 +48,36 @@ function _usage( args ) {
 }
 
 /**
+ *  Fetch the specified attribute from the given element.
+ *  @method _getAttr
+ *  @param  el    The target element {Cheerio};
+ *  @param  attr  The target attribute {String};
+ *
+ *  @return The value of the attribute {String | undefined};
+ *  @private
+ */
+function _getAttr( el, attr ) {
+  if (el.attribs == null) { return }
+
+  return el.attribs[ attr ];
+}
+
+/**
+ *  Fetch an array of CSS classes for the given element.
+ *  @method _getClasses
+ *  @param  el  The target element {Cheerio};
+ *
+ *  @return The array of CSS classes {Array};
+ *  @private
+ */
+function _getClasses( el ) {
+  const attrCls = _getAttr( el, 'class' ) || '';
+  const classes = attrCls.split(/\s+/);
+
+  return classes;
+}
+
+/**
  *  Parse a single book.
  *  @method _parseBook
  *  @param  abbrev    The book abbreviation {String};
@@ -62,14 +93,115 @@ function _parseBook( abbrev, chapters ) {
     const $         = Cheerio.load( lines.join( '' ) );
     const children  = $( '.chapter' ).children();
 
-    console.log('  %s: (%d children)', chp, children.length);
-    children.each( (idex, el) => {
-      const $el = $(el) ;
+    /* Determine the number of verses by counting the unique .verse[data-usfm]
+     * values {
+     */
+    const verseIds  = new Set();
 
-      //console.log('    %s: %s', idex, $el.html());
-      console.log('    %s: %s', idex, $el.prop('outerHTML'));
+    children.find('.verse[data-usfm]').each( (idex,el) => {
+      const usfm  = _getAttr( el, 'data-usfm' );
+      if (usfm) { verseIds.add( usfm ) }
     });
+    const verses  = verseIds.size;
+    // verse count }
+
+    console.log('  %s: (%d child%s, %d verse%s)',
+                  chp,
+                  children.length, _pluralize( children.length, '', 'ren' ),
+                  verses,          _pluralize( verses, '', 's' ));
+
+    children.each( (idex, el) => {
+      const classes = _getClasses( el );
+      const cls0    = (classes.length > 0 && classes[0]);
+
+      _parseEl( $, idex, el, cls0 );
+
+      /*
+      const $el     = $(el) ;
+      console.log('    %s[ %s ]: %s', idex, cls0, $el.prop('outerHTML'));
+
+      switch( cls0 ) {
+        case 'label'  : _parseLabel( $, abbrev, chp, idex, $el ); break;
+        case 's'      : _parseS(     $, abbrev, chp, idex, $el ); break;
+        case 'ms'     : _parseMs(    $, abbrev, chp, idex, $el ); break;
+        case 'q'      : _parseQ(     $, abbrev, chp, idex, $el ); break;
+        case 'p'      : _parseP(     $, abbrev, chp, idex, $el ); break;
+
+        default:
+          console.warn('*** Unexpected class:', classes);
+          _parseP( $, abbrev, chp, idex, $el );
+      }
+      // */
+      //console.log('    %s: %s', idex, $el.html());
+    });
+
+    console.log('=====================================================');
   });
+}
+
+/**
+ *  Generate a pluralized version of the given word based upon the provided
+ *  count and plural suffix.
+ *  @method _pluralize
+ *  @param  count     The item count {Number};
+ *  @param  singular  The singular version {String};
+ *  @param  plural    The plural version {String};
+ *
+ *  @return The pluralized word {String};
+ *  @private
+ */
+function _pluralize( count, singular, plural ) {
+  return (count === 1 ? singular : plural);
+}
+
+/**
+ *  Parse a single line of chapter HTML.
+ *  @method _parseEl
+ *  @param  $             The top-level Cheerio instance {Cheerio};
+ *  @param  idex          The index of the HTML line within the parent
+ *                        {Number};
+ *  @param  el            The target HTML element {Object};
+ *  @param  cls0          The first element of the 'class' attribute for `$el`
+ *                        {String};
+ *  @param  [indent = 4 ] The number of characters to indent each output line
+ *                        {NUmber};
+ *
+ *  @return void
+ *  @private
+ */
+function _parseEl( $, idex, el, cls0, indent=4 ) {
+  const $el       = $(el);
+  const oPad      = ' '.padStart( indent,     ' ' );
+  const label     = (cls0 || el.type);
+  const children  = el.children || [];  //$el.children();
+  if (children.length < 1) {
+    // NO children
+    console.log( sprintf('%s%s: [%s]', oPad, label, $el.text()) );
+    return;
+  }
+
+  const usfm  = _getAttr( el, 'data-usfm' );
+  if (usfm) {
+    console.log('%s%s:%s: {', oPad, label, usfm);
+
+  } else {
+    console.log('%s%s: {', oPad, label);
+  }
+
+  //console.log('%s: html:', label, $el.prop('outerHTML'));
+  children.forEach( (ch, jdex) => {
+    const classes = _getClasses( ch );
+    const cls0    = (classes.length > 0 && classes[0]);
+
+    _parseEl( $, jdex, ch, cls0, indent+2 );
+
+    /*
+    console.log('%s: [ %s ] %s',
+                label, classes.join(' '), $(ch).prop('outerHTML'));
+    // */
+  });
+
+  console.log('%s}', oPad);
 }
 
 /* Private helpers }
