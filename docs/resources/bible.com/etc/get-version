@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const Versions  = require('..');
+const Bible = require('..');
 
 async function main() {
   const args  = process.argv.slice(1);
@@ -7,7 +7,7 @@ async function main() {
   if (vers == null) { _usage( args ) }
 
   //const version   = await _findVersion( vers );
-  Versions.getVersion( vers )
+  Bible.getVersion( vers )
     .then( version => {
       console.log('version[ %s ]:', vers, version);
     })

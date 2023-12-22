@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-const Versions  = require('..');
+const Bible = require('..');
 
 async function main() {
   const args  = process.argv.slice(1);
 
-  Versions.getVersions()
+  Bible.getVersions()
     .then( versions => {
       versions.response.data.versions.forEach( vers => {
         console.log('%s : %s : %s',
