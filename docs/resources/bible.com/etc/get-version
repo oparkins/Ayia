@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+const Bible = require('..');
+
+async function main() {
+  const args  = process.argv.slice(1);
+  const vers  = args[1];
+  if (vers == null) { _usage( args ) }
+
+  //const version   = await _findVersion( vers );
+  Bible.getVersion( vers )
+    .then( version => {
+      console.log('version[ %s ]:', vers, version);
+    })
+    .catch(err => {
+      console.error('***', err);
+    });
+}
+
+main();
+
+/****************************************************************************
+ * Private helpers {
+ *
+ */
+
+/**
+ *  Present usage information and exit.
+ *  @method _usage
+ *  @param  args    The incoming arguments {Array};
+ *
+ *  @return void  (exits the process)
+ *  @private
+ */
+function _usage( args ) {
+  const Path  = require('path');
+  const prog  = Path.basename( args[0] );
+  console.log(`
+***
+*** Usage: ${prog} version-abbreviation
+***
+`);
+
+  process.exit(-1);
+}
+
+/* Private helpers }
+ ****************************************************************************/
+
+// vi: ft=javascript

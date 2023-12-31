@@ -1,7 +1,7 @@
 
 all: build
 
-build: build/converter build/server
+build: build/importer build/server
 
 build/%: cmd/%/main.go pkg/**/*.go internal/**/*.go
 	go build -o $@ $<
