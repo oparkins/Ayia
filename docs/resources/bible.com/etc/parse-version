@@ -1,0 +1,252 @@
+#!/usr/bin/env node
+const Bible   = require('..');
+const Cheerio = require('cheerio');
+const sprintf = require('sprintf-js').sprintf;
+
+async function main() {
+  const args  = process.argv.slice(1);
+  const vers  = args[1];
+  let   ref_filter;
+  if (vers == null) { _usage( args ) }
+
+  if (args.length > 2) {
+    const [ only_bk, only_ch, only_vs ]  = args[2].split(/[ :\.]+/);
+
+    const book = Bible.getBook( only_bk );
+    if (book) {
+      ref_filter = book.abbr;
+
+      if (only_ch) {
+        ref_filter += `.${only_ch}`;
+        if (only_vs)  { ref_filter += `.${only_vs}` }
+      }
+    }
+  }
+  // /*
+  console.log('>>> Version: %s %s', vers, (ref_filter || ''));
+  // */
+
+  Bible.getVersion( vers )
+    .then( version => {
+      Object.entries(version.books).forEach( ([key,val]) => {
+        _parseBook( key, val, ref_filter );
+      });
+    })
+    .catch(err => {
+      console.error('***', err);
+    });
+}
+
+main();
+
+/****************************************************************************
+ * Private helpers {
+ *
+ */
+
+/**
+ *  Present usage information and exit.
+ *  @method _usage
+ *  @param  args    The incoming arguments {Array};
+ *
+ *  @return void  (exits the process)
+ *  @private
+ */
+function _usage( args ) {
+  const Path  = require('path');
+  const prog  = Path.basename( args[0] );
+  console.log(`
+***
+*** Usage: ${prog} version-abbreviation [book[.chapter[.verse]]]
+***
+`);
+
+  process.exit(-1);
+}
+
+/**
+ *  Fetch the specified attribute from the given element.
+ *  @method _getAttr
+ *  @param  el    The target element {Cheerio};
+ *  @param  attr  The target attribute {String};
+ *
+ *  @return The value of the attribute {String | undefined};
+ *  @private
+ */
+function _getAttr( el, attr ) {
+  if (el.attribs == null) { return }
+
+  return el.attribs[ attr ];
+}
+
+/**
+ *  Fetch an array of CSS classes for the given element.
+ *  @method _getClasses
+ *  @param  el  The target element {Cheerio};
+ *
+ *  @return The array of CSS classes {Array};
+ *  @private
+ */
+function _getClasses( el ) {
+  const attrCls = _getAttr( el, 'class' ) || '';
+  const classes = attrCls.split(/\s+/);
+
+  return classes;
+}
+
+/**
+ *  Parse a single book.
+ *  @method _parseBook
+ *  @param  abbrev        The book abbreviation {String};
+ *  @param  chapters      The chapter data for this book {Object};
+ *  @param  [ref_filter]  If provided, only present books, chapters, and verses
+ *                        that match the filter ( BOK[.CHAPTER[.VERSE]] )
+ *                        {String};
+ *
+ *  @return void
+ *  @private
+ */
+function _parseBook( abbrev, chapters, ref_filter = null ) {
+  const [ only_book, only_ch, only_vs ] = (typeof(ref_filter) === 'string'
+                                            ? ref_filter.split('.')
+                                            : []);
+  if (only_book && only_book !== abbrev) { return }
+
+  /*
+  console.log('_parseBook( %s ): ref_filter[ %s ] => '
+              +   'only_book[ %s ], only_ch[ %s ], only_vs[ %s ] => %s',
+              abbrev, ref_filter, only_book, only_ch, only_vs);
+  // */
+
+  Object.entries( chapters ).forEach( ([chp, lines]) => {
+    if (only_ch && only_ch != chp) { return }
+
+    const $         = Cheerio.load( lines.join( '' ) );
+    const children  = $( '.chapter' ).children();
+
+    /* Determine the number of verses by counting the unique .verse[data-usfm]
+     * values {
+     */
+    const verseIds  = new Set();
+
+    children.find('.verse[data-usfm]').each( (idex,el) => {
+      const usfm  = _getAttr( el, 'data-usfm' );
+      if (usfm) { verseIds.add( usfm ) }
+    });
+    const verses  = verseIds.size;
+    // verse count }
+
+    console.log('  %s: (%d child%s, %d verse%s%s):',
+                  chp,
+                  children.length, _pluralize( children.length, '', 'ren' ),
+                  verses,          _pluralize( verses, '', 's' ),
+                  (ref_filter ? `, filter ${ref_filter}` : ''));
+
+    children.each( (idex, el) => {
+      const classes = _getClasses( el );
+      const cls0    = (classes.length > 0 && classes[0]);
+
+      /* :XXX: If we are NOT filtering by verse, do not pass the reference
+       *       filter to _parseEl() since it does NOT have verse information
+       *       that would match the `data-usfm` attribute.
+       */
+      _parseEl( $, idex, el, cls0, (only_vs ? ref_filter : null) );
+    });
+
+    console.log('=====================================================');
+  });
+}
+
+/**
+ *  Generate a pluralized version of the given word based upon the provided
+ *  count and plural suffix.
+ *  @method _pluralize
+ *  @param  count     The item count {Number};
+ *  @param  singular  The singular version {String};
+ *  @param  plural    The plural version {String};
+ *
+ *  @return The pluralized word {String};
+ *  @private
+ */
+function _pluralize( count, singular, plural ) {
+  return (count === 1 ? singular : plural);
+}
+
+/**
+ *  Parse a single line of chapter HTML.
+ *  @method _parseEl
+ *  @param  $               The top-level Cheerio instance {Cheerio};
+ *  @param  idex            The index of the HTML line within the parent
+ *                          {Number};
+ *  @param  el              The target HTML element {Object};
+ *  @param  cls0            The first element of the 'class' attribute for
+ *                          `$el` {String};
+ *  @param  [ref_filter]    If provided, only show verses with a matching
+ *                          'data-usfm' attribute {String};
+ *  @param  [in_verse = false]
+ *                          If provided, we have already matched `ref_filter`
+ *                          and should process this element without further
+ *                          regard to `ref_filter` {Boolean};
+ *  @param  [indent = 4 ]   The number of characters to indent each output line
+ *                          {NUmber};
+ *
+ *  @return void
+ *  @private
+ */
+function _parseEl( $, idex, el, cls0,
+                  ref_filter=null, in_verse=false, indent=4 ) {
+  const $el       = $(el);
+  const oPad      = ' '.padStart( indent,     ' ' );
+  const label     = (cls0 || el.type);
+  const children  = el.children || [];  //$el.children();
+  let   do_output = (ref_filter == null || in_verse);
+
+  if (children.length < 1) {
+    // NO children
+    if (do_output) {
+      console.log( sprintf('%s%s: [%s]', oPad, label, $el.text()) );
+    }
+    return;
+  }
+
+  const usfm  = _getAttr( el, 'data-usfm' );
+  if (usfm) {
+    /* This element has a 'data-usfm' attribute and so is related to a verse.
+     *
+     * If there is a `ref_filter` and the element has a 'verse' class, see if
+     * the filter matches this verse and adjust `in_verse` and `do_output`
+     * accordingly.
+     */
+    if (ref_filter && label === 'verse') {
+      in_verse  = (ref_filter === usfm);
+      do_output = in_verse;
+    }
+
+    if (do_output) {
+      console.log('%s%s:%s: {', oPad, label, usfm); // }
+    }
+
+  } else if (do_output) {
+    console.log('%s%s: {', oPad, label);  // }
+  }
+
+  //console.log('%s: html:', label, $el.prop('outerHTML'));
+
+  // Recursively parse all children
+  children.forEach( (ch, jdex) => {
+    const classes = _getClasses( ch );
+    const cls0    = (classes.length > 0 && classes[0]);
+
+    _parseEl( $, jdex, ch, cls0, ref_filter, in_verse, indent+2 );
+  });
+
+  if (do_output)  {
+    // {
+    console.log('%s}', oPad);
+  }
+}
+
+/* Private helpers }
+ ****************************************************************************/
+
+// vi: ft=javascript

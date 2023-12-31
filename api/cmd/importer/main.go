@@ -1,52 +1,85 @@
 package main
 
 import (
-	"log"
-	"fmt"
-	"bufio"
-	"regexp"
-	"os"
-	"strings"
-	"flag"
-	"bibleapp.server/internal/helpers"
+	"bibleapp.server/internal/dbmodels"
 	"gorm.io/gorm"
 	"gorm.io/driver/postgres"
-	"strconv"
-	"errors"
+	"github.com/rs/zerolog/log"
+	"encoding/json"
+	"io/ioutil"
+	"fmt"
 )
 
 
+type T_BIBLE struct {
+	ResultSet struct {
+		Row [] struct {
+			Field []interface{} `json:"field"`
+		} `json:"row"`
+	} `json:"resultset"`
+}
+
+
+/**
+ * Takes an json file as input and connects to a database to import
+ * the json file 
+ */
 func main() {
 
-    inFilenamePtr := flag.String("in", "", "Input filename")
-	outFilenamePtr := flag.String("out", "", "Output filename")
+	/** Files to import */
+    // bible_version_key_file := "../../../data/bible_version_key.json"
+	// key_english_file := "../../../data/key_english.json"
+	t_asv_file := "../docs/resources/t_kjv.json"
+	// t_kjv_file := "../../../data/t_kjv.json"
+	// t_ylt_file := "../../../data/t_ylt.json"
+	// key_abbreviations_english_file := "../../../data/key_abbreviations_english.json"
+	// key_genre_english_file := "../../../data/key_genre_english.json"
+	// t_bbe_file := "../../../data/t_bbe."
+	// t_web_file := "../../../data/t_web.json"
 
-    flag.Parse()
+	log.Info().Msg("Starting Ayia...")
+	log.Info().Msg("Connecting to Database..")
 
-	if (*inFilenamePtr == "" || *outFilenamePtr == "") {
-		log.Println("usage: ./converter -in [infile] -out [outfile]")
-		return;
-	}
-
-
-	dsn := "postgres://username:password@localhost:5432/default_database"
+	dsn := "postgres://username:password@172.17.0.4:5432/default_database"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database")
+		log.Fatal().Err(err).Msg("failed to connect database")
 	}
 
-	ok := gorm_helper.SetupDB(db)
+	log.Info().Msg("Setting up Database...")
+
+	ok := dbmodels.SetupDB(db)
 	if !ok {
 		panic("Something bad happened when setting up the database.")
 	}
+
+	 // Let's first read the `config.json` file
+	 content, err := ioutil.ReadFile(t_asv_file)
+	 if err != nil {
+		 log.Fatal().Err(err).Msg("Error when opening file: ")
+	 }
+  
+	 // Now let's unmarshall the data into `payload`
+	 var payload T_BIBLE
+	 err = json.Unmarshal(content, &payload)
+	 if err != nil {
+		 log.Fatal().Err(err).Msg("Error during Unmarshal(): ")
+	 }
+  
+	for _, row := range payload.ResultSet.Row {
+	 	log.Info().Msg(fmt.Sprintf("%f", row.Field[0].(float64)))
+	}
+
+
+
 
     // Here we'll just dump out the parsed options and
     // any trailing positional arguments. Note that we
     // need to dereference the pointers with e.g. `*wordPtr`
     // to get the actual option values.
-    log.Println(fmt.Sprintf("Converting %s to %s", *inFilenamePtr, *outFilenamePtr));
+    /*log.Println(fmt.Sprintf("Importing %s", *inFilenamePtr));
 
-	bible := gorm_helper.Bible{
+	bible := dbmodels.Bible{
 		Name: "kjv",
 		Description: "King James Version",
 	}
@@ -96,14 +129,14 @@ func main() {
 		text := line[1]
 
 		// Check if book exists
-		var bookDB gorm_helper.Book 
+		var bookDB dbmodels.Book 
 
 		bookID, ok := bible_model_map[book]
 		var exists bool
 
 
 		if !ok {
-			err = db.Model(&gorm_helper.Book{}).
+			err = db.Model(&dbmodels.Book{}).
 					Select("count(*) > 0").
 					Where("Name = ?", book).
 					Find(&exists).
@@ -113,20 +146,20 @@ func main() {
 			}
 			if !exists {
 				log.Println("Creating new book!")
-				db.Create(&gorm_helper.Book{
+				db.Create(&dbmodels.Book{
 					Name: book,
 					ShortName: "TBD",
 					Position: 0,
 					BibleID: bible.ID,
 				})
 			}
-			db.Model(&gorm_helper.Book{}).First(&bookDB, "name = ?", book)
+			db.Model(&dbmodels.Book{}).First(&bookDB, "name = ?", book)
 			bookID = bookDB.ID
 		}
 
 
 		//============= CHAPTER ==================
-		err = db.Model(&gorm_helper.Chapter{}).
+		err = db.Model(&dbmodels.Chapter{}).
 				Select("count(*) > 0").
 				Where("Number = ? and chapters.book_id = ?", chapter_num, bookID).
 				Find(&exists).
@@ -140,13 +173,13 @@ func main() {
 		}
 		if !exists {
 			log.Println("Creating new book!")
-			db.Create(&gorm_helper.Chapter{
+			db.Create(&dbmodels.Chapter{
 				Number: uint(chapter_n),
 				BookID: bookID,
 			})
 		}
-		var chapterDB gorm_helper.Chapter
-		db.Model(&gorm_helper.Chapter{}).First(&chapterDB, "Number = ? and chapters.book_id = ?", uint(chapter_n), bookID)
+		var chapterDB dbmodels.Chapter
+		db.Model(&dbmodels.Chapter{}).First(&chapterDB, "Number = ? and chapters.book_id = ?", uint(chapter_n), bookID)
 
 
 		db.Transaction(func(tx *gorm.DB) error {
@@ -155,7 +188,7 @@ func main() {
 
 			//============== VERSE ==================
 			verse_n, err := strconv.ParseUint(verse_num, 10, 32)
-			verseDB := gorm_helper.Verse {
+			verseDB := dbmodels.Verse {
 				Number: uint(verse_n),
 				//Words: 
 				Text: text,
@@ -174,7 +207,7 @@ func main() {
 
 
 				// Does this word exist in the database?
-				err = db.Model(&gorm_helper.Word{}).
+				err = db.Model(&dbmodels.Word{}).
 					Select("count(*) > 0").
 					Where("Word = ?", word).
 					Find(&exists).
@@ -182,17 +215,17 @@ func main() {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					panic("Error happened!")
 				}
-				wordDB := gorm_helper.Word {
+				wordDB := dbmodels.Word {
 					Word: word,
 				}
 				if !exists {
 					db.Create(&wordDB)
 				} else {
-					db.Model(&gorm_helper.Word{}).First(&wordDB, "Word = ?", word)
+					db.Model(&dbmodels.Word{}).First(&wordDB, "Word = ?", word)
 				}
 
 				//We have a word. Now let's link it to the verse. 
-				linkDB := gorm_helper.VerseWord {
+				linkDB := dbmodels.VerseWord {
 					VerseID: int(verseDB.ID),
 					WordID: int(wordDB.ID),
 					Position: uint(i),
@@ -214,7 +247,7 @@ func main() {
 			"name": "King James Bible",
 			"@id": "#kjv",
 			"hasPart": []string{},
-		}*/
+		}
 	}
 
 	readFile.Close()
