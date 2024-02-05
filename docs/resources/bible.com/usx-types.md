@@ -144,6 +144,9 @@ version vid68 {       version with version id : data-vid='68'
                         for which the note is being provided.  Longer quotations
                           are sometimes shortened using an ellipsis (i.e.
                           suspension dots “…”);
+                fqa:    Footnote alternate translation. Used to distinguish
+                        between a quotation of the current scripture text
+                        translation, and an alternate translation;
 
             x|ex:       Cross Reference
 
