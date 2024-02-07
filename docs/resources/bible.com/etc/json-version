@@ -26,7 +26,7 @@ async function main() {
       }
     }
   }
-  // /*
+  /*
   console.log('>>> Version: %s %s', vers, (ref_filter || ''));
   // */
 
@@ -125,47 +125,165 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
     if (only_ch && only_ch != chp) { return }
 
     const $         = Cheerio.load( lines.join( '' ) );
-    const children  = $( '.chapter' ).children();
+    const $intros   = $( '.intro' );
 
-    // Locate all elements that comprise verses : .verse[data-usfm]
-    const verses  = new Map();
+    /*
+    console.log('chp %s: %d intros, %d chapter children ...',
+                chp, $intros.length, $chaps.length);
+    // */
 
-    children.find('.verse[data-usfm]').each( (idex,el) => {
-      const usfm  = _getAttr( el, 'data-usfm' );
-      // assert( usfm != null )
+    if ($intros.length > 0) {
+      /*******************************************************
+       * Process this as an introduction with no verses
+       *
+       */
+      const usfm  = _getAttr( $intros[0], 'data-usfm' );
+
       if (filter && !filter.test( usfm )) { return }
 
-      let   verse = (verses.get( usfm ) || []);
-      const json  = _parseEl( $, el );
-      const key   = Object.keys( json ).shift();
-      const val   = json[key];
+      bkJson.chapters[ chp ] = _parseIntro( $, $intros, filter );
+      return;
+    }
 
-      if (Array.isArray(val)) {
-        verse = verse.concat( val );
-
-      } else {
-        verse.push( json[key] );
-      }
-
-      verses.set( usfm, verse );
-    });
-
-    const chJson    = {
-      verse_count : verses.size,
-      metadata    : [],
-      verses      : {},
-    };
-
-    verses.forEach( (verse, id) => {
-      const [ bk, ch, vs ] = id.split('.');
-
-      chJson.verses[ vs ] = verse;
-    });
-
-    bkJson.chapters[ chp ] = chJson;
+    /*********************************************************
+     * Process this as a chapter with verses
+     *
+     */
+    const $chaps    = $( '.chapter' ).children();
+    bkJson.chapters[ chp ] = _parseChapter( $, $chaps, filter );
   });
 
   return bkJson;
+}
+
+/**
+ *  Parse an introduction.
+ *  @method _parseIntro
+ *  @param  $       The top-level Cheerio instance {Cheerio};
+ *  @param  $intro  The intro element(s) {Cheerio};
+ *  @param  filter  If provided, a filter to limit the output {RegExp};
+ *
+ *  @return A simple object representing the intro {Object};
+ *  @private
+ */
+function _parseIntro( $, $intro, filter ) {
+  const introJson = {
+    content : [],
+  };
+
+  $intro.children().each( (jdex, el) => {
+    const json  = _parseEl( $, el );
+
+    /*
+    console.log('-- intro %s: %d:', chp, jdex, json);
+    // */
+
+    introJson.content.push( json );
+  });
+
+  return introJson;
+}
+
+/**
+ *  Parse a chapter.
+ *  @method _parseChapter
+ *  @param  $       The top-level Cheerio instance {Cheerio};
+ *  @param  $chap   The chapter element(s) {Cheerio};
+ *  @param  filter  If provided, a filter to limit the output {RegExp};
+ *
+ *  @return A simple object representing the chapter {Object};
+ *  @private
+ */
+function _parseChapter( $, $chap, filter ) {
+  /* Use a Map to merge all elements that comprise verses (.verse[data-usfm])
+   * into arrays indexed by verse reference (data-usfm).
+   *
+   * Any non-verse metadata will be added to the previous "verse".
+   * Metadata found before the first verse will be placed in the chapter
+   * metadata array.
+   */
+  const chJson  = {
+    verse_count : 0,
+    metadata    : [],
+    verses      : {},
+  };
+  const verses  = new Map();
+  let   verse   = chJson.metadata;
+
+  $chap.each( (jdex, el) => {
+    /* Remember the "label" for this child element.
+     *
+     * We will use this to label any verse elements that are raw text so all
+     * entries in 'verse' end up being objects with a markup type
+     * (e.g.  label, p, li1).
+     */
+    const classes = _getClasses( el );
+    const cls0    = (classes.length > 0 && classes.shift());
+    const label   = (cls0 || el.type)
+                  + (classes.length > 0
+                      ? '.' + classes.join('.')
+                      : '');
+
+    // Locate and process any 'verse' elements within this child
+    const $verse  = $(el).find('.verse[data-usfm]');
+    if ($verse.length > 0) {
+      $verse.each( (kdex, vs) => {
+        const usfm  = _getAttr( vs, 'data-usfm' );
+        if (filter && !filter.test( usfm )) { return }
+
+        verse = (verses.get( usfm ) || []);
+
+        const json  = _parseEl( $, vs );
+        const key   = Object.keys( json ).shift();
+        const val   = json[key];
+
+        if (Array.isArray(val)) {
+          val.forEach( item => {
+            if (typeof(item) === 'string') {
+              // Label this raw text with our parent label
+              verse.push( {[label]:item} );
+
+            } else {
+              verse.push( item );
+            }
+          });
+
+        } else {
+          // Label this sub-item with our parent label
+          verse.push( {[label]:json[key]} );
+        }
+
+        verses.set( usfm, verse );
+      });
+
+    } else {
+      /* There are no verses so process the child directly and add it to the 
+       * previous verse set.
+       *
+       * This is how we maintain inter-verse metadata.
+       *
+       * It appears at the end of the verse after which the metadata is
+       * found.
+       */
+      const elJson  = _parseEl( $, el );
+
+      verse.push( elJson );
+    }
+  });
+
+  // Record the verse count
+  chJson.verse_count = verses.size;
+
+  /* Flatten our `verses` map into a simpler `verse` object within the
+   * containing chapter, indexed by verse number.
+   */
+  verses.forEach( (verse, id) => {
+    const [ bk, ch, vs ] = id.split('.');
+
+    chJson.verses[ vs ] = verse;
+  });
+
+  return chJson;
 }
 
 /**
@@ -189,13 +307,18 @@ function _parseEl( $, el ) {
   const children  = el.children || [];  //$el.children();
   let   json;
 
+  // Flatten elements that are 'content' or 'heading'
   if (label === 'content') {
+    return $el.text();
+  }
+  if (label === 'heading') {
     return $el.text();
   }
 
   if (children.length < 1) {
     // NO children
     if (label === 'text') {
+      // JUST a text node so no need for a 'text' label
       json = $el.text();
 
     } else {
@@ -212,13 +335,17 @@ function _parseEl( $, el ) {
     const chJson  = _parseEl( $, ch );
     if (chJson) {
       if (chJson.body) {
+        // Flatten this child's body...
         if (Array.isArray(chJson.body)) {
+          // Merge this array into the top-level set
           ar = ar.concat( chJson.body );
         } else {
+          // Push  item into the top-level set
           ar.push( chJson.body );
         }
 
       } else {
+        // Push the entire child json into the top-level set
         ar.push( chJson );
       }
     }
