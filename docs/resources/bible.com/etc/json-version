@@ -206,9 +206,11 @@ function _parseChapter( $, $chap, filter ) {
     verse_count : 0,
     metadata    : [],
     verses      : {},
+    fullText    : {},
   };
-  const verses  = new Map();
-  let   verse   = chJson.metadata;
+  const verses    = new Map();
+  const fullText  = new Map();
+  let   verse     = chJson.metadata;
 
   $chap.each( (jdex, el) => {
     /* Remember the "label" for this child element.
@@ -233,12 +235,16 @@ function _parseChapter( $, $chap, filter ) {
 
         verse = (verses.get( usfm ) || []);
 
-        const json  = _parseEl( $, vs );
-        const key   = Object.keys( json ).shift();
-        const val   = json[key];
+        const curText = (fullText.get( usfm ) || []);
+        const json    = _parseEl( $, vs );
+        const key     = Object.keys( json ).shift();
+        const val     = json[key];
 
         if (Array.isArray(val)) {
           val.forEach( item => {
+            const text  = _verseText( label, item );
+            if (text) { curText.push( text ) }
+
             if (typeof(item) === 'string') {
               // Label this raw text with our parent label
               verse.push( {[label]:item} );
@@ -250,10 +256,14 @@ function _parseChapter( $, $chap, filter ) {
 
         } else {
           // Label this sub-item with our parent label
+          const text  = _verseText( label, json[key] );
+          if (text) { curText.push( text ) }
+
           verse.push( {[label]:json[key]} );
         }
 
-        verses.set( usfm, verse );
+        verses.set(   usfm, verse );
+        fullText.set( usfm, curText );
       });
 
     } else {
@@ -278,12 +288,46 @@ function _parseChapter( $, $chap, filter ) {
    * containing chapter, indexed by verse number.
    */
   verses.forEach( (verse, id) => {
-    const [ bk, ch, vs ] = id.split('.');
-
+    const [ bk, ch, vs ]  = id.split('.');
+    const text            = fullText.get( id )
+                              .join(' ')
+                              .replaceAll(/\s+/g, ' ')
+                              .trim();
     chJson.verses[ vs ] = verse;
+    chJson.fullText[ vs ] = text;
   });
 
   return chJson;
+}
+
+/**
+ *  Given a label and object, extract verse-related text.
+ *  @method _verseText
+ *  @param  label   The label to be applied to this item {String};
+ *  @param  item    The verse-related item {Object | String};
+ *
+ *  @return Verse-related text {String | undefined};
+ *  @private
+ */
+function _verseText( label, item ) {
+  const exclude = [
+    'label', 'note.f', 'note.fe', 'note.ef', 'note.x', 'note.ex',
+  ];
+
+  if (exclude.includes(label))    { return }
+  if (typeof(item) === 'string')  { return item };
+
+  const text    = [];
+  for (let key in item) {
+    if (exclude.includes(key))  { continue }
+
+    const val = item[key];
+    if (typeof(val) === 'string') {
+      text.push( val );
+    }
+  }
+
+  return text.join(' ');
 }
 
 /**
