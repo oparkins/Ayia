@@ -1,5 +1,6 @@
 const Versions  = require('./versions');
 const Books     = require('./books');
+const Parse     = require('./parse');
 
 module.exports  = {
   getVersions:  Versions.getVersions,
@@ -8,4 +9,6 @@ module.exports  = {
 
   getBooks:     Books.getBooks,
   getBook:      Books.getBook,
+
+  toJson:       Parse.toJson,
 };
