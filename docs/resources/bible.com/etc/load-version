@@ -1,0 +1,319 @@
+#!/usr/bin/env node
+/**
+ *  Fetch a version, convert it to JSON format, and load into a mongodb
+ *  database.
+ *
+ *  Two collections will be used:
+ *    versions                Store metadata about the specific version;
+ *    %version.abbreviation%  Store book/chapter/verse data;
+ *
+ *    Each verse will be a single document of the form:
+ *      { _id     : %book-abbreviation%.%chapter#%.%verse#%
+ *        markup  : [
+ *          { %type%: %type-specific-data% },
+ *          ...
+ *        ],
+ *        text    : Full text of this verse {String};
+ *      }
+ */
+const Mongodb = require('mongodb');
+const Bible   = require('..');
+const config  = {
+  proto : 'mongodb',  //'mongodb+srv',
+  host  : 'localhost',
+  port  : 27017,
+  user  : 'ayia',
+  pass  : 'ayia',
+  db    : 'ayia',
+};
+
+async function main() {
+  const args      = process.argv.slice(1);
+  const vers      = args[1];
+  const mongoUri  = config.proto +'://'+ config.user +':'+ config.pass
+                  +     '@'+ config.host +':'+ config.port +'/'+ config.db;
+  let   ref_filter;
+  if (vers == null) { _usage( args ) }
+
+  if (args.length > 2) {
+    const [ only_bk, only_ch, only_vs ]  = args[2].split(/[ :\.]+/);
+
+    const book = Bible.getBook( only_bk );
+    if (book) {
+      ref_filter = book.abbr;
+
+      if (only_ch) {
+        ref_filter += `.${only_ch}`;
+        if (only_vs)  { ref_filter += `.${only_vs}` }
+      }
+    }
+  }
+  /*
+  console.log('>>> Version: %s %s', vers, (ref_filter || ''));
+  // */
+
+  const outUri  = mongoUri.replace(/:\/\/[^@]*@/, '://***:***@');
+
+  console.log('>>> Connecting to mongodb: %s ...', outUri);
+  const client = new Mongodb.MongoClient( mongoUri );
+  await client.connect();
+
+  // Send a ping to confirm a successful connection
+  const db  = client.db( config.db );
+
+  /*
+  await db.command({ ping: 1 });
+  console.log('>>> Pinged db[ %s ]', config.db);
+  // */
+
+  Bible.getVersion( vers )
+    .then( version => {
+      return _store_version_metadata( db, version )
+                .then( res => { return version } );
+    })
+    .then( version => {
+      const json = Bible.toJson( version, ref_filter );
+
+      return _store_version_books( db, version, json );
+    })
+    .catch(err => {
+      console.error('***', err);
+    })
+    .finally(() => {
+      client.close();
+    });
+}
+
+main().catch(console.dir);
+
+/****************************************************************************
+ * Private helpers {
+ *
+ */
+
+/**
+ *  Add/Update top-level metadata about the given version.
+ *  @method _store_version_metadata
+ *  @param  db      The database connection {Database};
+ *  @param  version The version meta-data {Object};
+ *
+ *  @return A promise for results {Promise};
+ *  @private
+ */
+async function _store_version_metadata( db, version ) {
+  const col     = db.collection('versions');
+  const outVers = { ...version };
+  delete outVers.books;
+
+  const query   = { id: version.id };
+  const update  = { $set: { ...outVers } };
+  const opts    = { upsert: true };
+
+  await col.updateOne(query, update, opts);
+}
+
+/**
+ *  Write version data to the database.
+ *  @method _store_version_books
+ *  @param  db      The database connection {Database};
+ *  @param  version The version meta-data {Object};
+ *  @param  json    The parsed version data {Object};
+ *
+ *  The parsed version data should have the form:
+ *    {
+ *      abbreviation: {String},
+ *      ...
+ *      books: {
+ *        %abbrev: {
+ *          metadata: { ... },
+ *          chapters: {
+ *            %chapter#%: {
+ *              verse_count:  {Number};
+ *              label:        {String};
+ *              verses: {
+ *                %verse#%: [ // markup data
+ *                  { %type%: %type-specific-data% },
+ *                  ...
+ *                ],
+ *                ...
+ *              },
+ *              fullText: {
+ *                %verse#%: {String},
+ *                ...
+ *              },
+ *            },
+ *            ...
+ *          }
+ *        },
+ *        ...
+ *      }
+ *    }
+ *
+ *  @return A promise for results {Promise};
+ *  @private
+ */
+async function _store_version_books( db, version, json ) {
+  const abbrev  = version.abbreviation;
+  const col     = db.collection( abbrev );
+
+  console.log('>>> Update %s ...', version.abbreviation);
+  for (let name in json.books ) {
+    const book  = json.books[ name ];
+
+    await _store_version_book( col, abbrev, name, book );
+  }
+}
+
+/**
+ *  Write data for a single book to the database.
+ *  @method _store_version_book
+ *  @param  col     The database collection for the target version
+ *                  {Collection};
+ *  @param  vers    The name of the version {String};
+ *  @param  name    The (abbreviated) name of this book {String};
+ *  @param  book    The parsed version data for the current book {Object};
+ *
+ *  The parsed version data should have the form:
+ *    {
+ *      metadata: { ... },
+ *      chapters: {
+ *        %chapter#%: {
+ *          verse_count:  {Number};
+ *          label:        {String};
+ *          verses: {
+ *            %verse#%: [ // markup data
+ *              { %type%: %type-specific-data% },
+ *              ...
+ *            ],
+ *            ...
+ *          },
+ *          fullText: {
+ *            %verse#%: {String},
+ *            ...
+ *          },
+ *        },
+ *        ...
+ *      }
+ *    }
+ *
+ *  @return A promise for results {Promise};
+ *  @private
+ */
+async function _store_version_book( col, vers, name, book ) {
+  const bulkWrite = [];
+
+  //const updateOpts  = { upsert: true };
+
+  for (let chpId in book.chapters) {
+    const chap  = book.chapters[chpId];
+    for (let vsId in chap.verses) {
+      const markup  = chap.verses[vsId];
+      const text    = chap.fullText[vsId];
+      const ref_id  = _generate_ref_id( name, chpId, vsId );
+      const doc     = { _id:ref_id, text, markup };
+
+      //docs.push( doc );
+
+      bulkWrite.push( {
+        updateOne: {
+          filter: { _id: doc._id },
+          update: {$set: doc},
+          upsert : true
+        }
+      });
+    }
+  }
+
+  console.log('>>>> Bulk write %d verse entries for %s %s ...',
+              bulkWrite.length, vers, name);
+
+  try {
+    const res = await col.bulkWrite( bulkWrite, { ordered : false } );
+
+    console.log('>>>> Bulk write complete for %s %s:', vers, name);
+    //console.dir( res );
+    console.log('>>>>   inserted: %d', res.insertedCount);
+    console.log('>>>>   matched : %d', res.matchedCount);
+    console.log('>>>>   modified: %d', res.modifiedCount);
+    console.log('>>>>   deleted : %d', res.deletedCount);
+    console.log('>>>>   upserted: %d', res.upsertedCount);
+
+  } catch(ex) {
+    console.error('**** Bulk write error:', ex);
+
+    throw ex;
+  }
+
+  /*
+  try {
+    const res = await col.insertMany(docs);
+
+    console.log('>>> Inserted %d verse entries for %s %s',
+                res.insertedCount, vers, name);
+    //let   ids = res.insertedIds;
+    //for (let id of Object.values(ids)) {
+    //  console.log(`Inserted a document with id ${id}`);
+    //}
+  } catch(err) {
+    if (err.result) {
+      const res = err.result.result;
+      //const ids = res.insertedIds;
+      //for (let id of Object.values(ids)) {
+      //  console.log(`Processed a document with id ${id._id}`);
+      //}
+
+      console.error('*** Error inserting verse entries for %s %s: '
+                    +           'inserted %d / %d',
+                    vers, name,
+                    res.nInserted, docs.length);
+    } else {
+      // Re-throw this error
+      throw err;
+    }
+  }
+  // */
+}
+
+/**
+ *  Generate a sortable id for the given book, chapter, and verse.
+ *  @method _generate_ref_id
+ *  @param  book    The name of the book {String};
+ *  @param  chapter The chapter id {String};
+ *  @param  verse   The verse id {String};
+ *
+ *  @return The sortable id {String};
+ *  @private
+ */
+function _generate_ref_id( book, chapter, verse ) {
+  const chpNum  = String(chapter).padStart(3, '0');
+  const vrsNum  = String(verse).padStart(3, '0');
+
+  const id  = `${book}.${chpNum}.${vrsNum}`;
+
+  return id;
+}
+
+/**
+ *  Present usage information and exit.
+ *  @method _usage
+ *  @param  args    The incoming arguments {Array};
+ *
+ *  @return void  (exits the process)
+ *  @private
+ */
+function _usage( args ) {
+  const Path  = require('path');
+  const prog  = Path.basename( args[0] );
+  console.log(`
+***
+*** Usage: ${prog} version-abbreviation [book[.chapter[.verse]]]
+***
+`);
+
+  process.exit(-1);
+}
+
+/* Private helpers }
+ ****************************************************************************/
+
+// vi: ft=javascript
