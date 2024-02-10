@@ -108,8 +108,9 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
      * Process this as a chapter with verses
      *
      */
+    const firstUsFm = `${abbrev}.${chp}.1`;
     const $chaps    = $( '.chapter' ).children();
-    bkJson.chapters[ chp ] = _parseChapter( $, $chaps, filter );
+    bkJson.chapters[ chp ] = _parseChapter( $, $chaps, firstUsFm, filter );
   });
 
   return bkJson;
@@ -146,30 +147,32 @@ function _parseIntro( $, $intro, filter ) {
 /**
  *  Parse a chapter.
  *  @method _parseChapter
- *  @param  $       The top-level Cheerio instance {Cheerio};
- *  @param  $chap   The chapter element(s) {Cheerio};
- *  @param  filter  If provided, a filter to limit the output {RegExp};
+ *  @param  $         The top-level Cheerio instance {Cheerio};
+ *  @param  $chap     The chapter element(s) {Cheerio};
+ *  @param  firstUsFm The absolute reference for the first verse {String};
+ *  @param  [filter]  If provided, a filter to limit the output {RegExp};
  *
  *  @return A simple object representing the chapter {Object};
  *  @private
  */
-function _parseChapter( $, $chap, filter ) {
+function _parseChapter( $, $chap, firstUsFm, filter=null ) {
   /* Use a Map to merge all elements that comprise verses (.verse[data-usfm])
    * into arrays indexed by verse reference (data-usfm).
    *
    * Any non-verse metadata will be added to the previous "verse".
-   * Metadata found before the first verse will be placed in the chapter
-   * metadata array.
+   *
+   * The first 'label' will be used as the chapter label.
    */
   const chJson  = {
     verse_count : 0,
-    metadata    : [],
+    label       : null,
     verses      : {},
     fullText    : {},
   };
   const verses    = new Map();
   const fullText  = new Map();
-  let   verse     = chJson.metadata;
+  let   verse     = (verses.get( firstUsFm ) || []);
+  verses.set( firstUsFm, verse );
 
   $chap.each( (jdex, el) => {
     /* Remember the "label" for this child element.
@@ -194,13 +197,21 @@ function _parseChapter( $, $chap, filter ) {
 
         verse = (verses.get( usfm ) || []);
 
+        // Retrieve the current fullText for this verse
         const curText = (fullText.get( usfm ) || []);
+
+        // Parse this version into JSON form and retrieve the first key/value.
         const json    = _parseEl( $, vs );
         const key     = Object.keys( json ).shift();
         const val     = json[key];
 
         if (Array.isArray(val)) {
+          // Process an array of verse elements
           val.forEach( item => {
+            /*
+            console.log('label[ %s ], key[ %s ], item:', label, key, item);
+            // */
+
             const text  = _verseText( label, item );
             if (text) { curText.push( text ) }
 
@@ -215,6 +226,10 @@ function _parseChapter( $, $chap, filter ) {
 
         } else {
           // Label this sub-item with our parent label
+          /*
+          console.log('label[ %s ], key[ %s ], val:', label, key, json[key]);
+          // */
+
           const text  = _verseText( label, json[key] );
           if (text) { curText.push( text ) }
 
@@ -236,7 +251,17 @@ function _parseChapter( $, $chap, filter ) {
        */
       const elJson  = _parseEl( $, el );
 
-      verse.push( elJson );
+      /*
+      console.log('label[ %s ], NO verses:', label, elJson);
+      // */
+
+      if (chJson.label == null && elJson.label != null) {
+        // Use this label as the chapter label.
+        chJson.label = elJson.label;
+
+      } else {
+        verse.push( elJson );
+      }
     }
   });
 
