@@ -19,19 +19,20 @@
 const Mongodb = require('mongodb');
 const Bible   = require('..');
 const config  = {
-  proto : 'mongodb',  //'mongodb+srv',
-  host  : 'localhost',
-  port  : 27017,
-  user  : 'ayia',
-  pass  : 'ayia',
-  db    : 'ayia',
+  proto   : 'mongodb',  //'mongodb+srv',
+  host    : 'localhost',
+  port    : 27017,
+  database: 'ayia',
+  user    : 'ayia',
+  password: 'J5nXwnCQ3wlL4xHjlBqwbwGwIqdRld8W',
 };
 
 async function main() {
   const args      = process.argv.slice(1);
   const vers      = args[1];
-  const mongoUri  = config.proto +'://'+ config.user +':'+ config.pass
-                  +     '@'+ config.host +':'+ config.port +'/'+ config.db;
+  const mongoUri  = config.proto +'://'+ config.user +':'+ config.password
+                  +     '@'+ config.host +':'+ config.port
+                  +     '/'+ config.database;
   let   ref_filter;
   if (vers == null) { _usage( args ) }
 
@@ -59,11 +60,11 @@ async function main() {
   await client.connect();
 
   // Send a ping to confirm a successful connection
-  const db  = client.db( config.db );
+  const db  = client.db( config.database );
 
   /*
   await db.command({ ping: 1 });
-  console.log('>>> Pinged db[ %s ]', config.db);
+  console.log('>>> Pinged db[ %s ]', config.database);
   // */
 
   Bible.getVersion( vers )

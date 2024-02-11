@@ -1,0 +1,16 @@
+apiVersion: v2
+name: mongodb-ayia
+version:  1.0.0
+appVersion: 1.0.0
+home: https://github.com/oparkins/Ayia
+description: A mongo-based Bible application.
+dependencies:
+  - name: mongodb
+    repository: oci://registry-1.docker.io/bitnamicharts
+    version: 14.8.1
+keywords:
+  - Bible
+  - mongodb
+maintainers:
+  - name: Owen Parkins
+  - name: D. Elmo Peele

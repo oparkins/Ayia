@@ -1,0 +1,18 @@
+global: #{
+  # The length of randomly generated secrets
+  secretLen:  32
+#} global
+
+mongodb: #{
+  image: #{
+    # :XXX: Use the latest v4 which does NOT require the CPU to support AVX
+    tag: 4.2.21-debian-10-r8
+  #} mongodb.image
+
+  auth: #{
+    username: ayia
+    database: ayia
+
+    existingSecret: ayia-mongodb
+  #} mongodb.auth
+#} mongodb

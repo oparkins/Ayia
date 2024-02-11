@@ -4,7 +4,7 @@
 #
 #   mongo-secrets
 #
-SEC='mongodb'
+SEC='ayia-mongodb'
 
 echo "Mongodb ($SEC):"
 kubectl get secret/$SEC -o yaml 2>&1 | awk '

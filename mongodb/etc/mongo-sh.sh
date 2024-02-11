@@ -1,5 +1,5 @@
 #!/bin/bash
 #
-DEPLOY='mongodb'
+DEPLOY='ayia-mongodb'
 
 kubectl exec -it deploy/$DEPLOY -- bash
