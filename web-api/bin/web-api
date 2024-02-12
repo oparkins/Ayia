@@ -4,9 +4,11 @@ const Yargs   = require('yargs');
 const Express = require('express');
 const Http    = require('http');
 
-const load_config = require('../lib/load_config');
+const load_config   = require('../lib/load_config');
+const mongo_connect = require('../lib/mongo');
 
-const args  = Yargs( process.argv )
+const args  = Yargs
+	.usage('Start an Ayia web API server')
   .options({
     c: {
       alias   : 'config',
@@ -24,17 +26,40 @@ const args  = Yargs( process.argv )
     h: { alias : [ '?', 'help' ] },
   })
   .help()
-  .argv;
+  .parse();
 
-const config  = load_config( args );
-const app     = Express();
+async function main() {
+  const config  = load_config( args );
+  const mongo   = await mongo_connect( config.mongodb );
+  const app     = Express();
 
-// Routes external to Svelte {
-app.get('/healthcheck', (req, res) => { res.end('ok') });
-app.get('/config',      (req, res) => { res.status( 200 ).json( config ) });
-// Routes external to Svelte }
+  // Routes external to Svelte {
+  app.get('/healthcheck', (req, res) => { res.end('ok') });
+  app.get('/config',      (req, res) => { res.status( 200 ).json( config ) });
+  // Routes external to Svelte }
 
-const server = Http.createServer( app );
-server.listen( config.web_api, () => {
-  console.log('>>> Listenting:', server.address());
-});
+  // Create a server
+  let server = Http.createServer( app );
+
+  // Establish signal/exit handlers {
+  const onExit  = (event) => {
+    console.log(' :', event);
+    if (server) { server.close(); server = null; }
+  };
+
+  process.on('SIGINT',  onExit);
+  process.on('SIGTERM', onExit);
+  // Establish signal/exit handlers }
+
+  server.on('close', (event) => {
+    // On server close, close our database connection
+    if (mongo.client) { mongo.client.close(); mongo.client = null; }
+  });
+
+  // Listen according to the connection settings in `config.web_api`
+  server.listen( config.web_api, () => {
+    console.log('>>> Listenting:', server.address());
+  });
+}
+
+main().catch(console.dir);
