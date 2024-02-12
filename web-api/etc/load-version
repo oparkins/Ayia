@@ -16,19 +16,18 @@
  *        text    : Full text of this verse {String};
  *      }
  */
-const Path        = require('path');
-const Mongodb     = require('mongodb');
-const Bible       = require('../lib');
-const load_config = require('../lib/load_config');
-const configPath  = Path.join( __dirname, 'config.yaml' );
-const config      = load_config( {config: configPath} ).mongodb;
+const Path          = require('path');
+const Bible         = require('../lib');
+const load_config   = require('../lib/load_config');
+const mongo_connect = require('../lib/mongo');
+const configPath    = Path.join( __dirname, 'config.yaml' );
+const config        = load_config( {config: configPath} );
 
 async function main() {
-  const args      = process.argv.slice(1);
-  const vers      = args[1];
-  const mongoUri  = config.proto +'://'+ config.user +':'+ config.password
-                  +     '@'+ config.host +':'+ config.port
-                  +     '/'+ config.database;
+  const args  = process.argv.slice(1);
+  const vers  = args[1];
+  const mongo = await mongo_connect( config.mongodb );
+
   let   ref_filter;
   if (vers == null) { _usage( args ) }
 
@@ -49,35 +48,25 @@ async function main() {
   console.log('>>> Version: %s %s', vers, (ref_filter || ''));
   // */
 
-  const outUri  = mongoUri.replace(/:\/\/[^@]*@/, '://***:***@');
-
-  console.log('>>> Connecting to mongodb: %s ...', outUri);
-  const client = new Mongodb.MongoClient( mongoUri );
-  await client.connect();
-
-  // Send a ping to confirm a successful connection
-  const db  = client.db( config.database );
-
-  /*
-  await db.command({ ping: 1 });
-  console.log('>>> Pinged db[ %s ]', config.database);
-  // */
-
   Bible.getVersion( vers )
     .then( version => {
-      return _store_version_metadata( db, version )
+      return _store_version_metadata( mongo.collections.versions, version )
                 .then( res => { return version } );
     })
     .then( version => {
-      const json = Bible.toJson( version, ref_filter );
+      const json    = Bible.toJson( version, ref_filter );
 
-      return _store_version_books( db, version, json );
+      // Access the collection for this version
+      const abbrev  = version.abbreviation;
+      const col     = mongo.db.collection( abbrev );
+
+      return _store_version_books( col, version, json );
     })
     .catch(err => {
       console.error('***', err);
     })
     .finally(() => {
-      client.close();
+      mongo.client.close();
     });
 }
 
@@ -91,14 +80,13 @@ main().catch(console.dir);
 /**
  *  Add/Update top-level metadata about the given version.
  *  @method _store_version_metadata
- *  @param  db      The database connection {Database};
+ *  @param  col     The database 'versions' collection {Collection};
  *  @param  version The version meta-data {Object};
  *
  *  @return A promise for results {Promise};
  *  @private
  */
-async function _store_version_metadata( db, version ) {
-  const col     = db.collection('versions');
+async function _store_version_metadata( col, version ) {
   const outVers = { ...version };
   delete outVers.books;
 
@@ -112,7 +100,8 @@ async function _store_version_metadata( db, version ) {
 /**
  *  Write version data to the database.
  *  @method _store_version_books
- *  @param  db      The database connection {Database};
+ *  @param  col     The database collection for the target version
+ *                  {Collection};
  *  @param  version The version meta-data {Object};
  *  @param  json    The parsed version data {Object};
  *
@@ -154,11 +143,10 @@ async function _store_version_metadata( db, version ) {
  *  @return A promise for results {Promise};
  *  @private
  */
-async function _store_version_books( db, version, json ) {
+async function _store_version_books( col, version, json ) {
   const abbrev  = version.abbreviation;
-  const col     = db.collection( abbrev );
 
-  console.log('>>> Update %s ...', version.abbreviation);
+  console.log('>>> Update %s ...', abbrev);
   for (let name in json.books ) {
     const book  = json.books[ name ];
 
