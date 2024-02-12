@@ -6,17 +6,13 @@ const { MongoClient } = require('mongodb');
  *  @param  config    The mongodb portion of the top-level configuration/state
  *                    {Object};
  *
- *  @note   `config` will be updated to include:
- *            mongodb.client    The connected MongoClient {MongoClient};
+ *  @note   IF `config.mongodb.collection_map` exist, it should be an array of
+ *					the form:
+ *            %use_name%: '%dbName%.%collectionName'
+ *            ...
  *
- *            IF `config.mongodb.collection_map` exist, it should be an array
- *            of the form:
- *              %use_name%: '%dbName%.%collectionName'
- *              ...
- *
- *            This will result in connections to the named database(s) and
- *            collection(s) with additioonal entries added to
- *            `config.mongodb.db` object keyed by %use_name%.
+ *          This will result in connections to the named collections returned
+ *          as `collections` and keyed by %use_name%.
  *
  *  @return A promise for results {Promise};
  *          - on success, a connection object {Object};
@@ -29,10 +25,10 @@ async function connect( config ) {
   const dbName  = config.database;
   const uri     = `mongodb://${user}:${pass}@${config.host}:${config.port}/`
                 +     dbName;
+  const outUri	= uri.replace(/:\/\/[^@]*@/, '://***:***@');
 
-  /*
-  console.log('>>> mongo.connect(): to %s ...',
-              uri.replace(/:\/\/[^@]*@/, '://***:***@') );
+  // /*
+  console.log('>>> Connecting to %s ...', outUri);
   // */
 
   const client  = new MongoClient( uri );
