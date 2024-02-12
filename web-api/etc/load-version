@@ -17,22 +17,50 @@
  *      }
  */
 const Path          = require('path');
+const Yargs         = require('yargs');
 const Bible         = require('../lib');
 const load_config   = require('../lib/load_config');
 const mongo_connect = require('../lib/mongo');
-const configPath    = Path.join( __dirname, 'config.yaml' );
-const config        = load_config( {config: configPath} );
+
+const yargs	= Yargs
+	.usage('Fetch and load <vers> [<ref>]')
+  .positional('vers', {
+    describe: 'The desired version',
+    type    : 'string',
+  })
+  .positional('ref', {
+    describe: 'A filter to load just a specific BOK[.chap#[.verse#]]',
+    type    : 'string',
+	})
+  .options({
+    c: {
+      alias   : 'config',
+      describe: 'A YAML configuration file',
+      default : Path.resolve(
+                  Path.join( __dirname, 'config.yaml' )
+                ),
+      type    : 'string',
+    },
+    v: {
+      alias   : 'verbosity',
+      describe: 'Increase debug verbosity',
+      count   : true,
+    },
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help();
 
 async function main() {
-  const args  = process.argv.slice(1);
-  const vers  = args[1];
-  const mongo = await mongo_connect( config.mongodb );
+  const args        = yargs.parse();
+  const config      = load_config( args );
+  const [vers, ref] = args._;
 
   let   ref_filter;
-  if (vers == null) { _usage( args ) }
+  if (vers == null) { _usage( yargs ) }
 
-  if (args.length > 2) {
-    const [ only_bk, only_ch, only_vs ]  = args[2].split(/[ :\.]+/);
+  const mongo = await mongo_connect( config.mongodb );
+  if (ref != null) {
+    const [ only_bk, only_ch, only_vs ]  = ref.split(/[ :\.]+/);
 
     const book = Bible.getBook( only_bk );
     if (book) {
@@ -46,14 +74,18 @@ async function main() {
   }
   /*
   console.log('>>> Version: %s %s', vers, (ref_filter || ''));
+  return mongo.client.close();
   // */
 
+  console.log('>>> Fetch version: %s %s', vers, (ref_filter || ''));
   Bible.getVersion( vers )
     .then( version => {
+      console.log('>>>> Update %s metadata ...', version.abbreviation);
       return _store_version_metadata( mongo.collections.versions, version )
                 .then( res => { return version } );
     })
     .then( version => {
+      console.log('>>>> Convert %s data to JSON ...', version.abbreviation);
       const json    = Bible.toJson( version, ref_filter );
 
       // Access the collection for this version
@@ -146,7 +178,7 @@ async function _store_version_metadata( col, version ) {
 async function _store_version_books( col, version, json ) {
   const abbrev  = version.abbreviation;
 
-  console.log('>>> Update %s ...', abbrev);
+  console.log('>>>> Update book information for %s ...', abbrev);
   for (let name in json.books ) {
     const book  = json.books[ name ];
 
@@ -228,7 +260,7 @@ async function _store_version_book( col, vers, name, book ) {
   }
 
   process.stdout.write(
-    `>>>> Bulk write ${_format_num(bulkWrite.length, 5)} entries `
+    `>>>>> Bulk write ${_format_num(bulkWrite.length, 5)} entries `
     +     `for ${vers}.${name} ...` );
 
   try {
@@ -243,7 +275,7 @@ async function _store_version_book( col, vers, name, book ) {
 
   } catch(ex) {
     process.stdout.write('\n');
-    console.error('**** Bulk write error:', ex);
+    console.error('****** Bulk write error:', ex);
 
     throw ex;
   }
@@ -274,19 +306,13 @@ function _generate_ref_id( book, chapter, verse=null ) {
 /**
  *  Present usage information and exit.
  *  @method _usage
- *  @param  args    The incoming arguments {Array};
+ *  @param  yaargs  The configured parser {Yargs};
  *
  *  @return void  (exits the process)
  *  @private
  */
-function _usage( args ) {
-  const Path  = require('path');
-  const prog  = Path.basename( args[0] );
-  console.log(`
-***
-*** Usage: ${prog} version-abbreviation [book[.chapter[.verse]]]
-***
-`);
+function _usage( yargs ) {
+	yargs.showHelp();
 
   process.exit(-1);
 }
