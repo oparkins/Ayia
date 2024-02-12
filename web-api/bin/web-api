@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+const Path    = require('path');
+const Yargs   = require('yargs');
+const Express = require('express');
+const Http    = require('http');
+
+const load_config = require('../lib/load_config');
+
+const args  = Yargs( process.argv )
+  .options({
+    c: {
+      alias   : 'config',
+      describe: 'A YAML configuration file',
+      default : Path.resolve(
+                  Path.join( __dirname, '..', 'etc', 'config.yaml' )
+                ),
+      type    : 'string',
+    },
+    v: {
+      alias   : 'verbosity',
+      describe: 'Increase debug verbosity',
+      count   : true,
+    },
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help()
+  .argv;
+
+const config  = load_config( args );
+const app     = Express();
+
+// Routes external to Svelte {
+app.get('/healthcheck', (req, res) => { res.end('ok') });
+app.get('/config',      (req, res) => { res.status( 200 ).json( config ) });
+// Routes external to Svelte }
+
+const server = Http.createServer( app );
+server.listen( config.web_api, () => {
+  console.log('>>> Listenting:', server.address());
+});

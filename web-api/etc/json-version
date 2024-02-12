@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+/**
+ *  Fetch a version and convert all data to JSON format.
+ *
+ */
+const Bible = require('../lib');
+
+async function main() {
+  const args  = process.argv.slice(1);
+  const vers  = args[1];
+  let   ref_filter;
+  if (vers == null) { _usage( args ) }
+
+  if (args.length > 2) {
+    const [ only_bk, only_ch, only_vs ]  = args[2].split(/[ :\.]+/);
+
+    const book = Bible.getBook( only_bk );
+    if (book) {
+      ref_filter = book.abbr;
+
+      if (only_ch) {
+        ref_filter += `.${only_ch}`;
+        if (only_vs)  { ref_filter += `.${only_vs}` }
+      }
+    }
+  }
+  /*
+  console.log('>>> Version: %s %s', vers, (ref_filter || ''));
+  // */
+
+  Bible.getVersion( vers )
+    .then( version => {
+      json = Bible.toJson( version, ref_filter );
+
+      console.log( JSON.stringify( json, null, 2 ) );
+    })
+    .catch(err => {
+      console.error('***', err);
+    });
+}
+
+main();
+
+/****************************************************************************
+ * Private helpers {
+ *
+ */
+
+/**
+ *  Present usage information and exit.
+ *  @method _usage
+ *  @param  args    The incoming arguments {Array};
+ *
+ *  @return void  (exits the process)
+ *  @private
+ */
+function _usage( args ) {
+  const Path  = require('path');
+  const prog  = Path.basename( args[0] );
+  console.log(`
+***
+*** Usage: ${prog} version-abbreviation [book[.chapter[.verse]]]
+***
+`);
+
+  process.exit(-1);
+}
+
+/* Private helpers }
+ ****************************************************************************/
+
+// vi: ft=javascript
