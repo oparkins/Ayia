@@ -4,8 +4,9 @@ const Yargs   = require('yargs');
 const Express = require('express');
 const Http    = require('http');
 
-const load_config   = require('../lib/load_config');
-const mongo_connect = require('../lib/mongo');
+const load_config     = require('../lib/load_config');
+const mongo_connect   = require('../lib/mongo');
+const add_api_routes  = require('../api');
 
 const args  = Yargs
 	.usage('Start an Ayia web API server')
@@ -33,10 +34,18 @@ async function main() {
   const mongo   = await mongo_connect( config.mongodb );
   const app     = Express();
 
+  /* Mix-in `mongo` to `config.mongodb` to make our mongo connections available
+   * where needed.
+   */
+  Object.assign( config.mongodb, mongo );
+
   // Routes external to Svelte {
   app.get('/healthcheck', (req, res) => { res.end('ok') });
   app.get('/config',      (req, res) => { res.status( 200 ).json( config ) });
   // Routes external to Svelte }
+
+  // Attach additional API routes
+  add_api_routes( app, config );
 
   // Create a server
   let server = Http.createServer( app );
