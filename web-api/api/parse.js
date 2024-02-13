@@ -291,6 +291,7 @@ function parse_ref( ref ) {
 
     // Propagte from components to missing to components
     if (toBook    == null) { toBook    = fromBook }
+    else                   { toBook    = toBook.toUpperCase() }
     if (toChapter == null) { toChapter = fromChapter }
     else                   { toChapter = __convertNum( toChapter ) }
 
