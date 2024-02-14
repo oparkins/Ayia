@@ -17,3 +17,7 @@ echo "========================================================"
 echo ">>> NIV/GEN.50.25-30"
 curl -Lks http://localhost:4000/api/v1/versions/niv/gen.50.25-30
 echo
+echo "========================================================"
+echo ">>> NIV/GEN.1"
+curl -Lks http://localhost:4000/api/v1/versions/niv/gen.1
+echo
