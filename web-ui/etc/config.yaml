@@ -1,0 +1,13 @@
+verbosity:  1
+
+# web-ui settings
+web_ui: # {
+  #port: 3000
+  port: 5173
+# } web_ui
+
+# Access to web-services (REST and JsonRPC)
+web_services: # {
+  host: web-services.test
+  port: 443
+#} web_services

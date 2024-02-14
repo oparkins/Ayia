@@ -1,0 +1,117 @@
+#!/bin/bash
+#
+# Retrieve and localize a set of CSS-based font resources.
+#
+SCRIPT=$(realpath -P "$0")
+   ETC=$(dirname "$SCRIPT")
+  ROOT=$(dirname "$ETC")
+
+# URLs to CSS font resources that will be localized
+URLS=(
+  'https://fonts.googleapis.com/icon?family=Material+Icons'
+  'https://fonts.googleapis.com/css?family=Roboto:300,400,500,600,700'
+  'https://fonts.googleapis.com/css?family=Roboto+Mono'
+)
+
+#############################################################################
+DIR_TEMPS="$ROOT/tmp/fonts"
+DIR_STYLE="$ROOT/static/css"
+DIR_FONTS="$ROOT/static/css/fonts"
+
+[ ! -d "$DIR_TEMPS" ] && mkdir -p "$DIR_TEMPS"
+[ ! -d "$DIR_STYLE" ] && mkdir -p "$DIR_STYLE"
+[ ! -d "$DIR_FONTS" ] && mkdir -p "$DIR_FONTS"
+
+##
+# Given the URL of a CSS font file, fetch all resources and generate a
+# localized version
+# @method localize_font
+# @param  url   The URL to the CSS font file {String};
+#
+function localize_font() {
+  URL="$*"
+  NAME="$(echo "$URL" \
+          | sed -E 's/^.*family=([A-Za-z+]+):?.*$/\1/;s/\+/-/g' \
+          | tr [:upper:] [:lower:])"
+
+  if [ -z "$NAME" -o "$NAME" == "$URL" ]; then
+    echo "*** Cannot determine family name for [ $URL ] : skip"
+    return
+  fi
+
+  echo -n ">>> Fetch $URL ..."
+  curl -Lkso "$DIR_TEMPS/$NAME" "$URL"
+  RC=$?
+  if [ $RC -eq 0 ]; then
+    echo ". done"
+  else
+    echo "*** Failed [ $RC ]"
+    return
+  fi
+
+  # Generate a map from original to local URL :
+  #   orig<=>local
+  echo ">>> Generate URL mapping ..."
+  awk -v FONT_PATH=fonts -v NAME=$NAME -v single="'" '
+    /@font-face/{
+      FAMILY = NAME;
+      STYLE  = "normal";
+      WEIGHT = "400";
+    }
+    /font-family:/{
+      gsub(single, ""); gsub(/;/, "");
+
+      FAMILY = "";
+      for(idex = 2; idex <= NF; idex++) {
+        if (length(FAMILY) > 0) { FAMILY = FAMILY "-" }
+        FAMILY = FAMILY tolower( $idex );
+      }
+    }
+    /font-style:/{
+      gsub(single, ""); gsub(/;/, "");
+      STYLE = tolower( $2 );
+    }
+    /font-weight:/{
+      gsub(single, ""); gsub(/;/, "");
+      WEIGHT = tolower( $2 );
+    }
+    /src:/{
+      url    = substr( $2, 5, length($2) - 5 );
+      type   = substr( url, length(url) - 2 );
+      newUrl = FONT_PATH "/" FAMILY "-" STYLE "-" WEIGHT "." type;
+
+      printf("%s<=>%s\n", url, newUrl);
+    }
+    {next}' "$DIR_TEMPS/$NAME" > "$DIR_TEMPS/$NAME.map"
+
+  # Copy the source CSS to a version we will localize
+  LOCAL_CSS="$DIR_STYLE/$NAME.css"
+  cp "$DIR_TEMPS/$NAME" "$LOCAL_CSS"
+
+  # Fetch all font files, updating our localized CSS as we go
+  for LINE in $(cat "$DIR_TEMPS/$NAME.map"); do
+    MAP=( $(echo "$LINE" | sed 's/<=>/ /') )
+    URL_FROM="${MAP[0]}"
+    URL_TO="${MAP[1]}"
+
+    URL_DL="$DIR_FONTS/$(basename "$URL_TO")"
+
+    echo -n ">>> Fetch font resource to $URL_TO ..."
+    curl -Lkso "$URL_DL" "$URL_FROM"
+    RC=$?
+    if [ $RC -eq 0 ]; then
+      echo ". done"
+    else
+      echo "*** Failed [ $RC ]"
+      continue
+    fi
+
+    # Replace the font URL
+    sed -i 's#'$URL_FROM'#'$URL_TO'#g' "$LOCAL_CSS"
+  done
+}
+
+#############################################################################
+for URL in ${URLS[@]}; do
+  localize_font "$URL"
+done
