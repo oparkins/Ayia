@@ -1,4 +1,5 @@
-const parse = require('../parse');
+const parse     = require('../parse');
+const generate  = require('../generate');
 
 /**
  *  Attach routes, initializing anything required to use them.
@@ -17,6 +18,14 @@ const parse = require('../parse');
  *      Fetch metadata about a single version
  *        => 200    : Version
  *        => [45]xx : { error }
+ *
+ *    GET /api/v1/versions/:id/:ref
+ *      Fetch the references verse(s) from the target version where `:ref` has
+ *      the form:
+ *        BOOK[.chapter[.verse[-[.chapter].verse]]]
+ *
+ *        => 200    : { total: {Number}, verses:[ Verse, ... ] }
+ *        => [45]xx : { error }
  */
 function attach( router, config ) {
   // Attach routes
@@ -26,6 +35,10 @@ function attach( router, config ) {
 
   router.get( '/versions/:id', (req,res) => {
     _version_get( config, req, res );
+  });
+
+  router.get( '/versions/:id/:ref', (req,res) => {
+    _verses_get( config, req, res );
   });
 }
 
@@ -133,8 +146,8 @@ async function _versions_get( config, req, res ) {
  *  @param  req     The incoming request {Request};
  *  @param  res     The outgoing response {Response};
  *
- *  @note Uses `req.params.id` or `req.query.id` to identify the target
- *        version.
+ *  Required request parameters/query (req.params | req.query):
+ *    id      The id of the target version {String | Number};
  *
  *  @return A promise for results {Promise};
  *  @private
@@ -142,13 +155,113 @@ async function _versions_get( config, req, res ) {
 async function _version_get( config, req, res ) {
   const $versions = config.mongodb.collections.versions;
   const id        = (req.params.id || req.query.id);
+  const version   = await _fetch_version( id, $versions );
+
+  console.log('_version_get( %s ): %s ...',
+              id, (version ? version.abbreviation : null) );
+
+  if (version) {
+    res.status( 200 )
+      .json( version );
+
+  } else {
+    // Version not found
+    const json  = { error: `Unknown version ${id}` };
+
+    res.status( 404 )
+      .json( json );
+  }
+}
+
+/**
+ *  Fetch verses.
+ *  @method _verses_get
+ *  @param  config  Top-level configuration/state {Object};
+ *  @param  req     The incoming request {Request};
+ *  @param  res     The outgoing response {Response};
+ *
+ *  Required request parameters/query (req.params | req.query):
+ *    id      The id of the target version {String | Number};
+ *    ref     The reference to the target verse(s) {String};
+ *              VERS.BOOK[.chapter[.verse[-[.chapter].verse]]]
+ *
+ *  @return A promise for results {Promise};
+ *  @private
+ */
+async function _verses_get( config, req, res ) {
+  const $versions = config.mongodb.collections.versions;
+  const id        = ( req.params.id  || req.query.id );
+  const refStr    = ( req.params.ref || req.query.ref );
+
+  console.log('_verses_get(): id[ %s ], ref[ %s ] ...', id, refStr);
+
+  // Attempt to find the target version
+  const version = await _fetch_version( id, $versions );
+  if (version == null) {
+    // Version not found
+    const json  = { error: `Unknown version ${id}` }
+
+    res.status( 404 )
+      .json( json );
+    return;
+  }
+
+  // Parse/validate the incoming reference
+  const ref = parse.reference( refStr, version );
+  if (ref instanceof Error) {
+    const json  = { error: `Invalid ref ${refStr}: ${ref.message}` };
+
+    res.status( 404 )
+      .json( json );
+    return;
+  }
+
+  // Generate the set of verse references represented by the given ref.
+  const ids = generate.verse_ids( ref );
+
+  // Pull all target verses
+  const col   = config.mongodb.db.collection( version.abbreviation );
+  const query = { _id : { $in: ids } };
+  const opts  = { sort: { _id: 1 } };
+  const verses  = await col.find( query, opts ).toArray();
+
+  // Generate the final result
+  const json  = {
+    total : verses.length,
+    verses: verses.reduce( (obj,entry) => {
+              const id              = entry._id;
+              const [ bk, ch, vs ]  = id.split('.');
+              delete entry._id;
+
+              obj[ id ] = entry;
+              return obj;
+            }, {}),
+  };
+
+  /*
+  console.log('_verses_get( %s ):', refStr, _inspect(json));
+  // */
+
+  res.status( 200 )
+    .json( json );
+}
+
+/**
+ *  Retrieve the identified version.
+ *  @method _fetch_version
+ *  @param  id          The id of the target version {String | Number};
+ *  @param  [col=null]  The versions collection {Collection};
+ */
+async function _fetch_version( id, col=null ) {
   const id_num    = parse.num( id );
   const ID        = (typeof(id) === 'string'
                         ? id.toUpperCase()
                         : id);
 
+  if (col == null)  { col = config.mongodb.collections.versions }
+
   /*
-  console.log('_version_get(): id[ %s ]', id);
+  console.log('_fetch_version(): id[ %s ]', id);
   // */
 
   const query = {
@@ -160,16 +273,14 @@ async function _version_get( config, req, res ) {
       {local_title       : id},
     ],
   };
-  const doc   = await $versions.findOne( query );
+  const doc   = await col.findOne( query );
 
   /*
-  console.log('_version_get(): id[ %s ], doc:', id, doc);
+  console.log('_fetch_version(): id[ %s ], doc:', id, doc);
   // */
 
-  res.status( 200 )
-    .json( doc );
+  return doc;
 }
-
 /* Private helpers }
  ****************************************************************************/
 

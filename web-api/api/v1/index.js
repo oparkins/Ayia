@@ -3,8 +3,6 @@ const Express         = require('express');
 
 const api_routes  = {
   versions: require('./versions'),
-  verses  : require('./verses'),
-  //version : require('./version'),
 };
 
 /**
