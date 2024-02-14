@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-const Parse = require('../api/parse');
+const Parse     = require('../api/parse');
+const Generate  = require('../api/generate');
 
-const refs  = [
-  'GEN',
+const tests = [
   'GEN.1',
   'GEN.1.2',
   'GEN.1.2-3',
@@ -74,20 +74,11 @@ const version = {
   }
 };
 
-refs.forEach( ref => {
-  const res = Parse.reference( ref, version );
-  if (res instanceof Error) {
-    console.error('%s : Error %s', ref.padEnd(20, ' '), res.message);
+tests.forEach( test => {
+  const ref = Parse.reference( test, version );
+  const ids = Generate.verse_ids( ref );
 
-  } else {
-    const out = {
-      version : res.version.abbreviation,
-      book    : res.book.id,
-      from    : res.from,
-      to      : res.to,
-    };
-    console.log('%s : %s', ref.padEnd(20, ' '), _inspect(out));
-  }
+  console.log('%s : %s', test.padEnd(20, ' '), _inspect(ids));
 });
 
 function _inspect( obj ) {
