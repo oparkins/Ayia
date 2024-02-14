@@ -45,6 +45,10 @@ helm-install: charts values.yaml
 helm-uninstall: charts values.yaml
 	@$(HELM) uninstall $(REL) --values=values.yaml .
 
+#? Package this helm chart
+helm-package: charts values.yaml
+	@$(HELM) package .
+
 #? Start a proxy to the mongodb service
 mongo-proxy:
 	./etc/mongo-proxy.sh
