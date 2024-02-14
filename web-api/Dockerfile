@@ -27,4 +27,4 @@ COPY --from=builder /app /app
 # Expose the configuration volume (etc/config.yaml)
 VOLUME [ "/app/etc" ]
 
-CMD [ "./bin/web-api", "-c", "etc/config.yaml" ]
+CMD [ "npx", "nodemon", "--", "./bin/web-api", "-c", "./etc/config.yaml" ]
