@@ -1,7 +1,7 @@
 {
-  "name": "bible.com",
+  "name": "web-api",
   "version": "0.0.1",
-  "description": "The [YouVersion Bible](https://bible.com/) allows you to download a large number of Bible versions.",
+  "description": "The web-api for the Ayia Bible study application",
   "main": "bin/web-api",
   "scripts": {
     "server": "nodemon",
