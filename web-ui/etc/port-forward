@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# Forward port 5173 through the bastion (216.243.103.174) to my virtual machine
+# (op-vm : 10.20.0.112)
+#
+# :NOTE: This assumes ~/.ssh/config has entries for bastion (op-bastion) and
+#        an `op-vm` rule that includes `ProxyJump op-bastion`
+#
+ssh -v -N -L 5173:localhost:5173 op-vm
