@@ -79,15 +79,27 @@ async function main() {
 
   console.log('>>> Fetch version: %s %s', vers, (ref_filter || ''));
   Bible.getVersion( vers )
+    /*
     .then( version => {
       console.log('>>>> Update %s metadata ...', version.abbreviation);
       return _store_version_metadata( mongo.collections.versions, version )
                 .then( res => { return version } );
     })
+    // */
     .then( version => {
       console.log('>>>> Convert %s data to JSON ...', version.abbreviation);
-      const json    = Bible.toJson( version, ref_filter );
+      const json  = Bible.toJson( version, ref_filter );
 
+      console.log('>>>> Generate %s range data ...', version.abbreviation);
+      version.books = _generate_ranges( json );
+
+      console.log('>>>> Update %s metadata ...', version.abbreviation);
+      return _store_version_metadata( mongo.collections.versions, version )
+                .then( res => {
+                  return [version, json];
+                } );
+    })
+    .then( ([version,json]) => {
       // Access the collection for this version
       const abbrev  = version.abbreviation;
       const col     = mongo.db.collection( abbrev );
@@ -120,13 +132,80 @@ main().catch(console.dir);
  */
 async function _store_version_metadata( col, version ) {
   const outVers = { ...version };
-  delete outVers.books;
 
   const query   = { id: version.id };
   const update  = { $set: { ...outVers } };
   const opts    = { upsert: true };
 
   await col.updateOne(query, update, opts);
+}
+
+/**
+ *  Generate ranges for books (chapter#) and chapters (verse#).
+ *  @method _generate_ranges
+ *  @param  version   The full version meta-data generated via Bible.toJson()
+ *                    {Object};
+ *
+ *  @return Range data for this version {Object};
+ *            {
+ *              BOK: {
+ *                range:  {
+ *                  min:  Minimum chapter {Number};
+ *                  max:  Maximum chapter {Number};
+ *                },
+ *                ch#: {
+ *                  min:  Minimum verse {Number};
+ *                  max:  Maximum verse {Number};
+ *                },
+ *                ...
+ *              },
+ *              ...
+ *            }
+ *  @private
+ */
+function _generate_ranges( version ) {
+  const ranges  = {};
+
+  /*
+  console.log('_generate_ranges(): version.books:', _inspect(version.books));
+  // */
+
+  for (let BOK in version.books) {
+    const book    = version.books[ BOK ];
+    const bkRange = {
+      range: { min: 9999, max: 0 },
+    };
+
+    /*
+    console.log('_generate_ranges(): BOK[ %s ], book:', BOK, _inspect(book));
+    // */
+
+    for (let chpId in book.chapters) {
+      const chp     = book.chapters[ chpId ];
+      const chpNum  = parseInt( chpId );
+      const chRange = { min: 1, max: chp.verse_count };
+
+      // Update the book chapter range
+      bkRange.range.min = Math.min( bkRange.range.min, chpNum );
+      bkRange.range.max = Math.max( bkRange.range.max, chpNum );
+
+      /*
+      const chRange = { min: 9999, max: 0, cnt: chp.verse_count };
+      for (let vrsId in chp.verses) {
+        const vrsNum  = parseInt( vrsId );
+
+        chRange.min = Math.min( chRange.min, vrsNum );
+        chRange.max = Math.max( chRange.max, vrsNum );
+      }
+      // */
+
+      bkRange[ chpId ] = chRange;
+    }
+
+    ranges[ BOK ] = bkRange;
+  }
+
+  return ranges;
 }
 
 /**
@@ -337,6 +416,22 @@ function _format_num( num, field_size=0 ) {
 
   return str;
 }
+
+/*
+function _inspect( obj, depth=4 ) {
+  const Util  = require('util');
+  const opts  = {
+    showHidden      : false,
+    depth           : depth,
+    colors          : false,  //true,
+    maxStringLength : 120,
+    breakLength     : 80,
+    compact         : 5,
+  };
+
+  return Util.inspect( obj, opts );
+}
+// */
 
 /* Private helpers }
  ****************************************************************************/
