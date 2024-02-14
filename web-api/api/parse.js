@@ -210,31 +210,36 @@ function parse_search( str, indexed=false ) {
  *  Parse a verse reference string.
  *  @method parse_ref
  *  @param  ref     The reference string {String};
- *                    VERS.BOOK[.chapter[.verse[-[.BOOK][.chapter].verse]]]
+ *                    BOOK[.chapter[.verse[-[.chapter].verse]]]
+ *  @param  version Metadata about the target version {Object};
  *
- *  @return The parsed reference data {Object};
- *            { from: A verse reference 'VERS.BOOK.chapter[.verse]'
- *                    with 3-digit chapter and verse {String};
- *              to  : An optional verse reference 'VERS.BOOK.chapter[.verse]'
- *                    with 3-digit chapter and verse {String};
+ *  @throws on error
+ *
+ *  @return The parsed reference data or Error {Object | Error};
+ *            {
+ *              [version]   The version metadata {Object};
+ *              [book]      The book metadata {Object};
+ *              from: {
+ *                chapter:  The id of the starting chapter {Number};
+ *                verse:    The id of the starting verse {Number};
+ *              },
+ *              to: {
+ *                chapter:  The id of the ending chapter {Number};
+ *                verse:    The id of the ending verse {Number};
+ *              }
  *            }
  *  @private
  */
-function parse_ref( ref ) {
-  const res = {
-    from  : null,
-    to    : null,
-  };
+function parse_ref( ref, version ) {
   const [fromRange, toRange]  = ref.split(/\s*-\s*/);
   let [
-    vers,
     fromBook,
     fromChapter,
     fromVerse,
   ]                           = fromRange.split(/\s*\.\s*/);
-  let toBook;
   let toChapter;
   let toVerse;
+  let book;
   const __convertNum  = (str) => {
     const num = parseInt( str );
 
@@ -244,44 +249,38 @@ function parse_ref( ref ) {
       // */
       return null;
 
-    } else {
-      return String(num).padStart(3, '0');
     }
+
+    return num; //String(num).padStart(3, '0');
   };
 
   /*************************************************************************
    * Process the portions of the `fromRange`
    *
    */
-  if (typeof(vers)     === 'string') { vers     = vers.toUpperCase() }
   if (typeof(fromBook) === 'string') { fromBook = fromBook.toUpperCase() }
-  if (fromChapter != null) {
-    fromChapter = __convertNum( fromChapter );
-  }
-  if (fromVerse != null) {
-    fromVerse = __convertNum( fromVerse );
-  }
+  if (fromChapter != null) { fromChapter = __convertNum( fromChapter ) }
+  if (fromVerse   != null) { fromVerse   = __convertNum( fromVerse ) }
 
   // Validate that we have all the required pieces for `from`
-  if (vers        == null) { throw new Error('missing version') }
-  if (fromBook    == null) { throw new Error('missing book (from)') }
-  if (fromChapter == null) { throw new Error('missing chapter (from)') }
+  if (fromBook    == null) { return new Error('missing book') }
+  if (fromChapter == null) { return new Error('missing chapter (from)') }
+
+  if (version) {
+    book = version.books[ fromBook ];
+    if (book == null)  { return new Error(`Unknown book ${fromBook}`) }
+
+    book.id = fromBook;
+  }
 
   /*************************************************************************
-   * Now process any `toRange`
+   * Process the portions of any `toRange`
    *
    */
   if (toRange) {
-    if (fromVerse   == null) { throw new Error('missing verse (from)') }
+    if (fromVerse   == null) { return new Error('missing verse (from)') }
 
-    [ toBook, toChapter, toVerse ] = toRange.split(/\s*\.\s*/);
-
-    if (toVerse == null) {
-      // Shift
-      toVerse   = toChapter;
-      toChapter = toBook;
-      toBook    = null;
-    }
+    [ toChapter, toVerse ] = toRange.split(/\s*\.\s*/);
 
     if (toVerse == null) {
       // Shift
@@ -290,61 +289,56 @@ function parse_ref( ref ) {
     }
 
     // Propagte from components to missing to components
-    if (toBook    == null) { toBook    = fromBook }
-    else                   { toBook    = toBook.toUpperCase() }
     if (toChapter == null) { toChapter = fromChapter }
     else                   { toChapter = __convertNum( toChapter ) }
 
     if (toVerse   != null) {
       toVerse   = __convertNum( toVerse );
       if (toVerse == null) {
-        throw new Error(`invalid to range ${toRange}`);
+        return new Error(`invalid to range ${toRange}`);
       }
     }
 
     /* Ensure that from is before to as far as chapters and verses are
      * concerned.
      */
-    if (fromBook === toBook) {
-      if (fromChapter > toChapter) {
-        // Swap chapter and verse
-        [ fromChapter, toChapter ] = [ toChapter, fromChapter ];
-        [ fromVerse,   toVerse ]   = [ toVerse,   fromVerse ];
+    if (fromChapter > toChapter) {
+      // Swap chapter and verse
+      [ fromChapter, toChapter ] = [ toChapter, fromChapter ];
+      [ fromVerse,   toVerse ]   = [ toVerse,   fromVerse ];
 
-      } else if (fromChapter === toChapter && fromVerse > toVerse) {
-        // Swap verse
-        [ fromVerse,   toVerse ]   = [ toVerse,   fromVerse ];
-      }
+    } else if (fromChapter === toChapter && fromVerse > toVerse) {
+      // Swap verse
+      [ fromVerse,   toVerse ]   = [ toVerse,   fromVerse ];
     }
+  }
+
+  if (book) {
+    /* Given book information with verse ranges, fill in any missing
+     * verse/chapter values.
+     */
+    if (fromVerse == null) {
+      // Full chapter
+      fromVerse = book[ fromChapter ].min;
+      toChapter = fromChapter;
+      toVerse   = book[ fromChapter ].max;
+    }
+
+    if (toChapter == null)  { toChapter = fromChapter }
+    if (toVerse   == null)  { toVerse   = fromVerse }
   }
 
   /*************************************************************************
    * Generate the final `to` and `from` results
    *
    */
-  res.from = `${vers}.${fromBook}.${fromChapter}`;
-  if (fromVerse != null)  { res.from += `.${fromVerse}` }
+  const res = {
+    version,
+    book,
 
-  if (toRange) {
-    res.to = `${vers}.${toBook}.${toChapter}.${toVerse}`;
-  }
-
-  /*
-  console.log('ref          : %s', ref);
-  console.log('  fromRange  : %s', fromRange);
-  console.log('  toRange    : %s', toRange);
-
-  console.log('  vers       : %s', vers);
-  console.log('  fromBook   : %s', fromBook);
-  console.log('  fromChapter: %s', fromChapter);
-  console.log('  fromVerse  : %s', fromVerse);
-
-  console.log('  toBook     : %s', toBook);
-  console.log('  toChapter  : %s', toChapter);
-  console.log('  toVerse    : %s', toVerse);
-  console.log('  res        :', res);
-  console.log('-----------------');
-  // */
+    from: { chapter: fromChapter, verse: fromVerse },
+    to  : { chapter: toChapter,   verse: toVerse },
+  };
 
   return res;
 }
