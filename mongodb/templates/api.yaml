@@ -1,0 +1,174 @@
+# ConfigMap {
+apiVersion: v1
+kind: ConfigMap
+metadata: # {
+  name:   ayia-api  #&service_cm_name ayia-api
+  labels:
+    app:      ayia-api
+    release:  ayia
+# } ConfigMap.metadata
+data: # {
+  config.yaml: |
+    verbosity:  0
+
+    web_api: # {
+      port:   4000
+    # } web_api
+
+    mongodb: # {
+      # Using ./etc/mongo-proxy, host == localhost
+      proto:    env:MONGO_PROTO
+      host:     env:MONGO_HOST
+      port:     env:MONGO_PORT
+      database: env:MONGO_DATABASE
+      user:     env:MONGO_USER
+      password: env:MONGO_PASS
+
+      # A map between internal collection names and theh collection within
+      # `monbodb.database`.
+      collection_map: # {
+        versions: versions
+        users:    users
+      #} mongodb.collection_map
+    #} mongodb
+# } ConfigMap.data
+# } ConfigMap
+---
+# Service {
+apiVersion: v1
+kind: Service
+metadata: # {
+  name: ayia-api  #&service_name ayia-api
+  labels:
+    app:      ayia-api
+    release:  ayia
+# } Service.metadata
+spec: # {
+  selector: # {
+    app:      ayia-api
+    release:  ayia
+  # } Service.spec.selector
+  ports: # {
+    - protocol:   TCP
+      port:       80    #&service_public_port 80
+      targetPort: 4000  #*service_private_port
+  # } Service.spec.ports
+# } Service.spec
+# } Service
+---
+# Deployment {
+{{- $mongoSecret := .Values.mongodb.auth.existingSecret -}}
+{{- $mongoPort   := .Values.mongodb.containerPorts.mongodb -}}
+{{- $mongoSvc    := include "mongodb.fullname" .Subcharts.mongodb }}
+apiVersion: apps/v1
+kind: Deployment
+metadata: # {
+  name: ayia-api
+  labels:
+    app:      ayia-api
+    release:  ayia
+# } Deployment.metadata
+spec: # {
+  selector:
+    matchLabels:
+      app:      ayia-api
+      release:  ayia
+  strategy:
+    type: Recreate
+  template: # {
+    metadata: # {
+      labels: # {
+        app:      ayia-api
+        release:  ayia
+      # } Deployment.spec.template.metadata.labels
+    # } Deployment.spec.template.metadata
+    spec: # {
+      imagePullSecrets:
+        - name: {{ .Values.global.pullSecret }}
+      containers: # {
+        - name: server # {
+          image:  harbor.nibious.com/ayia/web-api:0.0.1
+          imagePullPolicy:  IfNotPresent
+
+          env: #{
+            - name:   MONGO_PROTO
+              value:  mongodb
+            - name:   MONGO_HOST
+              value:  {{ $mongoSvc }}
+            - name:   MONGO_PORT
+              value:  {{ $mongoPort | quote }}
+            - name:   MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $mongoSecret }}
+                  key:  user
+            - name:   MONGO_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $mongoSecret }}
+                  key:  password
+            - name:   MONGO_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $mongoSecret }}
+                  key:  database
+          # } Deployment.spec.template.spec.containers[server].env
+
+          volumeMounts: # {
+            - name:       config
+              mountPath:  /app/etc/config.yaml
+              subPath:    config.yaml
+              readOnly:   true
+          # } Deployment.spec.template.spec.containers[server].volumeMounts
+
+        # } Deployment.spec.template.spec.containers[server]
+      # } Deployment.spec.template.spec.containers
+
+      volumes: # {
+        - name: config
+          configMap:
+            name:   ayia-api  #*service_cm_name
+      # } Deployment.spec.template.spec.volumes
+    # } Deployment.spec.template.spec
+  # } Deployment.spec.template
+# } Deployment.spec
+# } Deployment
+---
+# Ingress {
+apiVersion: networking.k8s.io/v1
+kind:       Ingress
+metadata: # {
+  name: ayia-api
+
+  labels: # {
+    app:      ayia-api
+    release:  ayia
+  # } Ingress.metadata.labels
+
+  annotations: # {
+    kubernetes.io.ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-body-size: "512m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+  # } Ingress.metadata.annotations
+
+# } Ingress.metadata
+spec: # {
+  rules:
+    - host: api.ayia.nibious.com
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: ayia-api  #*service_name
+              port:
+                number: 80  #*service_public_port
+  #tls:
+  #  - secretName: ingress-api.ayia.nibious.com-cert
+  #    hosts:
+  #      - api.ayia.nibious.com
+# } Ingress.spec
+# } Ingress
+---
