@@ -146,6 +146,7 @@ metadata: # {
   # } Ingress.metadata.labels
 
   annotations: # {
+    cert-manager.io/cluster-issuer: "nibious-letsencrypt"
     kubernetes.io.ingress.class: "nginx"
     nginx.ingress.kubernetes.io/proxy-body-size: "512m"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
@@ -165,10 +166,10 @@ spec: # {
               name: ayia-api  #*service_name
               port:
                 number: 80  #*service_public_port
-  #tls:
-  #  - secretName: ingress-api.ayia.nibious.com-cert
-  #    hosts:
-  #      - api.ayia.nibious.com
+  tls:
+    - secretName: api-ayia-nibious-com-tls
+      hosts:
+        - api.ayia.nibious.com
 # } Ingress.spec
 # } Ingress
 ---
