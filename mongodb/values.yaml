@@ -1,6 +1,8 @@
 global: #{
   # The length of randomly generated secrets
   secretLen:  32
+
+  pullSecret: ayia-pull-creds
 #} global
 
 mongodb: #{

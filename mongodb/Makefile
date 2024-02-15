@@ -41,6 +41,10 @@ helm-dry-run: charts values.yaml
 helm-install: charts values.yaml
 	@$(HELM) install $(REL) --values=values.yaml .
 
+#? Perform an upgrade
+helm-upgrade: charts values.yaml
+	@$(HELM) upgrade $(REL) --values=values.yaml .
+
 #? Perform an uninstall
 helm-uninstall: charts values.yaml
 	@$(HELM) uninstall $(REL) --values=values.yaml .
@@ -55,3 +59,8 @@ mongo-proxy:
 
 #########################################################################
 # Helpers with no help text
+#
+# Show the configured kubectl command with args
+kubectl:
+	@echo $(KUBECTL)
+
