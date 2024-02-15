@@ -5,6 +5,12 @@ global: #{
   pullSecret: ayia-pull-creds
 #} global
 
+web_api: #{
+  image: #{
+    tag:  0.0.2
+  #} web_api.image
+#} web_api
+
 mongodb: #{
   image: #{
     # :XXX: Use the latest v4 which does NOT require the CPU to support AVX
