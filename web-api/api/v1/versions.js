@@ -81,30 +81,31 @@ async function _versions_get( config, req, res ) {
   }
 
   try {
-    /* Execute query, limiting the number of results while simultaneously
-     * initiating a count of the full match set.
+    /* Execute query, limiting the number of results and fields while
+     * simultaneously initiating a count of the full match set.
      */
     const options = {
       sort  : sort,
       skip  : ((page - 1) * limit),
       limit : limit,
     };
+    const fields  = {
+      _id               : 0,
+      id                : 1,
+      abbreviation      : 1,
+      language          : 1,
+      local_abbreviation: 1,
+      local_title       : 1,
+      title             : 1,
+      vrs               : 1,
+    };
 
-    /*
-    console.log('_versions_get(): query:', query);
-    // */
-
-    const cursor  = $versions.find( query, options );
+    const cursor  = $versions.find( query, options ).project( fields );
     const count   = $versions.count( query );
     const json    = {
       total   : -1,
-      versions: [],
+      versions: await cursor.toArray(),
     };
-
-    // Await cursor results, flattening them into a single array
-    for await (const version of cursor) {
-      json.versions.push( version );
-    }
 
     /* Await the count and, regardless of success/failutre finalize and return
      * results.
