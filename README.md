@@ -11,3 +11,52 @@ There are two ways to build:
 ## Documentation
 
 Documentation is in `/doc` and will soon be built via a CI pipeline
+
+---
+## Nodejs
+
+Requirements:
+- `kubectl` (v1.29.2) with a kube configuration file for access to the Ayia k8s
+  cluster
+- `helm` (v3.14.0)
+- `podman` (3.4.4)
+- `nodejs` (v20.11.1)
+- `make`
+
+Before beginning development work you will need to obtain an account and
+retrieve your CLI secret from [harbor.nibious.com](https://harbor.nibious.com).
+
+With this secret, use `podman` to login to harbor:
+```
+podman login harbor.nibious.com/ayia
+```
+
+This will generate a credentials file at
+`$XDG_RUNTIME_DIR/containers/auth.json`. This file may be used to generate and
+load a pull secret within the k8s cluster:
+```
+cd helm
+./etc/make-pull-creds.sh
+```
+
+With this secret in place, you will be able to create k8s pods that pull their
+image from the `harbor.nibious.com` repository.
+
+
+Before installing the helm chart, you may need to create/update the web-api
+container image.
+```
+cd ../web-api
+
+make image
+
+make image-push
+```
+
+With a container image in place, you can now perform a helm install to create
+mongodb and web-api resources:
+```
+cd ../helm
+
+make helm-install
+```
