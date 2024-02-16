@@ -1,5 +1,6 @@
 const parse     = require('../parse');
 const generate  = require('../generate');
+const Books     = require('../../lib/books');
 
 /**
  *  Attach routes, initializing anything required to use them.
@@ -9,9 +10,14 @@ const generate  = require('../generate');
  *
  *  Routes:
  *    GET /api/v1/versions
- *      Fetch metadata about the set of available versions
+ *      Fetch metadata about the set of available versions as well as a map
+ *      providing book ordering and location information.
  *
- *        => 200    : { total: {Number}, versions:[ Version, ... ] }
+ *        => 200    : {
+ *            total   : {Number},
+ *            versions: [ Version, ... ],
+ *            books   : [ {abbrev, name, loc, [ord]}, ... ],
+ *           }
  *        => [45]xx : { error }
  *
  *    GET /api/v1/versions/:id
@@ -105,6 +111,9 @@ async function _versions_get( config, req, res ) {
     const json    = {
       total   : -1,
       versions: await cursor.toArray(),
+
+      // Return books of the Old and New Testament
+      books   : Books.getBooks( '*' ),
     };
 
     /* Await the count and, regardless of success/failutre finalize and return
