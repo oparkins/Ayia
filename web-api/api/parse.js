@@ -213,12 +213,14 @@ function parse_search( str, indexed=false ) {
  *                    BOOK[.chapter[.verse[-[.chapter].verse]]]
  *  @param  version Metadata about the target version {Object};
  *
- *  @throws on error
+ *  @note Any `book` data returned will be augmented with the reference
+ *        abbreviation of the target book as `book.id`.
  *
  *  @return The parsed reference data or Error {Object | Error};
  *            {
  *              [version]   The version metadata {Object};
  *              [book]      The book metadata {Object};
+ *                            { id, verses:[ 0, vsCnt, ... ] }
  *              from: {
  *                chapter:  The id of the starting chapter {Number};
  *                verse:    The id of the starting verse {Number};
@@ -319,9 +321,9 @@ function parse_ref( ref, version ) {
      */
     if (fromVerse == null) {
       // Full chapter
-      fromVerse = book[ fromChapter ].min;
+      fromVerse = 1;
       toChapter = fromChapter;
-      toVerse   = book[ fromChapter ].max;
+      toVerse   = book.verses[ fromChapter ];
     }
 
     if (toChapter == null)  { toChapter = fromChapter }
