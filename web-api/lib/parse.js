@@ -172,6 +172,7 @@ function _parseChapter( $, $chap, firstUsFm, filter=null ) {
   const verses    = new Map();
   const fullText  = new Map();
   let   verse     = (verses.get( firstUsFm ) || []);
+  let   verseMax  = 0;
   verses.set( firstUsFm, verse );
 
   $chap.each( (jdex, el) => {
@@ -188,12 +189,40 @@ function _parseChapter( $, $chap, firstUsFm, filter=null ) {
                       ? '.' + classes.join('.')
                       : '');
 
-    // Locate and process any 'verse' elements within this child
-    const $verse  = $(el).find('.verse[data-usfm]');
-    if ($verse.length > 0) {
-      $verse.each( (kdex, vs) => {
-        const usfm  = _getAttr( vs, 'data-usfm' );
-        if (filter && !filter.test( usfm )) { return }
+    /* Locate and process all 'verse' elements with a 'data-usfm' property
+     * within this child.
+     */
+    const $verses = $(el).find('.verse[data-usfm]');
+    if ($verses.length > 0) {
+      $verses.each( (kdex, vs) => {
+        const data_usfm = _getAttr( vs, 'data-usfm' );
+
+        if (filter && !filter.test( data_usfm )) { return }
+
+        /* Handle multi-verse references by storing them all in the first
+         * verse.
+         */
+        const multi = data_usfm.split('+');
+        const usfm  = multi[0];
+
+        if (multi.length > 1) {
+          /* Use the last verse in the range to update the maximum verse
+           * number.
+           */
+          const last              = multi.pop();
+          const [ _bk, _ch, _vs ] = last.split('.');
+
+          verseMax = Math.max( verseMax, _vs );
+
+          console.log('**** Multiverse reference[ %s ], last[ %s ], max[ %s ]',
+                      data_usfm, _vs, verseMax);
+
+        } else {
+          // Update the maximum verse
+          const [ _bk, _ch, _vs ] = usfm.split('.');
+
+          verseMax = Math.max( verseMax, _vs );
+        }
 
         verse = (verses.get( usfm ) || []);
 
@@ -266,18 +295,27 @@ function _parseChapter( $, $chap, firstUsFm, filter=null ) {
   });
 
   // Record the verse count
-  chJson.verse_count = verses.size;
+  chJson.verse_count = verseMax;
 
   /* Flatten our `verses` map into a simpler `verse` object within the
    * containing chapter, indexed by verse number.
    */
   verses.forEach( (verse, id) => {
     const [ bk, ch, vs ]  = id.split('.');
-    const text            = fullText.get( id )
-                              .join(' ')
-                              .replaceAll(/\s+/g, ' ')
-                              .trim();
-    chJson.verses[ vs ] = verse;
+    let   texts           = fullText.get( id );
+    if (! Array.isArray(texts)) {
+      // Convert 'verse' to an array of text
+      texts = verse.map( el => Object.values(el).join(' ') );
+
+      console.log('=== fullText[ %s ]: NOT an array:', id, verse);
+      console.log('=== fullText[ %s ]: texts:',        id, texts);
+    }
+
+    const text  = texts.join(' ')
+                        .replaceAll(/\s+/g, ' ')
+                        .trim();
+
+    chJson.verses[ vs ]   = verse;
     chJson.fullText[ vs ] = text;
   });
 
