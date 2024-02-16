@@ -67,7 +67,7 @@ async function main() {
 
   // Listen according to the connection settings in `config.web_api`
   server.listen( config.web_api, () => {
-    console.log('>>> Listenting:', server.address());
+    console.log('>>> Listening:', server.address());
   });
 }
 
