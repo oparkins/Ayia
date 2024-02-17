@@ -34,14 +34,20 @@ helm-template: charts values.yaml
 	@$(HELM) template $(REL) --debug --values=values.yaml .
 
 #? Perform a dry-run install
-helm-dry-run: charts values.yaml
+helm-install-dry-run: charts values.yaml
 	@$(HELM) install $(REL) --debug --dry-run --values=values.yaml .
 
 #? Perform an install
+#?
 helm-install: charts values.yaml
 	@$(HELM) install $(REL) --values=values.yaml .
 
+#? Perform a dry-run upgrade
+helm-upgrade-dry-run: charts values.yaml
+	@$(HELM) upgrade $(REL) --debug --dry-run=server --values=values.yaml .
+
 #? Perform an upgrade
+#?
 helm-upgrade: charts values.yaml
 	@$(HELM) upgrade $(REL) --values=values.yaml .
 
@@ -63,4 +69,7 @@ mongo-proxy:
 # Show the configured kubectl command with args
 kubectl:
 	@echo $(KUBECTL)
+
+helm:
+	@echo $(HELM)
 
