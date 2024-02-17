@@ -16,7 +16,7 @@ const Books     = require('../../lib/books');
  *        => 200    : {
  *            total   : {Number},
  *            versions: [ Version, ... ],
- *            books   : [ {abbrev, name, loc, [ord]}, ... ],
+ *            books   : [ {abbrev, name, loc, [order], [verses]}, ... ],
  *           }
  *        => [45]xx : { error }
  *
