@@ -7,7 +7,7 @@ global: #{
 
 web_api: #{
   image: #{
-    tag:  0.0.2
+    tag:  0.0.3
   #} web_api.image
 #} web_api
 
