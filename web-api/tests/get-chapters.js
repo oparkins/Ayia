@@ -25,4 +25,3 @@ tests.forEach( test => {
                   test.book, String(test.chapter).padStart(3, ' '), count);
   }
 });
-
