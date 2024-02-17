@@ -21,6 +21,7 @@ const Yargs         = require('yargs');
 const Bible         = require('../lib');
 const load_config   = require('../lib/load_config');
 const mongo_connect = require('../lib/mongo');
+const Refs          = require('../lib/refs');
 
 const yargs	= Yargs
 	.usage('Fetch and load <vers> [<ref>]')
@@ -314,7 +315,7 @@ async function _store_version_book( col, vers, name, book ) {
 
     if (chpId.startsWith('INTRO') && chap.content != null) {
       // Add this as an intro
-      const ref_id  = _generate_ref_id( name, chpId );
+      const ref_id  = Refs.sortable( name, chpId );
       const doc     = { _id:ref_id, content: chap.content };
 
       bulkWrite.push( {
@@ -329,7 +330,7 @@ async function _store_version_book( col, vers, name, book ) {
     for (let vsId in chap.verses) {
       const markup  = chap.verses[vsId];
       const text    = chap.fullText[vsId];
-      const ref_id  = _generate_ref_id( name, chpId, vsId );
+      const ref_id  = Refs.sortable( name, chpId, vsId );
       const doc     = { _id:ref_id, text, markup };
 
       bulkWrite.push( {
@@ -362,28 +363,6 @@ async function _store_version_book( col, vers, name, book ) {
 
     throw ex;
   }
-}
-
-/**
- *  Generate a sortable id for the given book, chapter, and verse.
- *  @method _generate_ref_id
- *  @param  book          The name of the book {String};
- *  @param  chapter       The chapter id {String};
- *  @param  [verse=null]  Optional verse id {String};
- *
- *  @return The sortable id {String};
- *  @private
- */
-function _generate_ref_id( book, chapter, verse=null ) {
-  const chpNum  = String(chapter).padStart(3, '0');
-  let   id      = `${book}.${chpNum}`;
-
-  if (verse != null) { 
-    const vrsNum  = String(verse).padStart(3, '0');
-    id += `.${vrsNum}`;
-  }
-
-  return id;
 }
 
 /**

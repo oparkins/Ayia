@@ -1,3 +1,5 @@
+const Refs  = require('../lib/refs');
+
 /**
  *  Given a reference created via parse.reference(), generate the set of verse
  *  references represented by the given ref.
@@ -58,43 +60,11 @@ function verse_ids( ref ) {
     const vsLast  = (ch === to.chapter   ? to.verse   : vsMax);
 
     for (let vs = vsFirst; vs <= vsLast; vs++) {
-      const vsRef = `${book.id}.${_ref_num(ch)}.${_ref_num(vs)}`;
-
-      ids.push( vsRef );
+      ids.push( Refs.sortable( book.id, ch, vs ) );
     }
   }
 
   return ids;
 }
-
-/****************************************************************************
- * Private helpers {
- */
-
-/**
- *  Generate a 3-digit, 0 padded version of the given value.
- *  @method _ref_num
- *  @param  val     The target value {Number | String};
- *
- *  @return A 3-digit, 0 padded version of `val` {String};
- *  @private
- */
-function _ref_num( val ) {
-  let num = val;
-
-  if (typeof(val) === 'string') {
-    num = parseInt( val );
-  }
-
-  if (Number.isNaN( num )) {
-    console.warn('_ref_num( %s ): Invalid number for references', val);
-    return null;
-  }
-
-  return String(num).padStart(3, '0');
-}
-
-/* Private helpers }
- ****************************************************************************/
 
 module.exports = { verse_ids };
