@@ -3,6 +3,7 @@
  *
  */
 const Cheerio = require('cheerio');
+const Refs    = require('./refs');
 
 /**
  *  Convert a Bible version fetched via `Bible.getVersion()` to JSON format.
@@ -108,9 +109,9 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
      * Process this as a chapter with verses
      *
      */
-    const firstUsFm = `${abbrev}.${chp}.1`;
+    const firstUsfm = `${abbrev}.${chp}.1`;
     const $chaps    = $( '.chapter' ).children();
-    bkJson.chapters[ chp ] = _parseChapter( $, $chaps, firstUsFm, filter );
+    bkJson.chapters[ chp ] = _parseChapter( $, $chaps, firstUsfm, filter );
   });
 
   return bkJson;
@@ -147,33 +148,43 @@ function _parseIntro( $, $intro, filter ) {
 /**
  *  Parse a chapter.
  *  @method _parseChapter
- *  @param  $         The top-level Cheerio instance {Cheerio};
- *  @param  $chap     The chapter element(s) {Cheerio};
- *  @param  firstUsFm The absolute reference for the first verse {String};
- *  @param  [filter]  If provided, a filter to limit the output {RegExp};
+ *  @param  $           The top-level Cheerio instance {Cheerio};
+ *  @param  $chap       The chapter element(s) {Cheerio};
+ *  @param  firstUsfm   The absolute reference for the first verse {String};
+ *  @param  filter      If provided, a filter to limit the output {RegExp};
  *
  *  @return A simple object representing the chapter {Object};
  *  @private
  */
-function _parseChapter( $, $chap, firstUsFm, filter=null ) {
-  /* Use a Map to merge all elements that comprise verses (.verse[data-usfm])
-   * into arrays indexed by verse reference (data-usfm).
-   *
-   * Any non-verse metadata will be added to the previous "verse".
-   *
-   * The first 'label' will be used as the chapter label.
-   */
+function _parseChapter( $, $chap, firstUsfm, filter=null ) {
+  // The first 'label' will be used as the chapter label.
   const chJson  = {
     verse_count : 0,
     label       : null,
     verses      : {},
     fullText    : {},
   };
-  const verses    = new Map();
-  const fullText  = new Map();
-  let   verse     = (verses.get( firstUsFm ) || []);
-  let   verseMax  = 0;
-  verses.set( firstUsFm, verse );
+
+  /* Use a Map to merge all elements that comprise verses (.verse[data-usfm])
+   * into arrays indexed by verse reference (data-usfm).
+   *
+   * Any non-verse metadata will be added to the previous "verse".
+   */
+  const verseState  = {
+    $,
+    filter,
+
+    firstUsfm : firstUsfm,
+    curUsfm   : firstUsfm,
+    verseMax  : 0,
+    label     : null,
+
+    verses    : new Map(),
+    fullText  : new Map(),
+    verse     : [],
+  };
+
+  verseState.verses.set( verseState.firstUsfm, verseState.verse );
 
   $chap.each( (jdex, el) => {
     /* Remember the "label" for this child element.
@@ -184,89 +195,20 @@ function _parseChapter( $, $chap, firstUsFm, filter=null ) {
      */
     const classes = _getClasses( el );
     const cls0    = (classes.length > 0 && classes.shift());
-    const label   = (cls0 || el.type)
-                  + (classes.length > 0
-                      ? '.' + classes.join('.')
-                      : '');
+
+    verseState.label = (cls0 || el.type)
+                     + (classes.length > 0
+                          ? '.' + classes.join('.')
+                          : '');
 
     /* Locate and process all 'verse' elements with a 'data-usfm' property
      * within this child.
      */
     const $verses = $(el).find('.verse[data-usfm]');
+
     if ($verses.length > 0) {
       $verses.each( (kdex, vs) => {
-        const data_usfm = _getAttr( vs, 'data-usfm' );
-
-        if (filter && !filter.test( data_usfm )) { return }
-
-        /* Handle multi-verse references by storing them all in the first
-         * verse.
-         */
-        const multi = data_usfm.split('+');
-        const usfm  = multi[0];
-
-        if (multi.length > 1) {
-          /* Use the last verse in the range to update the maximum verse
-           * number.
-           */
-          const last              = multi.pop();
-          const [ _bk, _ch, _vs ] = last.split('.');
-
-          verseMax = Math.max( verseMax, _vs );
-
-          console.log('**** Multiverse reference[ %s ], last[ %s ], max[ %s ]',
-                      data_usfm, _vs, verseMax);
-
-        } else {
-          // Update the maximum verse
-          const [ _bk, _ch, _vs ] = usfm.split('.');
-
-          verseMax = Math.max( verseMax, _vs );
-        }
-
-        verse = (verses.get( usfm ) || []);
-
-        // Retrieve the current fullText for this verse
-        const curText = (fullText.get( usfm ) || []);
-
-        // Parse this version into JSON form and retrieve the first key/value.
-        const json    = _parseEl( $, vs );
-        const key     = Object.keys( json ).shift();
-        const val     = json[key];
-
-        if (Array.isArray(val)) {
-          // Process an array of verse elements
-          val.forEach( item => {
-            /*
-            console.log('label[ %s ], key[ %s ], item:', label, key, item);
-            // */
-
-            const text  = _verseText( label, item );
-            if (text) { curText.push( text ) }
-
-            if (typeof(item) === 'string') {
-              // Label this raw text with our parent label
-              verse.push( {[label]:item} );
-
-            } else {
-              verse.push( item );
-            }
-          });
-
-        } else {
-          // Label this sub-item with our parent label
-          /*
-          console.log('label[ %s ], key[ %s ], val:', label, key, json[key]);
-          // */
-
-          const text  = _verseText( label, json[key] );
-          if (text) { curText.push( text ) }
-
-          verse.push( {[label]:json[key]} );
-        }
-
-        verses.set(   usfm, verse );
-        fullText.set( usfm, curText );
+        _parseVerse( verseState, vs );
       });
 
     } else {
@@ -281,7 +223,7 @@ function _parseChapter( $, $chap, firstUsFm, filter=null ) {
       const elJson  = _parseEl( $, el );
 
       /*
-      console.log('label[ %s ], NO verses:', label, elJson);
+      console.log('label[ %s ], NO verses:', verseState.label, elJson);
       // */
 
       if (chJson.label == null && elJson.label != null) {
@@ -289,37 +231,193 @@ function _parseChapter( $, $chap, firstUsFm, filter=null ) {
         chJson.label = elJson.label;
 
       } else {
-        verse.push( elJson );
+        verseState.verse.push( elJson );
       }
     }
   });
 
   // Record the verse count
-  chJson.verse_count = verseMax;
+  chJson.verse_count = verseState.verseMax;
 
   /* Flatten our `verses` map into a simpler `verse` object within the
    * containing chapter, indexed by verse number.
    */
-  verses.forEach( (verse, id) => {
+  verseState.verses.forEach( (verse, id) => {
     const [ bk, ch, vs ]  = id.split('.');
-    let   texts           = fullText.get( id );
-    if (! Array.isArray(texts)) {
-      // Convert 'verse' to an array of text
-      texts = verse.map( el => Object.values(el).join(' ') );
+    let   text;
 
-      console.log('=== fullText[ %s ]: NOT an array:', id, verse);
-      console.log('=== fullText[ %s ]: texts:',        id, texts);
+    if (verse.$ref == null) {
+      // This is NOT a $ref verse so flatten the fullText for this verse
+      let texts = verseState.fullText.get( id );
+
+      if (! Array.isArray(texts)) {
+        // Convert 'verse' to an array of text
+        texts = verse.map( el => Object.values(el).join(' ') );
+
+        console.warn('=== fullText[ %s ]: NOT an array:', id);
+        console.warn('===   verse:', verse);
+        console.warn('===   text :', texts);
+      }
+
+      text = texts.join(' ')
+              .replaceAll(/\s+/g, ' ')
+              .trim();
     }
-
-    const text  = texts.join(' ')
-                        .replaceAll(/\s+/g, ' ')
-                        .trim();
 
     chJson.verses[ vs ]   = verse;
     chJson.fullText[ vs ] = text;
   });
 
+  // Empty our maps
+  verseState.verses.clear();
+  verseState.fullText.clear();
+
   return chJson;
+}
+
+/**
+ *  Parse a verse.
+ *  @method _parseVerse
+ *  @param  state           Processing state {Object};
+ *  @param  state.$         The top-level Cheerio instance {Cheerio};
+ *  @param  state.filter    If provided, a filter to limit the output {RegExp};
+ *  @param  state.firstUsfm The absolute reference for the first verse
+ *                          {String};
+ *  @param  state.curUsfm   The absolute reference for the current verse
+ *                          {String};
+ *  @param  state.maxVerse  The maximum verse number {Number};
+ *  @param  state.label     The parent label {String};
+ *  @parm   state.verses    The map of verses by verse reference {Map};
+ *  @parm   state.fullText  The map of fullText by verse reference {Map};
+ *  @parm   state.verse     The current entry from `state.verses` references
+ *                          via `state.curUsfm` {Array};
+ *  @param  elVerse         The verse element(s) {Cheerio};
+ *
+ *  @return An updated state {Object};
+ *  @private
+ */
+function _parseVerse( state, elVerse) {
+  const data_usfm = _getAttr( elVerse, 'data-usfm' );
+
+  if (state.filter && !state.filter.test( data_usfm )) { return state }
+
+  if (state.curUsfm !== data_usfm) {
+    _interVerseProcessing( state, data_usfm );
+  }
+
+  state.curUsfm  = data_usfm;
+  state.curMulti = data_usfm.split('+');
+
+  /* Handle multi-verse references by storing them all in the first
+   * verse.
+   */
+  const usfm  = state.curMulti[0];
+
+  if (state.curMulti.length > 1) {
+    /* Use the last verse in the range to update the maximum verse
+     * number.
+     */
+    const last              = state.curMulti[ state.curMulti.length - 1 ];
+    const [ _bk, _ch, _vs ] = last.split('.');
+
+    state.verseMax = Math.max( state.verseMax, _vs );
+
+    /*
+    console.log('**** multi-verse reference[ %s ], last[ %s ], max[ %s ]',
+                data_usfm, _vs, state.verseMax);
+    // */
+
+  } else {
+    // Update the maximum verse
+    const [ _bk, _ch, _vs ] = usfm.split('.');
+
+    state.verseMax = Math.max( state.verseMax, _vs );
+  }
+
+  // Retrieve the target verse and fullText arrays
+  let   verse   = (state.verses.get(   usfm ) || []);
+  const curText = (state.fullText.get( usfm ) || []);
+
+  if (! Array.isArray(verse) && verse.$ref != null) {
+    console.warn('=== Multi-verse overlap @ %s:', usfm, verse);
+
+    verse = [];
+  }
+
+  // Parse this verse into JSON form and retrieve the first key/value.
+  const json  = _parseEl( state.$, elVerse );
+  const key   = Object.keys( json ).shift();
+  const val   = json[key];
+
+  if (Array.isArray(val)) {
+    // Process an array of verse elements
+    val.forEach( item => {
+      /*
+      console.log('label[ %s ], key[ %s ], item:', state.label, key, item);
+      // */
+
+      const text  = _verseText( state.label, item );
+      if (text) { curText.push( text ) }
+
+      if (typeof(item) === 'string') {
+        // Label this raw text with our parent label
+        verse.push( {[state.label]:item} );
+
+      } else {
+        verse.push( item );
+      }
+    });
+
+  } else {
+    // Label this sub-item with our parent label
+    /*
+    console.log('label[ %s ], key[ %s ], val:', state.label, key, json[key]);
+    // */
+
+    const text  = _verseText( state.label, json[key] );
+    if (text) { curText.push( text ) }
+
+    verse.push( {[state.label]:json[key]} );
+  }
+
+  state.verse = verse;
+  state.verses.set(   usfm, verse );
+  state.fullText.set( usfm, curText );
+
+  return state;
+}
+
+/**
+ *  Handle any processing required between verses
+ *  (e.g. filling in multi-verse references).
+ *  @method _interVerseProessing
+ *  @param  state           Processing state {Object};
+ *  @param  state.curMulti  The set of absolute reference(s) for the current
+ *                          verse {String};
+ *  @parm   state.verses    The map of verses by verse reference {Map};
+ *  @param  nextUsfm        The absolute reference for the next verse
+ *                          {String};
+ *
+ *  @return The udpated state {Object};
+ *  @private
+ */
+function _interVerseProcessing( state, nextUsfm ) {
+  if (state.curMulti && state.curMulti.length > 1) {
+    const firstUsfm       = state.curMulti[0];
+    const [ bk, ch, vs ]  = firstUsfm.split('.');
+    const ref             = Refs.sortable( bk, ch, vs );
+
+    console.warn('=== Fill in multi-verse references:');
+    console.warn('===   ', state.curMulti);
+
+    for (let idex = 1; idex < state.curMulti.length; idex++) {
+      const usfm  = state.curMulti[ idex ];
+
+      state.verses.set( usfm, { $ref: ref } );
+    }
+  }
+
+  return state;
 }
 
 /**
