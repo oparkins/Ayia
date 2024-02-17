@@ -499,15 +499,15 @@ const BookMap = {
   // Deuterocanon (DC) {
   //  :XXX: Don't currently have information about chapters/verses
   //    Between: Nehemiah (16) and Ester (17)
-  'TOB': { name: 'Tobit',                   ord: 16.1,  loc: 'Deuterocanon' },
-  'JDT': { name: 'Judith',                  ord: 16.2,  loc: 'Deuterocanon' },
+  'TOB': { name: 'Tobit',                   order: 16.1,loc: 'Deuterocanon' },
+  'JDT': { name: 'Judith',                  order: 16.2,loc: 'Deuterocanon' },
   //    Between: Esther (17) and Job (18)
-  'ESG': { name: 'Esther Greek',            ord: 17.1,  loc: 'Deuterocanon' },
+  'ESG': { name: 'Esther Greek',            order: 17.1,loc: 'Deuterocanon' },
   //    Between: Song of Songs (22) and Isaiah (23)
-  'WIS': { name: 'Wisdom of Solomon',       ord: 22.1,  loc: 'Deuterocanon' },
+  'WIS': { name: 'Wisdom of Solomon',       order: 22.1,loc: 'Deuterocanon' },
   'SIR': { name: 'Sirach (Ecclesiasticus)', ord: 22.2,  loc: 'Deuterocanon' },
   //    Between: Lamentations (25) and Ezekiel (26)
-  'BAR': { name: 'Baruch',                  ord: 25.1,  loc: 'Deuterocanon' },
+  'BAR': { name: 'Baruch',                  order: 25.1,loc: 'Deuterocanon' },
 
   // NOT in the cannon
   'LJE': { name: 'Letter of Jeremiah',                  loc: 'Deuterocanon' },
@@ -563,9 +563,11 @@ const BookMap = {
  *  @param  abbr  The book abbreviation {String};
  *
  *  @return Book information {Object | undefined};
- *            { abbr: The abbreviated book name {String},
- *              name: The full name of the book {String},
- *              loc : The location of the book {String},
+ *            { abbr    : The abbreviated book name {String},
+ *              name    : The full name of the book {String},
+ *              loc     : The location of the book {String},
+ *              [order] : The canonical order of the book {String};
+ *              [verses]: The number of verses per chapter {Array};
  *            }
  */
 function getBook( abbr ) {
@@ -582,11 +584,7 @@ function getBook( abbr ) {
   if (found == null)  { return }
 
   const entry = found[1];
-  return {
-    abbr: ABBR,
-    name: entry.name,
-    loc : entry.loc,
-  };
+  return { abbr: ABBR, ...entry };
 }
 
 /**
