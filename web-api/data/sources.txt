@@ -1,0 +1,6 @@
+Order:
+  https://www.usccb.org/offices/new-american-bible/books-bible
+
+Verses / Chapter:
+  https://catholic-resources.org/Bible/OT-Statistics-NAB.htm
+  https://catholic-resources.org/Bible/NT-Statistics-Greek.htm
