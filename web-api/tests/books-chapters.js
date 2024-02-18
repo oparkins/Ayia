@@ -3,7 +3,7 @@ const Path          = require('path');
 const { read_csv }  = require('./lib/helpers');
 const Books         = require('../lib/books');
 
-describe('boooks.getChapters', () => {
+describe('books.getChapters', () => {
   const fixture_path  = Path.join( __dirname, 'fixtures/verse-counts.csv' );
   let   lines;
   try {
