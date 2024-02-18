@@ -3,6 +3,7 @@
  *
  */
 const Cheerio = require('cheerio');
+const Books   = require('./books');
 const Refs    = require('./refs');
 
 /**
@@ -77,6 +78,9 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
               abbrev, ref_filter, only_book, only_ch, only_vs);
   // */
 
+  const book    = Books.getBook( abbrev );
+  // assert( book != null );
+
   const bkJson  = {
     metadata: [],
     chapters: {},
@@ -111,8 +115,20 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
      */
     const firstUsfm = `${abbrev}.${chp}.1`;
     const $chaps    = $( '.chapter' ).children();
-    bkJson.chapters[ chp ] = _parseChapter( $, $chaps, firstUsfm, filter );
+    bkJson.chapters[ chp ] = _parseChapter( $, $chaps, chp, book,
+                                            firstUsfm, filter );
   });
+
+  // Validate the chapter count from the canonical data.
+  const nonIntro    = Object.keys(bkJson.chapters).filter( name => {
+                        return (! name.startsWith('INTRO') );
+                      });
+  const chapsFound  = nonIntro.length;
+  const chapsExpect = Books.getChapters( book.abbr );
+  if (chapsFound !== chapsExpect) {
+    console.error('*** %s : %d identified chapters out of %d expected',
+                  book.abbr, chapsFound, chapsExpect);
+  }
 
   return bkJson;
 }
@@ -150,13 +166,15 @@ function _parseIntro( $, $intro, filter ) {
  *  @method _parseChapter
  *  @param  $           The top-level Cheerio instance {Cheerio};
  *  @param  $chap       The chapter element(s) {Cheerio};
+ *  @param  chp         The number of the current chapter {Number};
+ *  @param  book        Metadata about the target book {Book};
  *  @param  firstUsfm   The absolute reference for the first verse {String};
  *  @param  filter      If provided, a filter to limit the output {RegExp};
  *
  *  @return A simple object representing the chapter {Object};
  *  @private
  */
-function _parseChapter( $, $chap, firstUsfm, filter=null ) {
+function _parseChapter( $, $chap, chp, book, firstUsfm, filter=null ) {
   // The first 'label' will be used as the chapter label.
   const chJson  = {
     verse_count : 0,
@@ -236,6 +254,17 @@ function _parseChapter( $, $chap, firstUsfm, filter=null ) {
     }
   });
 
+  /* Perform one final round of inter-verse processing to deal with any
+   * multi-verse entries at the end of a chapter.
+   */
+  _interVerseProcessing( verseState );
+
+  // Validate the verse count from the canonical data.
+  if (verseState.verseMax !== book.verses[ chp ]) {
+    console.error('*** %s.%s : %d identified verses out of %d expected',
+                  book.abbr, chp, verseState.verseMax, book.verses[ chp ]);
+  }
+
   // Record the verse count
   chJson.verse_count = verseState.verseMax;
 
@@ -302,7 +331,7 @@ function _parseVerse( state, elVerse) {
   if (state.filter && !state.filter.test( data_usfm )) { return state }
 
   if (state.curUsfm !== data_usfm) {
-    _interVerseProcessing( state, data_usfm );
+    _interVerseProcessing( state );
   }
 
   state.curUsfm  = data_usfm;
@@ -395,20 +424,20 @@ function _parseVerse( state, elVerse) {
  *  @param  state.curMulti  The set of absolute reference(s) for the current
  *                          verse {String};
  *  @parm   state.verses    The map of verses by verse reference {Map};
- *  @param  nextUsfm        The absolute reference for the next verse
- *                          {String};
  *
  *  @return The udpated state {Object};
  *  @private
  */
-function _interVerseProcessing( state, nextUsfm ) {
+function _interVerseProcessing( state ) {
   if (state.curMulti && state.curMulti.length > 1) {
     const firstUsfm       = state.curMulti[0];
     const [ bk, ch, vs ]  = firstUsfm.split('.');
     const ref             = Refs.sortable( bk, ch, vs );
 
+    /*
     console.warn('=== Fill in multi-verse references:');
     console.warn('===   ', state.curMulti);
+    // */
 
     for (let idex = 1; idex < state.curMulti.length; idex++) {
       const usfm  = state.curMulti[ idex ];
