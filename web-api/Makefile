@@ -92,8 +92,13 @@ image-tag:
 	@echo "$(IMAGE_TAG)"
 
 #? Show the full image name with tag (informational)
+#?
 image-full:
 	@echo "$(IMAGE_NAME):$(IMAGE_TAG)"
+
+#? Run tests
+tests: .FORCE
+	npx mocha tests
 
 ################################################################################
 # Private (no help)
@@ -103,3 +108,5 @@ node_modules: package.json
 
 images:
 	mkdir images
+
+.FORCE:
