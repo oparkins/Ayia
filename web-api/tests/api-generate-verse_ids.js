@@ -1,9 +1,9 @@
 const Assert    = require('assert').strict;
 const Parse     = require('../api/parse');
 const Generate  = require('../api/generate');
-const tests     = require('./fixtures/api-parse-verse_ids');
+const tests     = require('./fixtures/api-generate-verse_ids');
 
-describe('api.parse.verse_ids', () => {
+describe('api.generate.verse_ids', () => {
   tests.forEach( test => {
     const expRefs = test.expect;
     const expLen  = expRefs.length;
