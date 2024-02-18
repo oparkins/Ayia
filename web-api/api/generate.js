@@ -6,7 +6,7 @@ const Refs  = require('../lib/refs');
  *  @method verse_ids
  *  @param  ref   The reference generated via `parse.reference()` {Object};
  *                  { book: The book metadata {Object},
- *                            { id, verses:[ 0, vsCnt, ... ] }
+ *                            { abbr, verses:[ 0, vsCnt, ... ] }
  *                    from: { chapter, verse },
  *                    to  : { chapter, verse },
  *                  }
@@ -49,7 +49,7 @@ function verse_ids( ref ) {
   if (to.verse   > maxTo)   { to.verse   = maxTo }
 
   /*
-  console.log('verse_ids(): book:', book.id);
+  console.log('verse_ids(): book:', book.abbr);
   console.log('verse_ids(): from:', from);
   console.log('verse_ids(): to  :', to);
   // */
@@ -60,7 +60,7 @@ function verse_ids( ref ) {
     const vsLast  = (ch === to.chapter   ? to.verse   : vsMax);
 
     for (let vs = vsFirst; vs <= vsLast; vs++) {
-      ids.push( Refs.sortable( book.id, ch, vs ) );
+      ids.push( Refs.sortable( book.abbr, ch, vs ) );
     }
   }
 

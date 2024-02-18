@@ -217,7 +217,7 @@ async function _verses_get( config, req, res ) {
   }
 
   // Parse/validate the incoming reference
-  const ref = parse.reference( refStr, version );
+  const ref = parse.reference( refStr );
   if (ref instanceof Error) {
     const json  = { error: `Invalid ref ${refStr}: ${ref.message}` };
 

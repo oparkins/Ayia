@@ -1,3 +1,5 @@
+const Books = require('../lib/books');
+
 /**
  *  Parse a number from a request string.
  *
@@ -209,18 +211,14 @@ function parse_search( str, indexed=false ) {
 /**
  *  Parse a verse reference string.
  *  @method parse_ref
- *  @param  ref     The reference string {String};
- *                    BOOK[.chapter[.verse[-[.chapter].verse]]]
- *  @param  version Metadata about the target version {Object};
- *
- *  @note Any `book` data returned will be augmented with the reference
- *        abbreviation of the target book as `book.id`.
+ *  @param  ref   The reference string {String};
+ *                  BOOK[.chapter[.verse[-[.chapter].verse]]]
  *
  *  @return The parsed reference data or Error {Object | Error};
  *            {
- *              [version]   The version metadata {Object};
- *              [book]      The book metadata {Object};
- *                            { id, verses:[ 0, vsCnt, ... ] }
+ *              book: {     The book metadata {Object};
+ *                abbr, name, order, loc, verses:[ 0, vsCnt, ... ],
+ *              },
  *              from: {
  *                chapter:  The id of the starting chapter {Number};
  *                verse:    The id of the starting verse {Number};
@@ -232,7 +230,7 @@ function parse_search( str, indexed=false ) {
  *            }
  *  @private
  */
-function parse_ref( ref, version ) {
+function parse_ref( ref ) {
   const [fromRange, toRange]  = ref.split(/\s*-\s*/);
   let [
     fromBook,
@@ -268,12 +266,9 @@ function parse_ref( ref, version ) {
   if (fromBook    == null) { return new Error('missing book') }
   if (fromChapter == null) { return new Error('missing chapter (from)') }
 
-  if (version) {
-    book = version.books[ fromBook ];
-    if (book == null)  { return new Error(`Unknown book ${fromBook}`) }
-
-    book.id = fromBook;
-  }
+  // Validate the target book
+  book = Books.getBook( fromBook );
+  if (book == null)  { return new Error(`Unknown book ${fromBook}`) }
 
   /*************************************************************************
    * Process the portions of any `toRange`
@@ -335,7 +330,6 @@ function parse_ref( ref, version ) {
    *
    */
   const res = {
-    version,
     book,
 
     from: { chapter: fromChapter, verse: fromVerse },
