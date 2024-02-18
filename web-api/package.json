@@ -1,6 +1,6 @@
 {
   "name": "web-api",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "The web-api for the Ayia Bible study application",
   "main": "bin/web-api",
   "scripts": {
@@ -26,5 +26,8 @@
     ],
     "delay": 2500,
     "ext": "js,mjs,json,yaml"
+  },
+  "devDependencies": {
+    "mocha": "^10.3.0"
   }
 }
