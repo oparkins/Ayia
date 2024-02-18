@@ -20,7 +20,6 @@ describe('boooks.getChapters', () => {
   lines.forEach( (fields, idex) => {
     const abbr        = fields.shift();
     const totChapters = parseInt( fields.shift() );
-    const totVerses   = parseInt( fields.shift() );
 
     it( `${abbr}: fixture data`, () => {
       // Validate the fixture data
