@@ -12,7 +12,7 @@
     "build-theme": "npm run smui-theme-light && npm run smui-theme-dark",
     "smui-theme-light": "smui-theme compile static/css/smui.css -i src/theme",
     "smui-theme-dark": "smui-theme compile static/css/smui-dark.css -i src/theme/dark",
-    "server-watch": "nodemon server.js"
+    "server-watch": "nodemon web-ui"
   },
   "devDependencies": {
     "@fontsource/fira-mono": "^4.5.10",
