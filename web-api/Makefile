@@ -14,8 +14,9 @@ APPNAME	:= $(shell awk '/^  "name":/{v=substr($$2,2,length($$2)-3);print v}'\
                        package.json )
 
 # Container image name and tag
-IMAGE_NAME  := harbor.nibious.com/ayia/$(APPNAME)
-IMAGE_TAG   := $(VERSION)
+CONTAINER_REPO  := harbor.nibious.com/ayia
+CONTAINER_NAME  := $(APPNAME)
+CONTAINER_TAG   := $(VERSION)
 
 #? Show this help message
 help:
@@ -54,47 +55,54 @@ mongo-proxy:
 	./etc/mongo-proxy.sh "$(NS)" "$(REL)-mongodb"
 
 #? Build a container image
-image: package.json
-	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) .
-	podman tag $(IMAGE_NAME):$(IMAGE_TAG) $(IMAGE_NAME):latest
+container: package.json
+	podman build -t $(CONTAINER_NAME):$(CONTAINER_TAG) .
+	podman tag $(CONTAINER_NAME):$(CONTAINER_TAG) $(CONTAINER_NAME):latest
 
 #? Run the current container image
-image-run:
+container-run:
 	podman run --rm -it \
 	    --privileged \
-	    $(IMAGE_NAME):$(IMAGE_TAG) sh
+	    $(CONTAINER_NAME):$(CONTAINER_TAG) sh
 
 #? Save the image to a tarball
-image-save: images
+container-save: containers
 	podman save \
-	    $(IMAGE_NAME):$(IMAGE_TAG) \
-	    --output "images/$(APPNAME)-$(IMAGE_TAG).tar"
+	    $(CONTAINER_NAME):$(CONTAINER_TAG) \
+	    --output "containers/$(APPNAME)-$(CONTAINER_TAG).tar"
 
 #? Push the image to the currently configured repository
 #    harbor.nibious.com/ayia
-image-push:
-	podman push $(IMAGE_NAME):$(IMAGE_TAG)
-	podman push $(IMAGE_NAME):latest
+container-push:
+	podman tag $(CONTAINER_NAME):$(CONTAINER_TAG) \
+	           $(CONTAINER_REPO)/$(CONTAINER_NAME):$(CONTAINER_TAG)
+	podman tag $(CONTAINER_NAME):$(CONTAINER_TAG) \
+	           $(CONTAINER_REPO)/$(CONTAINER_NAME):latest
+	podman push $(CONTAINER_REPO)/$(CONTAINER_NAME):$(CONTAINER_TAG)
+	podman push $(CONTAINER_REPO)/$(CONTAINER_NAME):latest
 
 #? Delete the current image, including the 'latest' tag
 #?
-image-clean:
-	podman rmi $(IMAGE_NAME):$(IMAGE_TAG)
-	podman rmi $(IMAGE_NAME):latest
+container-clean:
+	podman rmi $(CONTAINER_REPO)/$(CONTAINER_NAME):$(CONTAINER_TAG)
+	podman rmi $(CONTAINER_REPO)/$(CONTAINER_NAME):latest
+	podman rmi $(CONTAINER_NAME):$(CONTAINER_TAG)-dev
+	podman rmi $(CONTAINER_NAME):$(CONTAINER_TAG)
+	podman rmi $(CONTAINER_NAME):latest
 
 ###
 #? Show the image name (informational)
-image-name:
-	@echo "$(IMAGE_NAME)"
+container-name:
+	@echo "$(CONTAINER_NAME)"
 
 #? Show the image tag (informational)
-image-tag:
-	@echo "$(IMAGE_TAG)"
+container-tag:
+	@echo "$(CONTAINER_TAG)"
 
 #? Show the full image name with tag (informational)
 #?
-image-full:
-	@echo "$(IMAGE_NAME):$(IMAGE_TAG)"
+container-full:
+	@echo "$(CONTAINER_NAME):$(CONTAINER_TAG)"
 
 #? Run tests
 tests: .FORCE
@@ -106,7 +114,7 @@ tests: .FORCE
 node_modules: package.json
 	npm install
 
-images:
-	mkdir images
+containers:
+	mkdir containers
 
 .FORCE:
