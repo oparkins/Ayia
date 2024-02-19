@@ -4,9 +4,9 @@ import preprocess from 'svelte-preprocess';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	// Consult https://github.com/sveltejs/svelte-preprocess
-	// for more information about preprocessors
-	preprocess: preprocess(),
+  // Consult https://github.com/sveltejs/svelte-preprocess
+  // for more information about preprocessors
+  preprocess: preprocess(),
 
   kit: {
     /* adapter-auto only supports some environments, see
@@ -19,9 +19,9 @@ const config = {
      * adapters.
      */
 
-		// We have changed this to point to a build directory
+    // We have changed this to point to a build directory
     // adapter: adapter()
-		adapter: adapter({ out: 'dist' })
+    adapter: adapter({ out: 'dist' })
   }
 };
 

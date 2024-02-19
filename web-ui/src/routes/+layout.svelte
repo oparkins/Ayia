@@ -1,53 +1,118 @@
 <script>
-  import Header from './Header.svelte';
-  import './styles.css';
+  import { onMount } from 'svelte';
+
+  import TopAppBar, { Row, Section, Title } from '@smui/top-app-bar';
+  import List,      { Item,
+                      Separator,
+                      Graphic,
+                      Text,
+                      PrimaryText,
+                      SecondaryText }       from '@smui/list';
+  import IconButton                         from '@smui/icon-button'
+
+  import { icons }          from '$lib/icons';
+  import ToggleTheme        from '$lib/ToggleTheme.svelte';
+  import UserButton         from '$lib/UserButton.svelte';
+  import Drawer             from '$lib/Drawer.svelte';
+  import { theme,
+           drawer_closed }  from "$lib/stores.js";
+
+  const toggle_drawer = () => {
+    /*
+    console.log('toggle_drawer()');
+    // */
+
+    drawer_closed.set( !$drawer_closed );
+
+  };
+
+  /*
+  console.log('layout.drawer_closed[ %s ]', String($drawer_closed));
+  // */
 </script>
 
+<svelte:head>
+  <!-- fonts -->
+  <link rel="stylesheet" href="/css/fonts.css" />
+
+  <!-- theme -->
+  {#if $theme == 'dark'}
+    <link rel="stylesheet" href="/css/smui-dark.css" />
+  {:else}
+    <link rel="stylesheet" href="/css/smui.css" />
+  {/if}
+</svelte:head>
+
 <div class="app">
-  <Header />
+  <TopAppBar variant='static' dense>
+    <Row>
+      <Section>
+        <IconButton
+            class="material-icons"
+            on:click={ toggle_drawer } >
+          { $drawer_closed ? icons.drawer_open : icons.drawer_close }
+        </IconButton>
+        <Title>CMDAA</Title>
+        <ToggleTheme />
+      </Section>
+      <Section align="end" toolbar>
+        <UserButton />
+      </Section>
+    </Row>
+  </TopAppBar>
+  <div class="app-body">
+    <Drawer />
 
-  <main>
-    <slot />
-  </main>
-
-  <footer>
-    <p>visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to learn SvelteKit</p>
-  </footer>
+    <main class="main-content">
+      <slot />
+    </main>
+  </div>
 </div>
 
 <style>
+  :root {
+    font-family:  Roboto;
+    font-size:    16px;
+    line-height:  24px;
+    font-weight:  400;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+
+    -webkit-font-smoothing:   antialiased;
+    -moz-osx-font-smoothing:  grayscale;
+    -webkit-text-size-adjust: 100%;
+  }
+
   .app {
-    display: flex;
+    display:        flex;
     flex-direction: column;
-    min-height: 100vh;
+    height:         100vh;
+    width:          100vw;
+  }
+  .app-body {
+    display:        flex;
+    flex-direction: row;
+    width:          100vw;
+    height:         100%;
+    min-height:     600px;
+
+    box-sizing:     border-box;
   }
 
-  main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    width: 100%;
-    max-width: 64rem;
-    margin: 0 auto;
-    box-sizing: border-box;
-  }
+  main.main-content {
+    flex-basis:     100%;
+    flex-grow:      1;
 
-  footer {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 12px;
-  }
+    display:        flex;
+    flex-direction: row;
 
-  footer a {
-    font-weight: bold;
-  }
+    height:         100%;
 
-  @media (min-width: 480px) {
-    footer {
-      padding: 12px 0;
-    }
+    /*overflow:       auto;*/
+
+    padding:        0 1em;
+
+    box-sizing:     border-box;
   }
 </style>

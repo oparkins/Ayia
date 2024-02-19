@@ -1,59 +1,35 @@
 <script>
-  import Counter from './Counter.svelte';
-  import welcome from '$lib/images/svelte-welcome.webp';
-  import welcome_fallback from '$lib/images/svelte-welcome.png';
+  import { user } from '$lib/stores';
 </script>
 
 <svelte:head>
-  <title>Home</title>
-  <meta name="description" content="Svelte demo app" />
+  <title>Ayia</title>
+  <meta name="description" content="Ayia Bible UI" />
 </svelte:head>
 
 <section>
-  <h1>
-    <span class="welcome">
-      <picture>
-        <source srcset={welcome} type="image/webp" />
-        <img src={welcome_fallback} alt="Welcome" />
-      </picture>
-    </span>
+  <h3>Ayia</h3>
 
-    to your new<br />SvelteKit app
-  </h1>
+{#if $user == null}
+  <p>
+    Ayia is a web-based Bible study application that allows multiple versions
+    of the Bible to be views simultaneously.
+  </p>
 
-  <h2>
-    try editing <strong>src/routes/+page.svelte</strong>
-  </h2>
-
-  <Counter />
+  <p>
+    <a href='/login'>Sign-in or Register</a> for access.
+  </p>
+{:else}
+  <p>
+    Welcome! Access versions and other research materials using the navigation
+    bar to the left.
+  </p>
+{/if}
 </section>
 
 <style>
   section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    flex: 0.6;
-  }
-
-  h1 {
-    width: 100%;
-  }
-
-  .welcome {
-    display: block;
-    position: relative;
-    width: 100%;
-    height: 0;
-    padding: 0 0 calc(100% * 495 / 2048) 0;
-  }
-
-  .welcome img {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    display: block;
+    display:    block;
+    max-width:  50em;
   }
 </style>

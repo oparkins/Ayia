@@ -42,7 +42,6 @@ build-dev-watch: static/css/smui.css
 #? Build the smui theme
 #?
 build-theme: static/css/smui.css
-	@npm run build-theme
 
 #? Run a vite dev server (opening in the browser)
 dev: static/css/smui.css
