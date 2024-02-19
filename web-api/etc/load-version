@@ -81,27 +81,22 @@ async function main() {
   console.log('>>> Fetch version: %s %s', vers, (ref_filter || ''));
   Bible.getVersion( vers )
     .then( version => {
+      console.log('>>>> Update %s metadata ...', version.abbreviation);
+
+      // Don't store the full books (but keep them for the next stage)
+      const books = version.books;
+      delete version.books;
+
+      return _store_version_metadata( mongo.collections.versions, version )
+                .then( res => {
+                  version.books = books;
+                  return version;
+                } );
+    })
+    .then( version => {
       console.log('>>>> Convert %s data to JSON ...', version.abbreviation);
       const json  = Bible.toJson( version, ref_filter );
 
-      console.log('>>>> Generate %s range data ...', version.abbreviation);
-      version.books = _generate_ranges( json );
-
-      /*
-      console.log('=== %s version.books:',
-                  version.abbreviation, _inspect( version.books ));
-      console.log('=== %s json.books:',
-                  version.abbreviation, _inspect( json.books, 8 ));
-      throw new Error('STOP');
-      // */
-
-      console.log('>>>> Update %s metadata ...', version.abbreviation);
-      return _store_version_metadata( mongo.collections.versions, version )
-                .then( res => {
-                  return [version, json];
-                } );
-    })
-    .then( ([version,json]) => {
       // Access the collection for this version
       const abbrev  = version.abbreviation;
       const col     = mongo.db.collection( abbrev );
@@ -406,7 +401,7 @@ function _inspect( obj, depth=4 ) {
   const opts  = {
     showHidden      : false,
     depth           : depth,
-    colors          : false,  //true,
+    colors          : true,
     maxStringLength : 120,
     breakLength     : 80,
     compact         : 10,
