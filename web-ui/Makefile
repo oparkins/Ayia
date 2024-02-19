@@ -51,15 +51,14 @@ build-dev-watch: static/css/smui.css
 #?
 build-theme: static/css/smui.css
 
-#? Run a vite dev server (opening in the browser)
+#? Run a vite dev server
 dev: static/css/smui.css
-	@npm run dev -- --open
+	@npm run dev
 
 #? Run the svelte application in preview mode
-#? (opening in the browser)
 #?
 preview: static/css/smui.css
-	@npm run preview -- --open
+	@npm run preview
 
 #? Run the svelte application using our custom server
 server-run: static/css/smui.css
