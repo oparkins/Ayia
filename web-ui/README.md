@@ -1,38 +1,25 @@
-# create-svelte
+# Ayia web-ui
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+A web-based Bible study application.
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+During development, you'll need at least 2 terminals:
+1.  To continuously (re)build the app as files are changed, serving them with
+    hot module reloading;
+    ```sh
+    make dev      # or `npm run dev` or `npx vite dev`
 
-```bash
-npm run dev
+    # To view the production app instead of the development app, use:
+    make preview  # or `npm run preview` or `npx vite preview`
+    ```
+2.  To run your editor and any managment commands;
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+If you need to access the app from a browser on a different system, you can
+make use of an `ssh` tunnel. There is an example in
+[etc/port-forward](./etc/port-forward) that makes port 5173 on the remote
+development machine (e.g. `op-vm`) available on your local host as port 5173.
 
-## Building
+You will also need access to the Ayia web-api server. There *should be* one
+running at: https://api.ayia.nibious.com/
 
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
