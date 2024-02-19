@@ -8,6 +8,6 @@ web_ui: # {
 
 # Access to web-services (REST and JsonRPC)
 web_services: # {
-  host: web-services.test
+  host: api.ayia.nibious.com
   port: 443
 #} web_services
