@@ -1,0 +1,29 @@
+###
+#FROM node:21.6.1-bookworm-slim
+FROM node:21.6.1-alpine3.19 AS builder
+
+ADD --chown=node:node ./  /app
+
+WORKDIR /app
+
+RUN npm install && \
+    chown -R node:node .
+
+###
+FROM node:21.6.1-alpine3.19
+MAINTAINER D. Elmo Peele
+
+RUN apk --no-cache add bash curl make vim && \
+    mv /etc/profile.d/color_prompt.sh.disabled \
+       /etc/profile.d/color_prompt.sh && \
+    echo "alias d='ls -CF'" > /etc/profile.d/aliases.sh
+
+USER node
+WORKDIR /app
+
+COPY --from=builder /app /app
+
+# Expose the configuration volume (etc/config.yaml)
+VOLUME [ "/app/etc" ]
+
+CMD [ "npx", "nodemon", "--", "./web-ui", "-c", "./etc/config.yaml" ]

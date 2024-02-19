@@ -1,5 +1,13 @@
-CONTAINER_NAME	:= cmdaa/web-ui
-CONTAINER_TAG	:= 0.0.25
+# App information (from package.json)
+VERSION	:= $(shell awk '/^  "version":/{v=substr($$2,2,length($$2)-3);print v}'\
+                       package.json )
+APPNAME	:= $(shell awk '/^  "name":/{v=substr($$2,2,length($$2)-3);print v}'\
+                       package.json )
+
+# Container image name and tag
+CONTAINER_REPO  := harbor.nibious.com/ayia
+CONTAINER_NAME  := $(APPNAME)
+CONTAINER_TAG   := $(VERSION)
 
 #? Show this help message
 #?
@@ -55,7 +63,7 @@ preview: static/css/smui.css
 
 #? Run the svelte application using our custom server
 server-run: static/css/smui.css
-	@./server.js
+	@./web-ui
 
 #? Run the svelte application using our custom server
 #? restarting on any changes.
@@ -68,19 +76,45 @@ containers: container container-dev
 
 #? Build a container image
 container:
-	docker build \
-	  --tag $(CONTAINER_NAME):$(CONTAINER_TAG) \
-	    .
-	docker tag \
-	  $(CONTAINER_NAME):$(CONTAINER_TAG) \
-	  $(CONTAINER_NAME):latest
+	podman build --tag $(CONTAINER_NAME):$(CONTAINER_TAG) .
+	podman tag $(CONTAINER_NAME):$(CONTAINER_TAG) \
+	           $(CONTAINER_NAME):latest
 
 #? Build a developer container image
+#?
 container-dev:
-	docker build \
+	podman build --tag $(CONTAINER_NAME):$(CONTAINER_TAG)-dev \
 	  --file Dockerfile.dev \
-	  --tag $(CONTAINER_NAME):$(CONTAINER_TAG)-dev \
 	    .
+
+#? Run the production container image
+container-run:
+	podman run --rm -it \
+	    $(CONTAINER_NAME):$(CONTAINER_TAG) sh
+
+#? Run the developer container image
+#?
+container-dev-run:
+	podman run --rm -it \
+	    $(CONTAINER_NAME):$(CONTAINER_TAG)-dev sh
+
+#? Push the image to the currently configured repository
+container-push:
+	podman tag $(CONTAINER_NAME):$(CONTAINER_TAG) \
+	           $(CONTAINER_REPO)/$(CONTAINER_NAME):$(CONTAINER_TAG)
+	podman tag $(CONTAINER_NAME):$(CONTAINER_TAG) \
+	           $(CONTAINER_REPO)/$(CONTAINER_NAME):latest
+	podman push $(CONTAINER_REPO)/$(CONTAINER_NAME):$(CONTAINER_TAG)
+	podman push $(CONTAINER_REPO)/$(CONTAINER_NAME):latest
+
+#? Delete the current image, including the 'latest' tag
+#?
+container-clean:
+	podman rmi $(CONTAINER_REPO)/$(CONTAINER_NAME):$(CONTAINER_TAG)
+	podman rmi $(CONTAINER_REPO)/$(CONTAINER_NAME):latest
+	podman rmi $(CONTAINER_NAME):$(CONTAINER_TAG)-dev
+	podman rmi $(CONTAINER_NAME):$(CONTAINER_TAG)
+	podman rmi $(CONTAINER_NAME):latest
 
 #############################################################################
 # Private (no help)
