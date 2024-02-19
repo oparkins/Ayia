@@ -226,6 +226,12 @@ function _parseChapter( $, $chap, chp, book, firstUsfm, filter=null ) {
 
     if ($verses.length > 0) {
       $verses.each( (kdex, vs) => {
+        // Check if there are non-verse siblings.
+        const siblings  = $(vs).siblings(':not(.verse)');
+        if (siblings.length > 0) {
+          _addSiblingsToCurrentVerse( verseState, siblings );
+        }
+
         _parseVerse( verseState, vs );
       });
 
@@ -302,6 +308,65 @@ function _parseChapter( $, $chap, chp, book, firstUsfm, filter=null ) {
   verseState.fullText.clear();
 
   return chJson;
+}
+
+/**
+ *  For the case where a paragraph contains a verse that is preceeded by
+ *  non-verse siblings, we need to add that non-verse data to the previous
+ *  verse content.
+ *
+ *  @method _addSiblingsToCurrentVerse
+ *  @param  state           Processing state {Object};
+ *  @param  state.$         The top-level Cheerio instance {Cheerio};
+ *  @param  state.curUsfm   The absolute reference for the current verse
+ *                          {String};
+ *  @param  state.label     The parent label {String};
+ *  @parm   state.verse     The current entry from `state.verses` references
+ *                          via `state.curUsfm` {Array};
+ *  @parm   state.fullText  The map of fullText by verse reference {Map};
+ *  @param  siblings        The set of non-verse sibling element(s) {Cheerio};
+ *
+ *  @return An updated state {Object};
+ *  @private
+ */
+function _addSiblingsToCurrentVerse( state, siblings ) {
+  const curText = (state.fullText.get( state.curUsfm ) || []);
+
+  /*
+  console.log('>>> _addSiblingsToCurrentVerse(): %d siblings in %s to:',
+              siblings.length, state.label, state.curUsfm);
+  // */
+
+  siblings.each( (idex, el) => {
+    const json  = _parseEl( state.$, el );
+    /*
+    console.log('el[ %s ]:', typeof(json), json);
+    // */
+
+    if (typeof(json) === 'string') {
+      // Push this text labeled with our parent label
+      const text  = json.trim();
+      if (text.length > 0) {
+        state.verse.push( {[state.label]:json} );
+
+        // Include the text
+        curText.push( json )
+      }
+
+    } else {
+      /* Push this item directly as verse data and extract and include any
+       * verse-related text
+       */
+      const text  = _verseText( state.label, json );
+      if (text) { curText.push( text ) }
+
+      state.verse.push( json );
+    }
+  });
+
+  state.fullText.set( state.curUsfm, curText );
+
+  return state;
 }
 
 /**
