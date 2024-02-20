@@ -1,0 +1,99 @@
+#!/usr/bin/env node
+const Fs          = require('fs');
+const Readline    = require('readline');
+const Interlinear = require('../lib/interlinear');
+
+async function main() {
+  const args  = process.argv.slice(1);
+  const vers  = args[1];
+  if (vers == null) { _usage( args ) }
+
+  // /*
+  console.log('>>> Version: %s', vers);
+  // */
+
+  Interlinear.getVersion( vers )
+    .then( version => {
+      console.log('%s', JSON.stringify( version, null, 2));
+      console.log('==== CSV data:');
+      return _open_and_print( version.cache );
+    })
+    .then( numLines => {
+      if (numLines != null) {
+        console.log('==== %s lines', numLines.toLocaleString());
+      }
+    })
+    .catch(err => {
+      console.error('***', err);
+    });
+}
+
+main();
+
+/****************************************************************************
+ * Private helpers {
+ *
+ */
+
+/**
+ *  Present usage information and exit.
+ *  @method _usage
+ *  @param  args    The incoming arguments {Array};
+ *
+ *  @return void  (exits the process)
+ *  @private
+ */
+function _usage( args ) {
+  const Path  = require('path');
+  const prog  = Path.basename( args[0] );
+  console.log(`
+***
+*** Usage: ${prog} version-abbreviation
+***
+`);
+
+  process.exit(-1);
+}
+
+/**
+ *  Open and output the content of the given file.
+ *  @method _open_and_print
+ *  @param  path    The path to the target file {String};
+ *
+ *  @return A promise for results {Promise};
+ *          - on success, the number of lines in the file {Number};
+ *          - on failure, an error {Error};
+ *  @private
+ */
+function _open_and_print( path ) {
+  return new Promise((resolve, reject) => {
+    const inStream  = Fs.createReadStream( path );
+    const rl        = Readline.createInterface({
+      input     : inStream,
+      crlfDelay : Infinity,
+    });
+
+    let numLines  = 0;
+
+    rl.on('line', (line) => {
+      numLines++;
+
+      console.log( line );
+    });
+
+    rl.on('error', (err) => {
+      rl.close();
+      return reject( err );
+    });
+
+    rl.on('close', () => {
+      console.log();
+      return resolve( numLines );
+    });
+  });
+}
+
+/* Private helpers }
+ ****************************************************************************/
+
+// vi: ft=javascript

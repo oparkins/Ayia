@@ -1,0 +1,5 @@
+cache/
+etc/mongo-pass
+node_modules/
+tmp/
+**/*.swp

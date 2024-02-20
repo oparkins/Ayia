@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+const Interlinear = require('../lib/interlinear');
+
+async function main() {
+  const args  = process.argv.slice(1);
+
+  Interlinear.getVersions()
+    .then( versions => {
+      versions.forEach( vers => {
+        console.log('%s : %s : %s',
+                    vers.abbreviation.padEnd( 10, ' '),
+                    vers.local_abbreviation.padEnd( 10, ' '),
+                    vers.title);
+      });
+    })
+    .catch(err => {
+      console.error('***', err);
+    });
+}
+
+main();
+
+// vi: ft=javascript

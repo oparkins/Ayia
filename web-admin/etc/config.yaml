@@ -1,0 +1,22 @@
+verbosity:  1
+
+web_api: #{
+  host: localhost #api.ayia.nibious.com
+  port: 4000
+#} web_api
+
+mongodb: #{   # file:/secrets/mongodb/password
+  proto:    mongodb             # env:MONGODB_PROTO
+  host:     localhost           # env:MONGODB_HOST
+  port:     27017               # env:MONGODB_PORT
+  database: ayia                # env:MONGODB_DATABASE
+  user:     ayia                # env:MONGODB_USER
+  password: file:etc/mongo-pass #file:/var/run/secrets/mongo/mongodb-root-password
+
+  # A map between internal collection names and the collection within
+  # `mongodb.database`.
+  collection_map: # {
+    versions: versions
+    users:    users
+  #} mongodb.collection_map
+#} mongodb
