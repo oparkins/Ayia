@@ -802,10 +802,35 @@ function getVerses( book, chapter ) {
   return (verses == null ? -1 : verses);
 }
 
+/**
+ *  Fetch the canonical abbreviation of the given book string.
+ *  @method nameToABBR
+ *  @param  name    The given name {String};
+ *
+ *  :NOTE: This only matches the full name or abbreviation.
+ *
+ *  @return The canonical abbreviation or null if not found {String};
+ */
+function nameToABBR( name ) {
+  if (typeof(name) !== 'string')  { return }
+
+  const ABBR  = name.toUpperCase();
+  let   keyMatch;
+
+  Object.entries( BookMap ).find( ([key, entry]) => {
+    if (key === ABBR || entry.name === name) {
+      keyMatch = key;
+    }
+  });
+  return keyMatch;
+}
+
 module.exports  = {
   getBook,
   getBooks,
   getChapters,
   getVerses,
+
+  nameToABBR,
 };
 // vi: ft=javascript
