@@ -8,6 +8,7 @@ const Version = {
   local_abbreviation: 'BSB-IL',
   title:              'Berean Standard Bible (Interlinear)',
   local_title:        'Berean Standard Bible (Interlinear)',
+  type:               'interlinear',
   language: {
     iso_639_1:      'en',
     iso_639_3:      'eng',
