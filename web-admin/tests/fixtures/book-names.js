@@ -45,6 +45,7 @@ const tests = [
   { str:'Ecclesiastes', expect:'ECC' },
   { str:'SNG', expect:'SNG' },
   { str:'Song of Songs', expect:'SNG' },
+  { str:'Song of Solomon', expect:'SNG' },
   { str:'ISA', expect:'ISA' },
   { str:'Isaiah', expect:'ISA' },
   { str:'JER', expect:'JER' },

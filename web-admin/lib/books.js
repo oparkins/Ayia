@@ -259,6 +259,7 @@ const BookMap = {
   },
   'SNG': {
     name  : 'Song of Songs',
+    alts  : [ 'Song of Solomon' ],
     order : 22,
     loc   : 'Old Testament',
     verses: [ 0,  17, 17, 11, 16, 16, 13, 13, 14 ],
@@ -819,6 +820,10 @@ function nameToABBR( name ) {
 
   Object.entries( BookMap ).find( ([key, entry]) => {
     if (key === ABBR || entry.name.startsWith( name )) {
+      keyMatch = key;
+      return true;
+    }
+    if (Array.isArray(entry.alts) && entry.alts.includes( name )) {
       keyMatch = key;
       return true;
     }
