@@ -818,8 +818,9 @@ function nameToABBR( name ) {
   let   keyMatch;
 
   Object.entries( BookMap ).find( ([key, entry]) => {
-    if (key === ABBR || entry.name === name) {
+    if (key === ABBR || entry.name.startsWith( name )) {
       keyMatch = key;
+      return true;
     }
   });
   return keyMatch;
