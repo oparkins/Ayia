@@ -19,7 +19,7 @@ const Refs    = require('../refs');
  *  @return The parsed data {Object};
  */
 function toJson( data, ref_filter=null ) {
-  const json = { ...data, books:{} };
+  const json = { ...data, type:'yvers', books:{} };
 
   Object.entries(data.books).forEach( ([key,val]) => {
     const bookJson  = _parseBook( key, val, ref_filter );
