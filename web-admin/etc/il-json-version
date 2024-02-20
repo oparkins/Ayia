@@ -15,14 +15,19 @@ async function main() {
   Interlinear.toJson( vers )
     .then( version => {
       console.log( JSON.stringify( version, null, 2 ) );
+
+      /*
       console.log('==== JSON data:');
       return _open_and_print( version.cache.json );
+      // */
     })
+    /*
     .then( numLines => {
       if (numLines != null) {
         console.log('==== %s lines', numLines.toLocaleString());
       }
     })
+    // */
     .catch(err => {
       console.error('***', err);
     });
