@@ -2,32 +2,71 @@
  *  Convert a Bible version fetched via `Yvers.getVersion()` to JSON format.
  *
  */
-const Cheerio = require('cheerio');
-const Books   = require('../books');
-const Refs    = require('../refs');
+const Path            = require('path');
+const Fs              = require('fs/promises');
+const Cheerio         = require('cheerio');
+const Books           = require('../books');
+const Refs            = require('../refs');
+const { make_dir }    = require('../make_dir');
+const { PATH_CACHE }  = require('./constants');
 
 /**
  *  Convert a Bible version fetched via `Yvers.getVersion()` to JSON format.
  *
  *  @method toJson
- *  @param  data          The Bible data fetched via `Bibld.getVersion()`
- *                        {Object};
- *  @param  [ref_filter]  If provided, only present books, chapters, and verses
- *                        that match the filter ( BOK[.CHAPTER[.VERSE]] )
- *                        {String};
+ *  @param  config                  Conversion configuration {Object};
+ *  @param  config.version          The Bible data fetched via
+ *                                  `Bible.getVersion()` {Object};
+ *  @param  [config.outPath = null] A specific output path for the generated
+ *                                  JSON {String};
+ *  @param  [config.force = false]  If truthy, convert even if the output
+ *                                  already exists {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
  *
- *  @return The parsed data {Object};
+ *  @return A promise for results {Promise};
+ *          - on success, the path to the location holding the generated JSON
+ *                        data {String};
+ *          - on failure, an error {Error};
+ *
  */
-function toJson( data, ref_filter=null ) {
-  const json = { ...data, type:'yvers', books:{} };
+async function toJson( config ) {
+  if (config == null) {
+    throw new Error('toJson(): missing config');
+  }
+  if (config.version == null) {
+    throw new Error('toJson(): missing config.version');
+  }
 
-  Object.entries(data.books).forEach( ([key,val]) => {
-    const bookJson  = _parseBook( key, val, ref_filter );
+  const version = config.version;
 
-    if (bookJson) { json.books[key] = bookJson }
+  if (config.outPath == null) {
+    config.outPath = Path.join( PATH_CACHE, version.abbreviation );
+  }
+
+  await make_dir( config.outPath );
+
+  const json      = { ...version, type:'yvers' };
+  // Exclude the raw 'books'
+  delete json.books;
+
+  console.log('>>> %s : cache version data ...', version.abbreviation);
+  const versPath  = Path.join( config.outPath, 'version.json' );
+
+  await Fs.writeFile( versPath, JSON.stringify( json, null, 2 )+'\n' );
+
+  Object.entries(version.books).forEach( async ([key,val]) => {
+    const bookJson  = _parseBook( key, val );
+
+    if (bookJson) {
+      console.log('>>> %s : cache %s ...', version.abbreviation, key);
+      const bookPath  = Path.join( config.outPath, `${key}.json` );
+
+      await Fs.writeFile( bookPath, JSON.stringify( bookJson, null, 2 )+'\n' );
+    }
+
   });
 
-  return json;
+  return config.outPath;
 }
 
 /****************************************************************************
@@ -40,44 +79,11 @@ function toJson( data, ref_filter=null ) {
  *  @method _parseBook
  *  @param  abbrev        The book abbreviation {String};
  *  @param  chapters      The chapter data for this book {Object};
- *  @param  [ref_filter]  If provided, only present books, chapters, and verses
- *                        that match the filter ( BOK[.CHAPTER[.VERSE]] )
- *                        {String};
  *
  *  @return A simple object representing the given book {Object | undefined};
  *  @private
  */
-function _parseBook( abbrev, chapters, ref_filter = null ) {
-  const [ only_book, only_ch, only_vs ] = (typeof(ref_filter) === 'string'
-                                            ? ref_filter.split('.')
-                                            : []);
-  if (only_book && only_book !== abbrev) { return }
-
-  let filter  = null;
-  if (only_book) {
-    filter = only_book;
-
-    if (only_ch) {
-      filter += `.${only_ch}`;
-      if (only_vs)  { filter += `.${only_vs}([+]|$)` }
-      else          { filter += '.[0-9]' }
-    }
-
-    filter = new RegExp( filter.replaceAll('.', '\\.'), 'i' );
-
-    /*
-    console.log('_parseBook(): ref_filter[ %s ] => [ %s / %s / %s ]',
-                  ref_filter, only_book, only_ch, only_vs);
-    console.log('_parseBook(): filter: %s', filter);
-    // */
-  }
-
-  /*
-  console.log('_parseBook( %s ): ref_filter[ %s ] => '
-              +   'only_book[ %s ], only_ch[ %s ], only_vs[ %s ] => %s',
-              abbrev, ref_filter, only_book, only_ch, only_vs);
-  // */
-
+function _parseBook( abbrev, chapters ) {
   const book    = Books.getBook( abbrev );
   // assert( book != null );
 
@@ -86,8 +92,6 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
     chapters: {},
   };
   Object.entries( chapters ).forEach( ([chp, lines]) => {
-    if (only_ch && only_ch != chp) { return }
-
     const $         = Cheerio.load( lines.join( '' ) );
     const $intros   = $( '.intro' );
 
@@ -103,9 +107,7 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
        */
       const usfm  = _getAttr( $intros[0], 'data-usfm' );
 
-      if (filter && !filter.test( usfm )) { return }
-
-      bkJson.chapters[ chp ] = _parseIntro( $, $intros, filter );
+      bkJson.chapters[ chp ] = _parseIntro( $, $intros );
       return;
     }
 
@@ -116,7 +118,7 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
     const firstUsfm = `${abbrev}.${chp}.1`;
     const $chaps    = $( '.chapter' ).children();
     bkJson.chapters[ chp ] = _parseChapter( $, $chaps, chp, book,
-                                            firstUsfm, filter );
+                                            firstUsfm );
   });
 
   // Validate the chapter count from the canonical data.
@@ -138,12 +140,11 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
  *  @method _parseIntro
  *  @param  $       The top-level Cheerio instance {Cheerio};
  *  @param  $intro  The intro element(s) {Cheerio};
- *  @param  filter  If provided, a filter to limit the output {RegExp};
  *
  *  @return A simple object representing the intro {Object};
  *  @private
  */
-function _parseIntro( $, $intro, filter ) {
+function _parseIntro( $, $intro ) {
   const introJson = {
     content : [],
   };
@@ -169,12 +170,11 @@ function _parseIntro( $, $intro, filter ) {
  *  @param  chp         The number of the current chapter {Number};
  *  @param  book        Metadata about the target book {Book};
  *  @param  firstUsfm   The absolute reference for the first verse {String};
- *  @param  filter      If provided, a filter to limit the output {RegExp};
  *
  *  @return A simple object representing the chapter {Object};
  *  @private
  */
-function _parseChapter( $, $chap, chp, book, firstUsfm, filter=null ) {
+function _parseChapter( $, $chap, chp, book, firstUsfm ) {
   // The first 'label' will be used as the chapter label.
   const chJson  = {
     verse_count : 0,
@@ -190,7 +190,6 @@ function _parseChapter( $, $chap, chp, book, firstUsfm, filter=null ) {
    */
   const verseState  = {
     $,
-    filter,
 
     firstUsfm : firstUsfm,
     curUsfm   : firstUsfm,
@@ -374,7 +373,6 @@ function _addSiblingsToCurrentVerse( state, siblings ) {
  *  @method _parseVerse
  *  @param  state           Processing state {Object};
  *  @param  state.$         The top-level Cheerio instance {Cheerio};
- *  @param  state.filter    If provided, a filter to limit the output {RegExp};
  *  @param  state.firstUsfm The absolute reference for the first verse
  *                          {String};
  *  @param  state.curUsfm   The absolute reference for the current verse
@@ -392,8 +390,6 @@ function _addSiblingsToCurrentVerse( state, siblings ) {
  */
 function _parseVerse( state, elVerse) {
   const data_usfm = _getAttr( elVerse, 'data-usfm' );
-
-  if (state.filter && !state.filter.test( data_usfm )) { return state }
 
   if (state.curUsfm !== data_usfm) {
     _interVerseProcessing( state );

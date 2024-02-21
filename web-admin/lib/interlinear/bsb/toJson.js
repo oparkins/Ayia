@@ -74,17 +74,19 @@
  *      bdb           : Additional information about the source {String};
  *    }
  */
-const Fs        = require('fs');
-const Readline  = require('readline');
-const Books     = require('../../books');
-const Refs      = require('../../refs');
-const Parse     = require('./parse').parse;
-const Version   = require('./version').Version;
+const Path          = require('path');
+const Fs            = require('fs');
+const Readline      = require('readline');
+const Books         = require('../../books');
+const Refs          = require('../../refs');
+const { make_dir }  = require('../../make_dir');
+const Parse         = require('./parse').parse;
+const Version       = require('./version').Version;
 
 // Constants used later
 const {
+  PATH_CACHE,
   PATH_CSV,
-  PATH_JSON,
 } = require('./constants');
 
 /**
@@ -106,7 +108,7 @@ const {
 async function toJson( config=null ) {
   config  = Object.assign({
               inPath    : PATH_CSV,
-              outPath   : PATH_JSON,
+              outPath   : Path.join( PATH_CACHE, Version.abbreviation ),
               force     : false,
               verbosity : 0,
             }, config||{} );
@@ -115,7 +117,15 @@ async function toJson( config=null ) {
     await Parse( {outPath: config.inPath} );
   }
 
-  if (config.force || ! Fs.existsSync( config.outPath ) ) {
+  // Create the output path
+  await make_dir( config.outPath );
+
+  const versPath  = Path.join( config.outPath, 'version.json' );
+
+  if (config.force || ! Fs.existsSync( versPath ) ) {
+    console.log('>>> %s : cache version data ...', Version.abbreviation);
+    Fs.writeFileSync( versPath, JSON.stringify( Version, null, 2 )+'\n' );
+
     await _csv_to_json( config.inPath, config.outPath );
 
   } else if (config.verbosity) {
@@ -144,7 +154,6 @@ async function toJson( config=null ) {
  *  @private
  */
 function _csv_to_json( path_csv, path_json ) {
-  const version = { ...Version };
   const keys    = [
     /* Keys with '!' prefix will be excluded
      * Key  with '#' prefix will converted to an integer
@@ -167,43 +176,25 @@ function _csv_to_json( path_csv, path_json ) {
 
   ];
 
-  // Exclude the handler set
-  delete version.handler;
-
-  console.log('>>> Convert CSV to JSON ...');
   return new Promise((resolve, reject) => {
     const inputStream       = Fs.createReadStream(  path_csv );
-    const outputFilestream  = Fs.createWriteStream( path_json );
     const rl                = Readline.createInterface({
       input: inputStream,
       crlfDelay: Infinity
     });
 
     const state = {
-      out             : outputFilestream,
+      out_dir         : path_json,
       first_ref       : {book:null, chapter:null, verse:null},
       cur_ref         : {book:null, chapter:null, verse:null},
       book_map        : new Map(),
       chap_map        : new Map(),
-      verses          : [],
+      verse_data      : [],
       first_book      : true,
       lines_to_ignore : 1,
       nlines          : 0,
       header          : [],
     };
-
-    /* Begin the output with the base version information plus:
-     *      books: {
-     *
-     *  Once complete, we'll need to close this with:
-     *      }
-     *    }
-     */
-    let   jsonStr = JSON.stringify( version, null, 2 )
-                      .replace(/\n}$/, ',\n');
-
-    state.out.write( jsonStr );
-    state.out.write( '  "books": {\n' );
 
     rl.on('line', (line) => {
       state.nlines++;
@@ -268,15 +259,24 @@ function _csv_to_json( path_csv, path_json ) {
                  *
                  * Store this chapter data and start a new verse set.
                  */
-                state.chap_map.set( state.cur_ref.chapter, [...state.verses] );
+                if (state.verse_data.length > 0) {
+                  // Include any final verse data of this chapter
+                  state.chap_map.set( state.cur_ref.verse,
+                                      [...state.verse_data] );
+                }
 
                 // Convert the chapter to JSON and store in the book
                 const json  = _mapJson( state.chap_map);
 
                 state.book_map.set( state.cur_ref.chapter, json );
-                state.chap_map.clear();
-                state.verses.length = 0;
 
+                state.chap_map.clear();
+                state.verse_data.length = 0;
+
+              } else if (ref.verse !== state.cur_ref.verse) {
+                // New verse
+                state.chap_map.set( state.cur_ref.verse, state.verse_data );
+                state.verse_data.length = 0;
               }
 
               // Update the current ref
@@ -291,7 +291,7 @@ function _csv_to_json( path_csv, path_json ) {
         }
 
         if (nkeys > 0) {
-          state.verses.push( verseObj );
+          state.verse_data.push( verseObj );
         }
       }
     });
@@ -306,12 +306,8 @@ function _csv_to_json( path_csv, path_json ) {
         _outputBook( state );
       }
 
-      state.out.write( '  }\n}\n' );
-      state.out.close();
-
       console.log('>>> Finished parsing the %s lines of csv',
                     state.nlines.toLocaleString());
-      console.log('>>>   Output: %s', path_json);
 
       return resolve( true );
     });
@@ -423,23 +419,29 @@ function _mapJson( src ) {
  *
  *  @method _outputBook
  *  @param  state           The parse state {Object};
+ *  @param  state.out_dir   The output directory path {String};
  *  @param  state.book_map  The book map (chapters) {Map};
  *  @param  state.chap_map  The chapter map (verse) {Map};
  *  @param  state.cur_ref   The current verse reference {Object};
- *  @param  state.out       The output stream {Stream};
  *
  *  @return void
  *  @private
  */
 function _outputBook( state ) {
+  // We have existing book data that needs to be complete
+  const cur_ref = state.cur_ref;
+  const fir_ref = state.first_ref;
+
+  if (state.chap_map.size > 0) {
+    // Include any pending chapter
+    const chJson  = _mapJson( state.chap_map);
+    if (chJson != null) {
+      state.book_map.set( state.cur_ref.chapter, chJson );
+    }
+  }
+
   const bkJson  = _mapJson( state.book_map );
   if (bkJson != null) {
-    const cur_ref = state.cur_ref;
-    const fir_ref = state.first_ref;
-    console.log('>>>> %s [%s.%s-%s.%s] ...',
-                fir_ref.book, fir_ref.chapter, fir_ref.verse,
-                cur_ref.chapter, cur_ref.verse);
-
     // Validate book information
     const book  = Books.getBook( fir_ref.book );
     if (book) {
@@ -453,34 +455,20 @@ function _outputBook( state ) {
       }
     }
 
-    // Handle any separator first
-    if (state.first_book) {
-      state.first_book = false;
-
-    } else {
-      state.out.write( ',\n' );
-
-    }
-
-    if (state.chap_map.size > 0) {
-      // Include any pending chapter
-      const chJson  = _mapJson( state.chap_map);
-      if (chJson != null) {
-        state.book_map.set( state.cur_ref.chapter, chJson );
-      }
-    }
-
     // Convert the book to JSON and output
-    const jsonStr = JSON.stringify( bkJson, null, 2 )
-                      .replaceAll(/\n/g, '\n    ');
+    const path_json = Path.join( state.out_dir, `${state.cur_ref.book}.json` );
 
-    state.out.write( `    "${state.cur_ref.book}": ${jsonStr}` );
+    console.log('>>>> %s [%s.%s-%s.%s] ...',
+                fir_ref.book, fir_ref.chapter, fir_ref.verse,
+                cur_ref.chapter, cur_ref.verse);
+
+    Fs.writeFileSync( path_json, JSON.stringify( bkJson, null, 2 )+'\n' );
   }
 
   // Clear the state
   state.book_map.clear();
   state.chap_map.clear();
-  state.verses.length = 0;
+  state.verse_data.length = 0;
 }
 
 /* Private helpers }

@@ -9,38 +9,15 @@ const Yvers = require('../lib/yvers');
 async function main() {
   const args  = process.argv.slice(1);
   const vers  = args[1];
-  let   ref_filter;
   if (vers == null) { _usage( args ) }
 
-  if (args.length > 2) {
-    const [ only_bk, only_ch, only_vs ]  = args[2].split(/[ :\.]+/);
+  const version = await Yvers.getVersion( vers );
+  const path    = await Yvers.toJson( { version } );
 
-    const book = Books.getBook( only_bk );
-    if (book) {
-      ref_filter = book.abbr;
-
-      if (only_ch) {
-        ref_filter += `.${only_ch}`;
-        if (only_vs)  { ref_filter += `.${only_vs}` }
-      }
-    }
-  }
-  /*
-  console.log('>>> Version: %s %s', vers, (ref_filter || ''));
-  // */
-
-  Yvers.getVersion( vers )
-    .then( version => {
-      json = Yvers.toJson( version, ref_filter );
-
-      console.log( JSON.stringify( json, null, 2 ) );
-    })
-    .catch(err => {
-      console.error('***', err);
-    });
+  console.log('>>> JSON cached to: %s', path);
 }
 
-main();
+main().catch(err => { console.error('*** main:', err) });
 
 /****************************************************************************
  * Private helpers {
@@ -60,7 +37,7 @@ function _usage( args ) {
   const prog  = Path.basename( args[0] );
   console.log(`
 ***
-*** Usage: ${prog} version-abbreviation [book[.chapter[.verse]]]
+*** Usage: ${prog} version-abbreviation
 ***
 `);
 

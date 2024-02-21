@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-const Fs      = require('fs');
-const Path    = require('path');
-const Https   = require('https');
-const Unzip   = require('unzipper');
-const Source  = 'https://www.bible.com';
+const Fs            = require('fs');
+const Path          = require('path');
+const Https         = require('https');
+const Unzip         = require('unzipper');
+const { YVERS_URL } = require('./constants');
 
 /****************************************************************************
  * Public methods {
@@ -237,7 +237,7 @@ function _fetch( url ) {
  *  @private
  */
 function _fetchVersions( lang='eng', type='all') {
-  const url = `${Source}/api/bible/versions?language_tag=${lang}&type=${type}`;
+  const url = `${YVERS_URL}/api/bible/versions?language_tag=${lang}&type=${type}`;
 
   return _fetch( url )
     .then( res => {

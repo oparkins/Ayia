@@ -27,7 +27,7 @@ const {
  */
 async function fetch( config=null ) {
   config  = Object.assign({
-              outPath   : PATH_JSON,
+              outPath   : PATH_XLSX,
               force     : false,
               verbosity : 0,
             }, config||{} );

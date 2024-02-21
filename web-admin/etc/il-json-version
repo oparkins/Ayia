@@ -5,35 +5,46 @@
  */
 const Fs          = require('fs');
 const Readline    = require('readline');
+const Yargs       = require('yargs');
 const Interlinear = require('../lib/interlinear');
 
+const yargs	= Yargs
+	.usage('Generate JSON for <vers>')
+  .positional('vers', {
+    describe: 'The desired version',
+    type    : 'string',
+  })
+  .options({
+    f: {
+      alias   : 'force',
+      describe: 'Force (re)creation of the JSON',
+      default : false,
+      type    : 'boolean',
+    },
+    v: {
+      alias   : 'verbosity',
+      describe: 'Increase debug verbosity',
+      count   : true,
+    },
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help();
+
 async function main() {
-  const args  = process.argv.slice(1);
-  const vers  = args[1];
-  if (vers == null) { _usage( args ) }
+  const args    = yargs.parse();
+  const [vers]  = args._;
 
-  Interlinear.toJson( vers )
-    .then( version => {
-      console.log( JSON.stringify( version, null, 2 ) );
+  if (vers == null) { _usage( yargs ) }
 
-      /*
-      console.log('==== JSON data:');
-      return _open_and_print( version.cache.json );
-      // */
-    })
-    /*
-    .then( numLines => {
-      if (numLines != null) {
-        console.log('==== %s lines', numLines.toLocaleString());
-      }
-    })
-    // */
-    .catch(err => {
-      console.error('***', err);
-    });
+  args.forceJson = args.force;
+  args.force     = false;
+
+  const version = await Interlinear.toJson( vers, args );
+
+  console.log('>>> JSON cached to: %s', version.cache.json);
 }
 
-main();
+main().catch(err => { console.error('*** main:', err) });
 
 /****************************************************************************
  * Private helpers {
@@ -43,19 +54,13 @@ main();
 /**
  *  Present usage information and exit.
  *  @method _usage
- *  @param  args    The incoming arguments {Array};
+ *  @param  yaargs  The configured parser {Yargs};
  *
  *  @return void  (exits the process)
  *  @private
  */
-function _usage( args ) {
-  const Path  = require('path');
-  const prog  = Path.basename( args[0] );
-  console.log(`
-***
-*** Usage: ${prog} version-abbreviation
-***
-`);
+function _usage( yargs ) {
+	yargs.showHelp();
 
   process.exit(-1);
 }

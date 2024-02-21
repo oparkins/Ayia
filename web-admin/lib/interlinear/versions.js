@@ -129,8 +129,12 @@ function getVersion( vers, config=null ) {
  *  @method toJson
  *  @param  vers                    The target version {String};
  *  @param  [config]                Fetch configuration {Object};
- *  @param  [config.force = false]  If truthy, fetch even if the output file
+ *  @param  [config.forceParse = false]
+ *                                  If truthy, parse even if the output file
  *                                  already exists {Boolean};
+ *  @param  [config.forceJson = false]
+ *                                  If truthy, generate JSON even if the output
+ *                                  file already exists {Boolean};
  *  @param  [config.verbosity = 0]  Verbosity level {Number};
  *
  *  @return A promise for the version index {Promise};
@@ -160,9 +164,13 @@ function getVersion( vers, config=null ) {
  */
 function toJson( vers, config=null ) {
   config  = Object.assign({
-              force     : false,
+              forceParse: false,
+              forceJson : false,
               verbosity : 0,
             }, config||{} );
+
+  const config_parse  = {...config, force: config.forceParse};
+  const config_json   = {...config, force: config.forceJson};
 
   return new Promise((resolve, reject) => {
     findVersion( vers )
@@ -171,13 +179,13 @@ function toJson( vers, config=null ) {
           throw new Error(`Unknown version [ ${vers} ]`);
         }
 
-        return version.handler.parse( config )
+        return version.handler.parse( config_parse )
                 .then( path => { return [path, version] } );
       })
       .then( ([path,version]) => {
         version.cache = {csv:path};
 
-        return version.handler.toJson( config )
+        return version.handler.toJson( config_json )
                 .then( path => { return [path, version] } );
       })
       .then( ([path, version]) => {
