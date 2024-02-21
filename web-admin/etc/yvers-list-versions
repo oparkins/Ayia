@@ -6,7 +6,7 @@ async function main() {
 
   Yvers.getVersions()
     .then( versions => {
-      versions.response.data.versions.forEach( vers => {
+      versions.forEach( vers => {
         console.log('%s : %s : %s',
                     vers.abbreviation.padEnd( 10, ' '),
                     vers.local_abbreviation.padEnd( 10, ' '),

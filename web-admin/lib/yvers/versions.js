@@ -17,7 +17,7 @@ const { YVERS_URL } = require('./constants');
  *  @param  [type = 'all']  The target type {String};
  *
  *  @return A promise for the version index {Promise};
- *          - on success, resolves with the version index {Object};
+ *          - on success, resolves with the version index {Array};
  *          - on failure, rejects  with an error {Error};
  */
 function getVersions( lang='eng', type='all') {
@@ -29,7 +29,7 @@ function getVersions( lang='eng', type='all') {
       const data  = Fs.readFileSync( cachePath );
       const json  = JSON.parse( data );
 
-      return resolve( json );
+      return resolve( json.response.data.versions );
     }
 
     // Fetch the index

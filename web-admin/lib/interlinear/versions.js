@@ -21,7 +21,7 @@ const Versions  = [
  *  @param  [type = 'all']  The target type {String};
  *
  *  @return A promise for the version index {Promise};
- *          - on success, resolves with the version index {Object};
+ *          - on success, resolves with the version index {Array};
  *          - on failure, rejects  with an error {Error};
  */
 async function getVersions( lang='eng', type='all') {
