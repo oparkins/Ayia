@@ -3,76 +3,45 @@
  *  Standard Bible into a JSON form suitable for import into the backend
  *  database.
  *
- *  The generated JSON will have the form:
- *    {
- *      id          : 1588,
- *      abbreviation: 'AMP',
- *      title: 'Amplified Bible',
- *      language: { ... },
- *      publisher_id: 37,
- *      platforms: { ... },
- *      offline: { ... },
- *      metadata_build: 9,
- *      vrs: 'eng',
- *      ...
- *      books: { Map
- *        BOOK: { Map
- *          1:  {
- *            1:  Verse1-interlinear-data,
- *            2:  Verse2-interlinear-data,
- *            ...
- *          },
- *          ...
- *        },
- *        ...
- *      }
- *    }
- *
- *  Each interlinear verse will have the form:
- *      { interlinear   : [
- *          { sort_heb      : Sort order for hebrew {Number};
- *            sort_grk      : Sort order for greek {Number};
- *            sort_bsb      : Sort order for english {Number};
- *            language      : The language of this entry (Hebrew | Greek)
- *                            {String};
- *            wlc           : The WLC / Nestle Base {String};
- *            tranlit       : The transliteration of the source {String};
- *            parsing       : Information about parsing {String};
- *            type_of_speech: Type-of-speech identification {String};
- *            strongs       : The Strongs reference for this entry {Number};
- *            heading       : The section heading {String};
- *            xref          : Any cross references (in 'Book c:v' format)
- *                            {String};
- *            verse_bsb     : The english translation {String};
- *            footnotes     : Any related footnotes {String};
- *            bdb           : Additional information about the source {String};
- *          },
- *          ...
- *        ],
- *
- *        text  : Full english text of this verse {String};
- *      }
- *
  *  The data provided via `parse` should be an array with entries in the form:
  *    { sort_heb      : Sort order for hebrew {Number};
  *      sort_grk      : Sort order for greek {Number};
  *      sort_bsb      : Sort order for english {Number};
- *      language      : The language of this entry (Hebrew | Greek}
- *                      {String};
+ *      language      : The language of this entry (Hebrew | Greek} {String};
  *      vs            : The verse number {Number};
- *      wlc           : The WLC / Nestle Base {String};
+ *      wlc           : Text from the Westminster Leningrad Codex / Nestle Base
+ *                      {String};
  *      tranlit       : The transliteration of the source {String};
- *      parsing       : Information about parsing {String};
  *      type_of_speech: Type-of-speech identification {String};
+ *      parsing       : A label for `type_of_speech` {String};
  *      strongs       : The Strongs reference for this entry {Number};
- *      verse         : The full verse identification
- *                      (e.g. 'Genesis 1:1') {String};
- *      heading       : The section heading {String};
- *      xref          : Any cross references (in 'Book c:v' format) {String};
+ *      verse         : The full verse identification (e.g. 'Genesis 1:1')
+ *                      {String};
  *      verse_bsb     : The english translation {String};
- *      footnotes     : Any related footnotes {String};
- *      bdb           : Additional information about the source {String};
+ *      bdb           : Notes from the Brown-Driver-Briggs lexicon {String};
+ *
+ *      [heading]     : The section heading {String};
+ *      [footnotes]   : Any related footnotes {String};
+ *      [xref]        : Any cross references (in 'Book c:v' format) {String};
  *    }
+ *
+ *  From this will be generated interlinear verse items, multiples for each
+ *  verse, of the form:
+ *    { language    : The language of this entry (Hebrew | Greek) {String};
+ *      wlc         : Text from the Westminster Leningrad Codex / Nestle Base
+ *                    {String};
+ *      tranlit     : The transliteration of the source {String};
+ *      tos         : Type-of-speech identification {String};
+ *      tos_label   : A label for `tos` {String};
+ *      strongs     : The Strongs reference for this entry {Number};
+ *      text        : The english translation {String};
+ *      bdb         : Notes from the Brown-Driver-Briggs lexicon {String};
+ *
+ *      [heading]   : The section heading {String};
+ *      [footnotes] : Any related footnotes {String};
+ *      [xref]      : Any cross references (in 'Book c:v' format) {String};
+ *    }
+ *
  */
 const Path          = require('path');
 const Fs            = require('fs');
@@ -249,34 +218,18 @@ function _csv_to_json( path_csv, path_json ) {
               }
 
               if (ref.book !== state.cur_ref.book) {
-                // Output the current book including any pending chapter
-                _outputBook( state );
+                // New book: finalize any current book
+                _finishBook( state );
 
                 state.first_ref = ref;
 
               } else if (ref.chapter !== state.cur_ref.chapter) {
-                /* New chapter
-                 *
-                 * Store this chapter data and start a new verse set.
-                 */
-                if (state.verse_data.length > 0) {
-                  // Include any final verse data of this chapter
-                  state.chap_map.set( state.cur_ref.verse,
-                                      [...state.verse_data] );
-                }
-
-                // Convert the chapter to JSON and store in the book
-                const json  = _mapJson( state.chap_map);
-
-                state.book_map.set( state.cur_ref.chapter, json );
-
-                state.chap_map.clear();
-                state.verse_data.length = 0;
+                // New chapter: finalize any current chapter
+                _finishChapter( state );
 
               } else if (ref.verse !== state.cur_ref.verse) {
-                // New verse
-                state.chap_map.set( state.cur_ref.verse, state.verse_data );
-                state.verse_data.length = 0;
+                // New verse: finalize any current verse
+                _finishVerse( state );
               }
 
               // Update the current ref
@@ -303,7 +256,7 @@ function _csv_to_json( path_csv, path_json ) {
 
     rl.on('close', () => {
       if (state.book_map.size > 0) {
-        _outputBook( state );
+        _finishBook( state );
       }
 
       console.log('>>> Finished parsing the %s lines of csv',
@@ -415,29 +368,115 @@ function _mapJson( src ) {
 }
 
 /**
+ *  Given verse data, finilize a verse adding it to the current chapter.
+ *
+ *  @method _finishVerse
+ *  @param  state             The parse state {Object};
+ *  @param  state.chap_map    The chapter map (verse) {Map};
+ *  @param  state.cur_ref     The current verse reference {Object};
+ *  @param  state.verse_data  Accumulating verse data {Array};
+ *
+ *  @return Updated state {Object};
+ *  @private
+ */
+function _finishVerse( state ) {
+  if (state.verse_data.length > 0) {
+    // Include any final verse data of this chapter
+    state.chap_map.set( state.cur_ref.verse, [...state.verse_data] );
+
+    // Clear the verse state
+    state.verse_data.length = 0;
+  }
+
+  return state;
+}
+
+/**
+ *  Given a chapter map, generate a JSON representation of the chapter.
+ *
+ *  @method _finishChapter
+ *  @param  state             The parse state {Object};
+ *  @param  state.book_map    The book map (chapters) {Map};
+ *  @param  state.chap_map    The chapter map (verse) {Map};
+ *  @param  state.cur_ref     The current verse reference {Object};
+ *  @param  state.verse_data  Accumulating verse data {Array};
+ *
+ *  @return Updated state {Object};
+ *  @private
+ */
+function _finishChapter( state ) {
+  if (state.verse_data.length > 0) {
+    // Include any final verse data of this chapter
+    _finishVerse( state );
+  }
+
+  /* Convert the chapter to JSON, generate the full chapter text, and store in
+   * the book.
+   *
+   * When generating the full text, we will also clean it up a bit:
+   *  - exclude some text (' - ', ' . . . ');
+   *  - trim all white-space from the start and end of each text item;
+   *  - replace white-space that preceeds characters [,;:.!”];
+   *  - replace white-space that follows  characters [“];
+   */
+  const chJson    = _mapJson( state.chap_map );
+  const fullText  = {};
+  // The set of text entries we will skip
+  const exclude   = [ null, undefined, ' - ', ' . . . ' ];
+
+  Object.entries(chJson).forEach( ([ref,verse]) => {
+    const text  = verse
+                    .map( entry => {
+                      if (exclude.includes( entry.text )) { return }
+
+                      return entry.text
+                                .trim()
+                                .replaceAll(/ ([,;:.!”])/g, '$1')
+                                .replaceAll(/([“]) /g, '$1');
+                    })
+                    .filter( entry => entry && entry.length > 0 );
+
+    fullText[ ref ] = text.join(' ');
+  });
+
+  const json      = {
+    verse_count : state.chap_map.size,
+    label       : state.cur_ref.chapter,
+    verses      : chJson,
+    fullText    : fullText,
+  };
+
+  // Store this chapter
+  state.book_map.set( state.cur_ref.chapter, json );
+
+  // Clear the chapter state
+  state.chap_map.clear();
+  state.verse_data.length = 0;
+
+  return state;
+}
+
+/**
  *  Given a book map, output the JSON version of the map.
  *
- *  @method _outputBook
+ *  @method _finishBook
  *  @param  state           The parse state {Object};
  *  @param  state.out_dir   The output directory path {String};
  *  @param  state.book_map  The book map (chapters) {Map};
  *  @param  state.chap_map  The chapter map (verse) {Map};
  *  @param  state.cur_ref   The current verse reference {Object};
  *
- *  @return void
+ *  @return Updated state {Object};
  *  @private
  */
-function _outputBook( state ) {
+function _finishBook( state ) {
   // We have existing book data that needs to be complete
   const cur_ref = state.cur_ref;
   const fir_ref = state.first_ref;
 
   if (state.chap_map.size > 0) {
-    // Include any pending chapter
-    const chJson  = _mapJson( state.chap_map);
-    if (chJson != null) {
-      state.book_map.set( state.cur_ref.chapter, chJson );
-    }
+    // Finalize any pending chapter
+    _finishChapter( state );
   }
 
   const bkJson  = _mapJson( state.book_map );
@@ -457,18 +496,24 @@ function _outputBook( state ) {
 
     // Convert the book to JSON and output
     const path_json = Path.join( state.out_dir, `${state.cur_ref.book}.json` );
+    const json      = {
+      metadata: [],
+      chapters: bkJson,
+    };
 
     console.log('>>>> %s [%s.%s-%s.%s] ...',
                 fir_ref.book, fir_ref.chapter, fir_ref.verse,
                 cur_ref.chapter, cur_ref.verse);
 
-    Fs.writeFileSync( path_json, JSON.stringify( bkJson, null, 2 )+'\n' );
+    Fs.writeFileSync( path_json, JSON.stringify( json, null, 2 )+'\n' );
   }
 
   // Clear the state
   state.book_map.clear();
   state.chap_map.clear();
   state.verse_data.length = 0;
+
+  return state;
 }
 
 /* Private helpers }
