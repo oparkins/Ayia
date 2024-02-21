@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+const Versions  = require('../lib/versions');
+const Yargs     = require('yargs');
+
+const yargs	= Yargs
+	.usage('Find a specific <vers>')
+  .positional('vers', {
+    describe: 'The desired version',
+    type    : 'string',
+  })
+  .options({
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help();
+
+async function main() {
+  const args    = yargs.parse();
+  const [vers]  = args._;
+
+  if (vers == null) { _usage( yargs ) }
+
+  Versions.findVersion( vers )
+    .then( version => {
+      console.log('%s', JSON.stringify( version, null, 2 ) );
+    })
+    .catch(err => {
+      console.error('***', err);
+    });
+}
+
+main().catch(console.dir);
+
+/****************************************************************************
+ * Private helpers {
+ *
+ */
+
+/**
+ *  Present usage information and exit.
+ *  @method _usage
+ *  @param  yaargs  The configured parser {Yargs};
+ *
+ *  @return void  (exits the process)
+ *  @private
+ */
+function _usage( yargs ) {
+	yargs.showHelp();
+
+  process.exit(-1);
+}
+
+/* Private helpers }
+ ****************************************************************************/
+
+// vi: ft=javascript
