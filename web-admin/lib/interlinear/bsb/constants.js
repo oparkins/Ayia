@@ -8,8 +8,7 @@ const PATH_CACHE  = Path.resolve(
 const PATH_XLSX   = Path.join( PATH_CACHE, TABLES_FILE );
 const PATH_CSV    = Path.join( PATH_CACHE,
                                 Path.basename(TABLES_FILE, '.xlsx')+'.csv' );
-const PATH_JSON   = Path.join( PATH_CACHE,
-                                Path.basename(TABLES_FILE, '.xlsx')+'.json' );
+const PATH_JSON   = Path.join( PATH_CACHE, 'bsb-il.json' );
 
 module.exports  = {
   TABLES_URL,
