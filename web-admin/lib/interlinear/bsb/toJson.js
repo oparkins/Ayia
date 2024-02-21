@@ -218,6 +218,7 @@ function _csv_to_json( path_csv, path_json ) {
       } else {
         const line_array  = _csv_line_to_array( line );
         const verseObj    = {};
+        let   nkeys       = 0;
         
         /* Keys with '!' prefix will be excluded
          * Key  with '#' prefix will converted to an integer
@@ -285,10 +286,13 @@ function _csv_to_json( path_csv, path_json ) {
             } break;
           }
 
+          nkeys++;
           verseObj[ key ] = val;
         }
 
-        state.verses.push( verseObj );
+        if (nkeys > 0) {
+          state.verses.push( verseObj );
+        }
       }
     });
 
