@@ -90,13 +90,13 @@ async function prepare_version( config ) {
     delete json._cache;
 
     if (config.verbosity) {
-      console.log('>>> %s : cache version data ...', ABBR);
+      console.log('>>> Prepare %s: cache version data ...', ABBR);
     }
 
     await Fs.writeFile( versPath, JSON.stringify( json, null, 2 )+'\n' );
 
   } else if (config.verbosity) {
-      console.log('>>> %s : version data exists', ABBR);
+      console.log('>>> Prepare %s: version data exists', ABBR);
   }
 
   const pending = Object.entries(version.books).map( async ([key,val]) => {
@@ -105,19 +105,21 @@ async function prepare_version( config ) {
 
     if (config.force || ! isCached) {
       if (config.verbosity) {
-        console.log('>>> %s : %s parsing ...', ABBR, key);
+        console.log('>>> Prepare %s: %s parsing ...', ABBR, key);
       }
 
       const bookJson  = _parseBook( key, val );
 
       if (bookJson) {
-        console.log('>>> %s : %s cache ...', ABBR, key);
+        if (config.verbosity > 1) {
+          console.log('>>> Prepare %s: %s cache ...', ABBR, key);
+        }
 
         await Fs.writeFile( bookPath, JSON.stringify( bookJson, null, 2 )+'\n' )
       }
 
     } else if (config.verbosity) {
-      console.log('>>> %s : %s already cached', ABBR, key);
+      console.log('>>> Prepare %s: %s already cached', ABBR, key);
     }
   });
 

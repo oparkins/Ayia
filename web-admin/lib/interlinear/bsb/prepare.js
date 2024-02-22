@@ -103,7 +103,7 @@ async function prepare_version( config=null ) {
     delete json._handler;
 
     if (config.verbosity) {
-      console.log('>>> %s : cache version data ...', ABBR);
+      console.log('>>> Prepare %s: cache version data ...', ABBR);
     }
 
     Fs.writeFileSync( versPath, JSON.stringify( json, null, 2 )+'\n' );
@@ -112,7 +112,7 @@ async function prepare_version( config=null ) {
     await _csv_to_json( config );
 
   } else if (config.verbosity) {
-      console.log('>>> %s : version data exists', ABBR);
+      console.log('>>> Prepare %s: version data exists', ABBR);
   }
 
   if (config.returnVersion) {
@@ -547,7 +547,7 @@ function _finishBook( state ) {
         chapters: bkJson,
       };
 
-      console.log('>>>> %s : %s [%s.%s-%s.%s] ...',
+      console.log('>>> Prepare %s: %s [%s.%s-%s.%s] ...',
                   ABBR, fir_ref.book, fir_ref.chapter, fir_ref.verse,
                   cur_ref.chapter, cur_ref.verse);
 
