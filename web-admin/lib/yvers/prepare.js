@@ -1,5 +1,6 @@
 /**
- *  Convert a Bible version fetched via `Yvers.getVersion()` to JSON format.
+ *  Convert a Bible version fetched and extracted via `Yvers.extract()` to a
+ *  normalized, database ready JSON format.
  *
  */
 const Path            = require('path');
@@ -7,66 +8,125 @@ const Fs              = require('fs/promises');
 const Cheerio         = require('cheerio');
 const Books           = require('../books');
 const Refs            = require('../refs');
-const { make_dir }    = require('../make_dir');
+const FsUtils         = require('../fs_utils');
+
 const { PATH_CACHE }  = require('./constants');
+const Extract         = require('./extract');
 
 /**
- *  Convert a Bible version fetched via `Yvers.getVersion()` to JSON format.
+ *  Convert a Bible version fetched and extracted via `Yvers.extract()` to a
+ *  normalized, database ready JSON format.
  *
- *  @method toJson
+ *  @method prepare_version
  *  @param  config                  Conversion configuration {Object};
- *  @param  config.version          The Bible data fetched via
- *                                  `Bible.getVersion()` {Object};
+ *  @param  config.vers             The target version {String};
+ *  @param  [config.version = null] If provided, extracted information for the
+ *                                  target version (Yvers.extract.version()).
+ *                                  If this is provided, `config.vers` may be
+ *                                  omitted {Version};
  *  @param  [config.outPath = null] A specific output path for the generated
  *                                  JSON {String};
  *  @param  [config.force = false]  If truthy, convert even if the output
  *                                  already exists {Boolean};
  *  @param  [config.verbosity = 0]  Verbosity level {Number};
+ *  @param  [config.returnVersion = false]
+ *                                  If truthy, return the top-level version
+ *                                  data {Boolean};
  *
  *  @return A promise for results {Promise};
  *          - on success, the path to the location holding the generated JSON
- *                        data {String};
+ *                        data or the top-level version data
+ *                        {String | Version};
  *          - on failure, an error {Error};
  *
  */
-async function toJson( config ) {
-  if (config == null) {
-    throw new Error('toJson(): missing config');
-  }
-  if (config.version == null) {
-    throw new Error('toJson(): missing config.version');
-  }
+async function prepare_version( config ) {
+  if (config == null) { throw new Error('Missing required config') }
 
-  const version = config.version;
+  config  = Object.assign({
+              force     : false,
+              verbosity : 0,
+            }, config || {});
 
-  if (config.outPath == null) {
-    config.outPath = Path.join( PATH_CACHE, version.abbreviation );
-  }
-
-  await make_dir( config.outPath );
-
-  const json      = { ...version, type:'yvers' };
-  // Exclude the raw 'books'
-  delete json.books;
-
-  console.log('>>> %s : cache version data ...', version.abbreviation);
-  const versPath  = Path.join( config.outPath, 'version.json' );
-
-  await Fs.writeFile( versPath, JSON.stringify( json, null, 2 )+'\n' );
-
-  Object.entries(version.books).forEach( async ([key,val]) => {
-    const bookJson  = _parseBook( key, val );
-
-    if (bookJson) {
-      console.log('>>> %s : cache %s ...', version.abbreviation, key);
-      const bookPath  = Path.join( config.outPath, `${key}.json` );
-
-      await Fs.writeFile( bookPath, JSON.stringify( bookJson, null, 2 )+'\n' );
+  let version = config.version;
+  if (version == null) {
+    if (config.vers == null) {
+      throw new Error('Missing required config.vers | config.versions');
     }
 
+    /* Ensure version data has been extracted and retrieve the top-level
+     * version information.
+     */
+    const configExtract = {
+      vers          : config.vers,
+      verbosity     : config.verbosity,
+      returnVersion : true,
+    };
+
+    version = await Extract.version( configExtract );
+    if (version == null) {
+      throw new Error(`Cannot find/extract version ${config.vers}`);
+    }
+  }
+
+  // Update `config` using the official abbreviation
+  const ABBR  = version.abbreviation;
+  if (config.outPath == null) {
+    config.outPath = Path.join( PATH_CACHE, ABBR );
+  }
+
+  // Prepare the cache location before checking for existence
+  await FsUtils.make_dir( config.outPath );
+
+  const versPath  = Path.join( config.outPath, 'version.json' );
+  const isCached  = await FsUtils.exists( versPath );
+
+  if (config.force || ! isCached) {
+    // Ensure version.type reflects this source, but excludes the raw 'books'
+    const json  = { ...version, type:'yvers' };
+    delete json.books;
+
+    if (config.verbosity) {
+      console.log('>>> %s : cache version data ...', ABBR);
+    }
+
+    await Fs.writeFile( versPath, JSON.stringify( json, null, 2 )+'\n' );
+
+  } else if (config.verbosity) {
+      console.log('>>> %s : version data exists', ABBR);
+  }
+
+  const pending = Object.entries(version.books).map( async ([key,val]) => {
+    const bookPath  = Path.join( config.outPath, `${key}.json` );
+    const isCached  = await FsUtils.exists( bookPath );
+
+    if (config.force || ! isCached) {
+      if (config.verbosity) {
+        console.log('>>> %s : %s parsing ...', ABBR, key);
+      }
+
+      const bookJson  = _parseBook( key, val );
+
+      if (bookJson) {
+        console.log('>>> %s : %s cache ...', ABBR, key);
+
+        await Fs.writeFile( bookPath, JSON.stringify( bookJson, null, 2 )+'\n' )
+      }
+
+    } else if (config.verbosity) {
+      console.log('>>> %s : %s already cached', ABBR, key);
+    }
   });
 
-  return config.outPath;
+  await Promise.all( pending );
+
+  if (config.returnVersion) {
+    // Pass along cache location information
+    version._cache = Object.assign( { prepare: config.outPath },
+                                    version._cache || {} );
+  }
+
+  return (config.returnVersion ? version : config.outPath);
 }
 
 /****************************************************************************
@@ -76,6 +136,7 @@ async function toJson( config ) {
 
 /**
  *  Parse a single book.
+ *
  *  @method _parseBook
  *  @param  abbrev        The book abbreviation {String};
  *  @param  chapters      The chapter data for this book {Object};
@@ -137,6 +198,7 @@ function _parseBook( abbrev, chapters ) {
 
 /**
  *  Parse an introduction.
+ *
  *  @method _parseIntro
  *  @param  $       The top-level Cheerio instance {Cheerio};
  *  @param  $intro  The intro element(s) {Cheerio};
@@ -164,6 +226,7 @@ function _parseIntro( $, $intro ) {
 
 /**
  *  Parse a chapter.
+ *
  *  @method _parseChapter
  *  @param  $           The top-level Cheerio instance {Cheerio};
  *  @param  $chap       The chapter element(s) {Cheerio};
@@ -370,6 +433,7 @@ function _addSiblingsToCurrentVerse( state, siblings ) {
 
 /**
  *  Parse a verse.
+ *
  *  @method _parseVerse
  *  @param  state           Processing state {Object};
  *  @param  state.$         The top-level Cheerio instance {Cheerio};
@@ -480,6 +544,7 @@ function _parseVerse( state, elVerse) {
 /**
  *  Handle any processing required between verses
  *  (e.g. filling in multi-verse references).
+ *
  *  @method _interVerseProessing
  *  @param  state           Processing state {Object};
  *  @param  state.curMulti  The set of absolute reference(s) for the current
@@ -512,6 +577,7 @@ function _interVerseProcessing( state ) {
 
 /**
  *  Given a label and object, extract verse-related text.
+ *
  *  @method _verseText
  *  @param  label   The label to be applied to this item {String};
  *  @param  item    The verse-related item {Object | String};
@@ -542,6 +608,7 @@ function _verseText( label, item ) {
 
 /**
  *  Parse a single line of chapter HTML.
+ *
  *  @method _parseEl
  *  @param  $               The top-level Cheerio instance {Cheerio};
  *  @param  el              The target HTML element {Object};
@@ -617,6 +684,7 @@ function _parseEl( $, el ) {
 
 /**
  *  Fetch the specified attribute from the given element.
+ *
  *  @method _getAttr
  *  @param  el    The target element {Cheerio};
  *  @param  attr  The target attribute {String};
@@ -632,6 +700,7 @@ function _getAttr( el, attr ) {
 
 /**
  *  Fetch an array of CSS classes for the given element.
+ *
  *  @method _getClasses
  *  @param  el  The target element {Cheerio};
  *
@@ -649,6 +718,5 @@ function _getClasses( el ) {
  ****************************************************************************/
 
 module.exports  = {
-  toJson,
+  version : prepare_version,
 };
-// vi: ft=javascript

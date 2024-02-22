@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-const Versions  = require('../lib/versions');
-const Yargs     = require('yargs');
+const Yargs       = require('yargs');
+const Versions    = require('../lib/versions');
+const { inspect } = require('../lib/inspect');
 
 const yargs	= Yargs
 	.usage('Find a specific <vers>')
@@ -21,7 +22,7 @@ async function main() {
 
   Versions.findVersion( vers )
     .then( version => {
-      console.log('%s', JSON.stringify( version, null, 2 ) );
+      console.log('%s', inspect( version ));
     })
     .catch(err => {
       console.error('***', err);

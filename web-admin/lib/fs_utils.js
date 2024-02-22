@@ -1,4 +1,31 @@
+/**
+ *  Filesystem utilities.
+ *
+ */
 const Fs  = require('fs/promises');
+
+/**
+ *  Asynchronously check if the given path exists.
+ *
+ *  @method exists
+ *  @param  path    The target path {String};
+ *
+ *  @return true | false {Boolean};
+ */
+async function exists( path ) {
+  let exists  = false;
+
+  try {
+    await Fs.access( path, Fs.constants.F_OK );
+    // File exists
+    exists = true;
+
+  } catch {
+    // File does NOT exist
+  }
+
+  return exists;
+}
 
 /**
  *  Create the given directory (path) if it does not yet exist.
@@ -43,4 +70,7 @@ async function make_dir( path ) {
   return (first_dir || path);
 }
 
-module.exports = { make_dir };
+module.exports = {
+  exists,
+  make_dir,
+};

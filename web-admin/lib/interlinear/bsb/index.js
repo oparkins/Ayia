@@ -2,16 +2,16 @@
  *  Interlinear handler for the Bearean Standard Bible.
  *
  */
-const { fetch }   = require('./fetch');
-const { parse }   = require('./parse');
-const { toJson }  = require('./toJson');
+const Fetch       = require('./fetch');
+const Extract     = require('./extract');
+const Prepare     = require('./prepare');
 const { Version } = require('./version');
 
 // Attach the handlers and export 
-Version.handler = {
-  fetch,
-  parse,
-  toJson,
+Version._handler = {
+  fetch   : Fetch.version,
+  extract : Extract.version,
+  prepare : Prepare.version,
 };
 
 module.exports = {

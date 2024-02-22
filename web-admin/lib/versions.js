@@ -16,10 +16,11 @@ const Interlinear = require('./interlinear');
  *          - on failure, rejects  with an error {Error};
  */
 async function getVersions( lang='eng', type='all') {
+  const config    = { lang, type };
   const versions  = [];
 
   try   {
-    const yvers = await Yvers.getVersions( lang, type );
+    const yvers = await Yvers.fetch.versions( config );
     
     versions.push( ...yvers );
 

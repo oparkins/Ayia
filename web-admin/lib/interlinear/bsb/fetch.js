@@ -1,99 +1,75 @@
 /**
- *  Handle fetching of the Interlinear version of the Berean Standard Bible.
+ *  Fetch Berean Standard Bible Interliner data from either cache or the
+ *  source.
  *
  */
-const Http  = require('https');
-const Fs    = require('fs');
+const Fs  = require('fs');
 
 // Constants used later
 const {
   TABLES_URL,
+
   PATH_XLSX,
 } = require('./constants');
 
-/**
- *  Fetch the data source.
+const { fetch }   = require('../../fetch');
+const { Version } = require('./version');
+
+/****************************************************************************
+ * Public methods {
  *
- *  @method fetch
+ */
+
+/**
+ *  Fetch the data for this version either from cache or the source.
+ *
+ *  @method fetch_version
  *  @param  [config]                Fetch configuration {Object};
- *  @param  [config.outPath = null] A specific output path {String};
+ *  @param  [config.outPath = null] A specific output path, overriding the
+ *                                  default cache  {String};
  *  @param  [config.force = false]  If truthy, fetch even if the output file
  *                                  already exists {Boolean};
  *  @param  [config.verbosity = 0]  Verbosity level {Number};
+ *  @param  [config.returnVersion = false]
+ *                                  If truthy, return the top-level version
+ *                                  data {Boolean};
  *
  *  @return A promise for results {Promise};
- *          - on success, the path to the fetched file {String};
+ *          - on success, the path to the fetched data or the version data
+ *                        {String | Version};
  *          - on failure, an error {Error};
  */
-async function fetch( config=null ) {
+async function fetch_version( config=null ) {
   config  = Object.assign({
-              outPath   : PATH_XLSX,
-              force     : false,
-              verbosity : 0,
+              outPath       : PATH_XLSX,
+              force         : false,
+              verbosity     : 0,
+              returnVersion : false,
             }, config||{} );
 
+  const version     = {...Version};
   const existsXlsx  = Fs.existsSync( config.outPath );
 
   if (config.force || ! existsXlsx) {
-    console.log('>>> Download source %s ...', TABLES_URL);
+    // Require a content-type representing XLSX data
+    config.contentType =
+     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-    await _fetch_url( TABLES_URL, config.outPath );
+    await fetch( TABLES_URL, config );
 
   } else if (config.verbosity) {
-    console.log('=== Source data already cached');
-    console.log('===   Path: %s', config.outPath);
+    console.log('>>> Use existing cache: %s', config.outPath);
   }
 
-  return config.outPath;
+  if (config.returnVersion) {
+    // Pass along cache location information
+    version._cache = Object.assign( { fetch:config.outPath },
+                                    version._cache || {} );
+  }
+
+  return (config.returnVersion ? version : config.outPath);
 }
-
-/****************************************************************************
- * Private helpers {
- *
- */
-
-/**
- *  Fetch the given URL and write it to the provied ouptut path.
- *
- *  @method _fetch_url
- *  @param  url       The target url {String};
- *  @param  out_path  The path to the output content {String};
- *
- *  @return A promise for results {Promise};
- *          - on success, true {Boolean};
- *          - on failure, an error {Error};
- *  @private
- */
-function _fetch_url( url, out_path ) {
-  return new Promise( (resolve, reject) => {
-    const file    = Fs.createWriteStream( out_path );
-    const request = Http.get(url, (response) => {
-      let err;
-
-      response.pipe(file);
-
-      file.on('error', (er) => { err = er });
-
-      // after download completed close filestream
-      file.on('finish', () => {
-        file.close();
-
-        if (err) {
-          console.error('*** Download error:', err);
-          return reject( err );
-
-        } else {
-          console.log('>>> Download Completed');
-          return resolve( true );
-        }
-      });
-    });
-  });
-}
-
-/* Private helpers }
- ****************************************************************************/
 
 module.exports = {
-  fetch,
+  version   : fetch_version,
 };

@@ -2,13 +2,15 @@
  *  YouVersion (yvers) utilities.
  *
  */
-const Versions  = require('./versions');
-const Parse     = require('./parse');
+const Fetch   = require('./fetch');
+const Extract = require('./extract');
+const Prepare = require('./prepare');
 
 module.exports  = {
-  getVersions:  Versions.getVersions,
-  findVersion:  Versions.findVersion,
-  getVersion:   Versions.getVersion,
+  fetch   : Fetch,
+  extract : Extract,
+  prepare : Prepare,
 
-  toJson:       Parse.toJson,
+  // short-cuts
+  findVersion:  Fetch.find_version,
 };

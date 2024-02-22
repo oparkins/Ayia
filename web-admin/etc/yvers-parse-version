@@ -1,17 +1,53 @@
 #!/usr/bin/env node
+const Yargs   = require('yargs');
 const Books   = require('../lib/books');
 const Yvers   = require('../lib/yvers');
 const Cheerio = require('cheerio');
 const sprintf = require('sprintf-js').sprintf;
+const Usage   = require('../lib/usage');
+const yargs	  = Yargs
+	.usage('Parse the extracted <vers> data into a human readable form '
+          +     'optionally limited to a <ref>')
+  .positional('vers', {
+    describe: 'The desired version',
+    type    : 'string',
+  })
+  .positional('ref', {
+    describe: 'An optional reference limit [book[.chapter[.verse]]',
+    type    : 'string',
+  })
+  .options({
+    f: {
+      alias   : 'force',
+      describe: 'Force (re)creation of the JSON',
+      default : false,
+      type    : 'boolean',
+    },
+    v: {
+      alias   : 'verbosity',
+      describe: 'Increase debug verbosity',
+      count   : true,
+    },
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help();
 
+main().catch(err => { console.error('*** main:', err) });
+
+/****************************************************************************
+ * async main
+ *
+ */
 async function main() {
-  const args  = process.argv.slice(1);
-  const vers  = args[1];
+  const args        = yargs.parse();
+  const [vers,ref]  = args._;
   let   ref_filter;
-  if (vers == null) { _usage( args ) }
 
-  if (args.length > 2) {
-    const [ only_bk, only_ch, only_vs ]  = args[2].split(/[ :\.]+/);
+  if (vers == null) { Usage.yargs( yargs ) }
+  args.vers = vers;
+
+  if (ref) {
+    const [ only_bk, only_ch, only_vs ]  = ref.split(/[ :\.]+/);
 
     const book = Books.getBook( only_bk );
     if (book) {
@@ -23,47 +59,24 @@ async function main() {
       }
     }
   }
-  // /*
-  console.log('>>> Version: %s %s', vers, (ref_filter || ''));
-  // */
 
-  Yvers.getVersion( vers )
-    .then( version => {
-      Object.entries(version.books).forEach( ([key,val]) => {
-        _parseBook( key, val, ref_filter );
-      });
-    })
-    .catch(err => {
-      console.error('***', err);
-    });
+  if (args.verbosity) {
+    console.log('>>> Version: %s %s', vers, (ref_filter || ''));
+  }
+
+  args.returnVersion = true;
+
+  const version = await Yvers.extract.version( args );
+
+  Object.entries(version.books).forEach( ([key,val]) => {
+    _parseBook( key, val, ref_filter );
+  });
 }
-
-main();
 
 /****************************************************************************
  * Private helpers {
  *
  */
-
-/**
- *  Present usage information and exit.
- *  @method _usage
- *  @param  args    The incoming arguments {Array};
- *
- *  @return void  (exits the process)
- *  @private
- */
-function _usage( args ) {
-  const Path  = require('path');
-  const prog  = Path.basename( args[0] );
-  console.log(`
-***
-*** Usage: ${prog} version-abbreviation [book[.chapter[.verse]]]
-***
-`);
-
-  process.exit(-1);
-}
 
 /**
  *  Fetch the specified attribute from the given element.

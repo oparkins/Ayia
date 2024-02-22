@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+/**
+ *  Ensure the target version has been fetched and extracted and convert the
+ *  data to a normalized, database ready JSON format.
+ *
+ */
+const Yargs       = require('yargs');
+const Interlinear = require('../lib/interlinear');
+const Usage       = require('../lib/usage');
+const yargs	      = Yargs
+	.usage('Prepare a <vers> for import into the database')
+  .positional('vers', {
+    describe: 'The desired version',
+    type    : 'string',
+  })
+  .options({
+    f: {
+      alias   : 'force',
+      describe: 'Force (re)processing',
+      default : false,
+      type    : 'boolean',
+    },
+    v: {
+      alias   : 'verbosity',
+      describe: 'Increase debug verbosity',
+      count   : true,
+    },
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help();
+
+main().catch(err => { console.error('*** main:', err) });
+
+/****************************************************************************
+ * async main
+ *
+ */
+
+async function main() {
+  const args    = yargs.parse();
+  const [vers]  = args._;
+
+  if (vers == null) { Usage.yargs( yargs ) }
+  args.vers           = vers;
+  args.returnVersion  = true;
+
+  const version = await Interlinear.prepare.version( args );
+
+  console.log('>>> version[ %s ]:', vers);
+  console.log('>>>  id                : %s', version.id);
+  console.log('>>>  title             : %s', version.title);
+  console.log('>>>  abbreviation      : %s', version.abbreviation);
+  console.log('>>>  local_abbreviation: %s', version.local_abbreviation);
+  console.log('>>>  cache             : %s', version._cache.prepare);
+}
+
+// vi: ft=javascript

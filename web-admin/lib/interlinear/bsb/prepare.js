@@ -1,56 +1,15 @@
 /**
- *  Handle conversion of parsed data for the Interlinear version of the Berean
- *  Standard Bible into a JSON form suitable for import into the backend
- *  database.
- *
- *  The data provided via `parse` should be an array with entries in the form:
- *    { sort_heb      : Sort order for hebrew {Number};
- *      sort_grk      : Sort order for greek {Number};
- *      sort_bsb      : Sort order for english {Number};
- *      language      : The language of this entry (Hebrew | Greek} {String};
- *      vs            : The verse number {Number};
- *      wlc           : Text from the Westminster Leningrad Codex / Nestle Base
- *                      {String};
- *      tranlit       : The transliteration of the source {String};
- *      type_of_speech: Type-of-speech identification {String};
- *      parsing       : A label for `type_of_speech` {String};
- *      strongs       : The Strongs reference for this entry {Number};
- *      verse         : The full verse identification (e.g. 'Genesis 1:1')
- *                      {String};
- *      verse_bsb     : The english translation {String};
- *      bdb           : Notes from the Brown-Driver-Briggs lexicon {String};
- *
- *      [heading]     : The section heading {String};
- *      [footnotes]   : Any related footnotes {String};
- *      [xref]        : Any cross references (in 'Book c:v' format) {String};
- *    }
- *
- *  From this will be generated interlinear verse items, multiples for each
- *  verse, of the form:
- *    { language    : The language of this entry (Hebrew | Greek) {String};
- *      wlc         : Text from the Westminster Leningrad Codex / Nestle Base
- *                    {String};
- *      tranlit     : The transliteration of the source {String};
- *      tos         : Type-of-speech identification {String};
- *      tos_label   : A label for `tos` {String};
- *      strongs     : The Strongs reference for this entry {Number};
- *      text        : The english translation {String};
- *      bdb         : Notes from the Brown-Driver-Briggs lexicon {String};
- *
- *      [heading]   : The section heading {String};
- *      [footnotes] : Any related footnotes {String};
- *      [xref]      : Any cross references (in 'Book c:v' format) {String};
- *    }
+ *  Convert data for the Interlinear version of the Berean Standard Bible
+ *  extracted via `Bsb.extract.version()` into a normalized, database ready
+ *  JSON format.
  *
  */
-const Path          = require('path');
-const Fs            = require('fs');
-const Readline      = require('readline');
-const Books         = require('../../books');
-const Refs          = require('../../refs');
-const { make_dir }  = require('../../make_dir');
-const Parse         = require('./parse').parse;
-const Version       = require('./version').Version;
+const Fs        = require('fs');
+const Path      = require('path');
+const Readline  = require('readline');
+const FsUtils   = require('../../fs_utils');
+const Books     = require('../../books');
+const Refs      = require('../../refs');
 
 // Constants used later
 const {
@@ -58,51 +17,111 @@ const {
   PATH_CSV,
 } = require('./constants');
 
-/**
- *  Convert data generated via `Bsb.parse()` to JSON format.
+const Extract     = require('./extract');
+const { Version } = require('./version');
+
+/****************************************************************************
+ * Public methods {
  *
- *  @method toJson
- *  @param  [config]                Fetch configuration {Object};
+ */
+
+/**
+ *  Convert data for the Interlinear version of the Berean Standard Bible
+ *  extracted via `Bsb.extract.version()` into a normalized, database ready
+ *  JSON format.
+ *
+ *  @method prepare_version
+ *  @param  [config]                  Fetch configuration {Object};
+ *  @param  [config.vers = 'BSB-IL']  The target version {String};
+ *  @param  [config.version = null]   If provided, pre-fetched information
+ *                                    about the target version
+ *                                    (Bsb.fetch.find()). If this is provided,
+ *                                    `config.vers` may be omitted {Version};
  *  @param  [config.inPath  = null] A specific input CSV path {String};
- *  @param  [config.outPath = null] A specific output JSON path {String};
+ *  @param  [config.outPath = null] A specific output path {String};
  *  @param  [config.force = false]  If truthy, fetch even if the output file
  *                                  already exists {Boolean};
  *  @param  [config.verbosity = 0]  Verbosity level {Number};
+ *  @param  [config.returnVersion = false]
+ *                                  If truthy, return the extracted version
+ *                                  data {Boolean};
  *
- *  @return A promise for results {Promise};
- *          - on success, the path to the processed file, suitable for loading
- *                        into the backend database {String}; {String};
- *          - on failure, an error {Error};
+ *  @return A promise for the version index {Promise};
+ *          - on success, the path to the location holding the generated JSON
+ *                        data or the top-level version data
+ *                        {String | Version};
+ *          - on failure, rejects  with an error {Error};
  */
-async function toJson( config=null ) {
+async function prepare_version( config=null ) {
   config  = Object.assign({
-              inPath    : PATH_CSV,
-              outPath   : Path.join( PATH_CACHE, Version.abbreviation ),
-              force     : false,
-              verbosity : 0,
+              inPath        : PATH_CSV,
+              force         : false,
+              verbosity     : 0,
+              returnVersion : false,
             }, config||{} );
 
-  if (! Fs.existsSync( config.inPath ) ) {
-    await Parse( {outPath: config.inPath} );
+  let version = config.version;
+  if (version == null) {
+    /* Ensure version data has been extracted and retrieve the top-level
+     * version information.
+     */
+    const configExtract = {
+      vers          : Version.abbreviation,
+      outPath       : config.inPath,
+      verbosity     : config.verbosity,
+      returnVersion : true,
+    };
+
+    version = await Extract.version( configExtract );
+    if (version == null) {
+      throw new Error(`Cannot find/extract version ${config.vers}`);
+    }
+
+    config.version = version;
   }
 
-  // Create the output path
-  await make_dir( config.outPath );
+  // assert( config.vers == null || config.vers === Version.abbreviation );
+
+  // Update `config` using the official abbreviation
+  const ABBR = version.abbreviation;
+  if (config.outPath == null) {
+    config.outPath = Path.join( PATH_CACHE, ABBR );
+  }
+
+  // Prepare the cache location before checking for existence
+  await FsUtils.make_dir( config.outPath );
 
   const versPath  = Path.join( config.outPath, 'version.json' );
+  const isCached  = await FsUtils.exists( versPath );
 
-  if (config.force || ! Fs.existsSync( versPath ) ) {
-    console.log('>>> %s : cache version data ...', Version.abbreviation);
-    Fs.writeFileSync( versPath, JSON.stringify( Version, null, 2 )+'\n' );
+  if (config.force || ! isCached) {
+    /* Ensure version.type reflects this source, but excludes `_cache` and
+     * `_handler`
+     */
+    const json  = { ...version, type:'interlinear' };
+    delete json._cache;
+    delete json._handler;
 
-    await _csv_to_json( config.inPath, config.outPath );
+    if (config.verbosity) {
+      console.log('>>> %s : cache version data ...', ABBR);
+    }
+
+    Fs.writeFileSync( versPath, JSON.stringify( json, null, 2 )+'\n' );
+
+    // Convert CSV data to JSON
+    await _csv_to_json( config );
 
   } else if (config.verbosity) {
-    console.log('=== JSON data already cached');
-    console.log('===   Path: %s', config.outPath);
+      console.log('>>> %s : version data exists', ABBR);
   }
 
-  return config.outPath;
+  if (config.returnVersion) {
+    // Pass along cache location information
+    version._cache = Object.assign( { prepare: config.outPath },
+                                    version._cache || {} );
+  }
+
+  return (config.returnVersion ? version : config.outPath);
 }
 
 /****************************************************************************
@@ -114,16 +133,25 @@ async function toJson( config=null ) {
  *  Convert a CSV file to JSON
  *
  *  @method _csv_to_json
- *  @param  path_csv    The path to the (input) CSV file {String};
- *  @param  path_json   The path to the (output) JSON file {String};
+ *  @param  config                  Fetch configuration {Object};
+ *  @param  config.version          Information about the configured version
+ *                                  (Bsb.fetch.find()) {Version};
+ *  @param  config.inPath           The path to the input CSV {String};
+ *  @param  config.outPath          The path to the output directory {String};
+ *  @param  [config.force = false]  If truthy, fetch even if the output file
+ *                                  already exists {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
  *
  *  @return A promise for results {Promise};
  *          - on success, true {Boolean};
  *          - on failure, an error {Error};
  *  @private
  */
-function _csv_to_json( path_csv, path_json ) {
-  const keys    = [
+function _csv_to_json( config ) {
+  const path_csv  = config.inPath;
+  const path_out  = config.outPath;
+  const ABBR      = config.version.abbreviation;
+  const keys      = [
     /* Keys with '!' prefix will be excluded
      * Key  with '#' prefix will converted to an integer
      * Key  with ':' prefix identifies the full verse reference
@@ -153,7 +181,11 @@ function _csv_to_json( path_csv, path_json ) {
     });
 
     const state = {
-      out_dir         : path_json,
+      ABBR            : ABBR,
+      verbosity       : config.verbosity,
+      force           : config.force,
+
+      out_dir         : path_out,
       first_ref       : {book:null, chapter:null, verse:null},
       cur_ref         : {book:null, chapter:null, verse:null},
       book_map        : new Map(),
@@ -259,8 +291,10 @@ function _csv_to_json( path_csv, path_json ) {
         _finishBook( state );
       }
 
-      console.log('>>> Finished parsing the %s lines of csv',
-                    state.nlines.toLocaleString());
+      if (config.verbosity) {
+        console.log('>>> Prepare %s: Finished parsing the %s lines of csv',
+                      ABBR, state.nlines.toLocaleString());
+      }
 
       return resolve( true );
     });
@@ -465,12 +499,17 @@ function _finishChapter( state ) {
  *  @param  state.book_map  The book map (chapters) {Map};
  *  @param  state.chap_map  The chapter map (verse) {Map};
  *  @param  state.cur_ref   The current verse reference {Object};
+ *  @param  state.force     If truthy, overwrite event if the output file
+ *                          already exists {Boolean};
+ *  @param  state.verbosity The verbosity level {Number};
+ *  @param  state.ABBR      The abbreviation of the current version {String};
  *
  *  @return Updated state {Object};
  *  @private
  */
 function _finishBook( state ) {
   // We have existing book data that needs to be complete
+  const ABBR    = state.ABBR;
   const cur_ref = state.cur_ref;
   const fir_ref = state.first_ref;
 
@@ -479,33 +518,45 @@ function _finishBook( state ) {
     _finishChapter( state );
   }
 
-  const bkJson  = _mapJson( state.book_map );
-  if (bkJson != null) {
-    // Validate book information
-    const book  = Books.getBook( fir_ref.book );
-    if (book) {
-      if (cur_ref.chapter !== book.verses.length - 1) {
-        console.error('*** %s has %d chapters, %d expected',
-                      cur_ref.book, cur_ref.chapter, book.verses.length - 1);
+  const path_json = Path.join( state.out_dir, `${state.cur_ref.book}.json` );
+  const isCached  = Fs.existsSync( path_json );
+
+  if (state.force || ! isCached) {
+    // Cache the data for this book
+    const bkJson  = _mapJson( state.book_map );
+
+    if (bkJson != null) {
+      // Validate book information
+      const book  = Books.getBook( fir_ref.book );
+
+      // Perform validation IFF verbosity > 1
+      if (state.verbosity > 1 && book) {
+        if (cur_ref.chapter !== book.verses.length - 1) {
+          console.error('*** %s has %d chapters, %d expected',
+                        cur_ref.book, cur_ref.chapter, book.verses.length - 1);
+        }
+        if (cur_ref.verse !== book.verses[ cur_ref.chapter ]) {
+          console.error('*** %s last chapter has %d verses, %d expected',
+                        cur_ref.book, cur_ref.chapter, book.verses.length - 1);
+        }
       }
-      if (cur_ref.verse !== book.verses[ cur_ref.chapter ]) {
-        console.error('*** %s last chapter has %d verses, %d expected',
-                      cur_ref.book, cur_ref.chapter, book.verses.length - 1);
-      }
+
+      // Convert the book to JSON and output
+      const json  = {
+        metadata: [],
+        chapters: bkJson,
+      };
+
+      console.log('>>>> %s : %s [%s.%s-%s.%s] ...',
+                  ABBR, fir_ref.book, fir_ref.chapter, fir_ref.verse,
+                  cur_ref.chapter, cur_ref.verse);
+
+      Fs.writeFileSync( path_json, JSON.stringify( json, null, 2 )+'\n' );
     }
 
-    // Convert the book to JSON and output
-    const path_json = Path.join( state.out_dir, `${state.cur_ref.book}.json` );
-    const json      = {
-      metadata: [],
-      chapters: bkJson,
-    };
+  } else if (state.verbosity) {
+    console.log('>>> %s : %s already cached', ABBR, fir_ref.book);
 
-    console.log('>>>> %s [%s.%s-%s.%s] ...',
-                fir_ref.book, fir_ref.chapter, fir_ref.verse,
-                cur_ref.chapter, cur_ref.verse);
-
-    Fs.writeFileSync( path_json, JSON.stringify( json, null, 2 )+'\n' );
   }
 
   // Clear the state
@@ -520,5 +571,5 @@ function _finishBook( state ) {
  ****************************************************************************/
 
 module.exports = {
-  toJson,
+  version : prepare_version,
 };

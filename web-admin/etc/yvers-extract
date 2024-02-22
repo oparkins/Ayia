@@ -1,0 +1,50 @@
+#!/usr/bin/env node
+const Yargs   = require('yargs');
+const Books   = require('../lib/books');
+const Yvers   = require('../lib/yvers');
+const Cheerio = require('cheerio');
+const sprintf = require('sprintf-js').sprintf;
+const Usage   = require('../lib/usage');
+const yargs	  = Yargs
+	.usage('Extract processable data for version <vers>')
+  .positional('vers', {
+    describe: 'The desired version',
+    type    : 'string',
+  })
+  .options({
+    f: {
+      alias   : 'force',
+      describe: 'Force (re)extraction',
+      default : false,
+      type    : 'boolean',
+    },
+    v: {
+      alias   : 'verbosity',
+      describe: 'Increase debug verbosity',
+      count   : true,
+    },
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help();
+
+main().catch(err => { console.error('*** main:', err) });
+
+/****************************************************************************
+ * async main
+ *
+ */
+async function main() {
+  const args    = yargs.parse();
+  const [vers]  = args._;
+
+  if (vers == null) { Usage.yargs( yargs ) }
+  args.vers         = vers;
+  args.returnVersion = true;
+
+  const version = await Yvers.extract.version( args );
+
+  console.log('>>> %s cached to: %s',
+              version.abbreviation, version._cache.extract );
+}
+
+// vi: ft=javascript
