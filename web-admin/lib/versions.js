@@ -178,9 +178,9 @@ async function extract_version( config ) {
     if (version == null) {
       throw new Error(`Cannot find version ${config.vers}`);
     }
-  }
 
-  config = Object.assign({version}, config || {});
+    config = Object.assign({version}, config || {});
+  }
 
   let res;
   if (version.type === 'interlinear') {
@@ -192,13 +192,77 @@ async function extract_version( config ) {
 
   return res;
 }
+
+/**
+ *  Convert a Bible version fetched and extracted via `Yvers.extract()` to a
+ *  normalized, database ready JSON format.
+ *
+ *  @method prepare_version
+ *  @param  config                  Conversion configuration {Object};
+ *  @param  config.vers             The target version {String};
+ *  @param  [config.version = null] If provided, extracted information for the
+ *                                  target version (Yvers.extract.version()).
+ *                                  If this is provided, `config.vers` may be
+ *                                  omitted {Version};
+ *  @param  [config.outPath = null] A specific output path for the generated
+ *                                  JSON {String};
+ *  @param  [config.force = false]  If truthy, convert even if the output
+ *                                  already exists {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
+ *  @param  [config.returnVersion = false]
+ *                                  If truthy, return the top-level version
+ *                                  data {Boolean};
+ *
+ *  @return A promise for results {Promise};
+ *          - on success, the path to the location holding the generated JSON
+ *                        data or the top-level version data
+ *                        {String | Version};
+ *          - on failure, an error {Error};
+ *
+ */
+async function prepare_version( config ) {
+  if (config == null) { throw new Error('Missing required config') }
+
+  let version = config.version;
+  if (version == null) {
+    if (config.vers == null) {
+      throw new Error('Missing required config.vers | config.versions');
+    }
+
+    /* Ensure version data has been extracted and retrieve the top-level
+     * version information.
+     */
+    const configExtract = {
+      vers          : config.vers,
+      verbosity     : config.verbosity,
+      returnVersion : true,
+    };
+
+    version = await extract_version( configExtract );
+    if (version == null) {
+      throw new Error(`Cannot find version ${config.vers}`);
+    }
+
+    // Pass version down
+    config = Object.assign({version}, config || {});
+  }
+
+  let res;
+  if (version.type === 'interlinear') {
+    res = Interlinear.prepare.version( config );
+
+  } else {
+    res = Yvers.prepare.version( config );
+  }
+
+  return res;
+}
+
 module.exports  = {
   list    : fetch_versions,
 
   find    : find_version,
   fetch   : fetch_version,
   extract : extract_version,
-  /*
-  prepare :
-  // */
+  prepare : prepare_version,
 };

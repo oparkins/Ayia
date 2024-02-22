@@ -5,7 +5,7 @@ const Usage       = require('../lib/usage');
 const { inspect } = require('../lib/inspect');
 
 const yargs	= Yargs
-	.usage('Extract a specific <vers>')
+	.usage('Find a specific <vers>')
   .positional('vers', {
     describe: 'The desired version',
     type    : 'string',
@@ -13,7 +13,7 @@ const yargs	= Yargs
   .options({
     f: {
       alias   : 'force',
-      describe: 'Force (re)extraction',
+      describe: 'Force (re)fetch',
       default : false,
       type    : 'boolean',
     },
@@ -40,10 +40,13 @@ async function main() {
   args.vers           = vers;
   args.returnVersion  = true;
 
-  const version = await Versions.extract( args );
+  const version = await Versions.fetch( args );
 
-  console.log('>>> %s cached to: %s',
-              version.abbreviation, version._cache.extract );
+  console.log('>>> version[ %s ]:', vers);
+  console.log('>>>  id                : %s', version.id);
+  console.log('>>>  title             : %s', version.title);
+  console.log('>>>  abbreviation      : %s', version.abbreviation);
+  console.log('>>>  local_abbreviation: %s', version.local_abbreviation);
 }
 
 // vi: ft=javascript
