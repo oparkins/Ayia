@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+const Yargs       = require('yargs');
+const Versions    = require('../lib/versions');
+const Usage       = require('../lib/usage');
+const { inspect } = require('../lib/inspect');
+
+const yargs	= Yargs
+	.usage('Find a specific <vers>')
+  .positional('vers', {
+    describe: 'The desired version',
+    type    : 'string',
+  })
+  .options({
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help();
+
+main().catch(err => { console.error('*** main:', err) });
+
+/****************************************************************************
+ * async main
+ *
+ */
+async function main() {
+  const args    = yargs.parse();
+  const [vers]  = args._;
+
+  if (vers == null) { Usage.yargs( yargs ) }
+  args.vers = vers;
+
+  const version = await Versions.find( args );
+
+  // Remove any "private" fields, those that begin with '_'
+  Object.keys( version ).forEach( key => {
+    if (key && key[0] === '_') { delete version[ key ] }
+  });
+
+  console.log('%s', inspect( version ));
+}
+
+// vi: ft=javascript

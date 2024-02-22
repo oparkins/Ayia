@@ -2,4 +2,4 @@ containers/
 etc/mongo-pass
 node_modules/
 tmp/
-**/*.swp
+.git/

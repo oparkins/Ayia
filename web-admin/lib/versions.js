@@ -7,17 +7,28 @@ const Interlinear = require('./interlinear');
 
 /**
  *  Fetch the current version index either cached or from the source.
- *  @method getVersions
- *  @param  [lang = 'eng']  The target language {String};
- *  @param  [type = 'all']  The target type {String};
+ *  @method fetch_versions
+ *  @param  [config]                Fetch configuration {Object};
+ *  @param  [config.lang = 'eng']   The target language {String};
+ *  @param  [config.type = 'all']   The target type {String};
+ *  @param  [config.outPath = null] Override the default cache path {String};
+ *  @param  [config.force = false]  If truthy, fetch even if the data is
+ *                                  already cached {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
  *
  *  @return A promise for the version index {Promise};
  *          - on success, resolves with the version index {Array};
  *          - on failure, rejects  with an error {Error};
  */
-async function getVersions( lang='eng', type='all') {
-  const config    = { lang, type };
+async function fetch_versions( config=null ) {
   const versions  = [];
+
+  config  = Object.assign({
+              lang      : 'eng',
+              type      : 'all',
+              force     : false,
+              verbosity : 0,
+            }, config || {});
 
   try   {
     const yvers = await Yvers.fetch.versions( config );
@@ -27,7 +38,7 @@ async function getVersions( lang='eng', type='all') {
   } catch { /* squelch */ }
 
   try   {
-    const il  = await Interlinear.getVersions( lang, type )
+    const il  = await Interlinear.fetch.versions( config )
 
     versions.push( ...il );
 
@@ -38,17 +49,27 @@ async function getVersions( lang='eng', type='all') {
 
 /**
  *  Find information about the named version from the version index.
- *  @method findVersion
- *  @param  vers    The target version {String};
+ *
+ *  @method find_version
+ *  @param  config                  Fetch configuration {Object};
+ *  @param  config.vers             The target version {String};
+ *  @param  [config.force = false]  If truthy, fetch even if the data is
+ *                                  already cached {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
  *
  *  @return A promise for the version index {Promise};
  *          - on success, resolves with the version information {Object};
  *          - on failure, rejects  with an error {Error};
  */
-async function findVersion( vers ) {
-  const versions  = await getVersions();
-  const VERS      = vers.toUpperCase();
-  const info      = versions.find( (data) => {
+async function find_version( config ) {
+  if (config == null) { throw new Error('Missing required config') }
+  if (config.vers == null) {
+    throw new Error('Missing required config.vers | config.versions');
+  }
+
+  const VERS      = config.vers.toUpperCase();
+  const versions  = await fetch_versions( config );
+  const version   = versions.find( (data) => {
     if (data.abbreviation       === VERS ||
         data.local_abbreviation === VERS) {
       return true;
@@ -67,43 +88,68 @@ async function findVersion( vers ) {
     return false;
   });
 
-  return info;
+  return version;
 }
 
 /**
- *  Get the data for the named version.
- *  @method getVersion
- *  @param  vers    The target version {String};
+ *  Fetch the data for the named version either from cache or the source.
  *
- *  @return A promise for the version index {Promise};
- *          - on success, resolves with the version information {Object};
- *                          {
- *                            id          : 1588,
- *                            abbreviation: 'AMP',
- *                            title: 'Amplified Bible',
- *                            language: { ... },
- *                            publisher_id: 37,
- *                            platforms: { ... },
- *                            offline: { ... },
- *                            metadata_build: 9,
- *                            vrs: 'eng',
- *                            ...
- *                            books: { Map
- *                              BOOK: { Map
- *                                1:  Chapter1-decodedData,
- *                                2:  Chapter2-decodedData,
- *                                ...
- *                              },
- *                              ...
- *                            }
- *                          }
+ *  @method fetch_version
+ *  @param  config                  Fetch configuration {Object};
+ *  @param  config.vers             The target version {String};
+ *  @param  [config.version = null] If provided, pre-fetched information about
+ *                                  the target version. If this is provided,
+ *                                  `config.vers` may be omitted {Version};
+ *  @param  [config.outPath = null] A specific output path, overriding the
+ *                                  default cache {String};
+ *  @param  [config.force = false]  If truthy, fetch even if the data is
+ *                                  already cached {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
+ *  @param  [config.returnVersion = false]
+ *                                  If truthy, return the top-level version
+ *                                  data {Boolean};
+ *
+ *  @return A promise for results {Promise};
+ *          - on success, the path to the fetched data or the version data
+ *                        {String | Version};
  *          - on failure, rejects  with an error {Error};
  */
-function getVersion( vers ) {
+async function fetch_version( config ) {
+  if (config == null) { throw new Error('Missing required config') }
+
+  let version = config.version;
+  if (version == null) {
+    if (config.vers == null) {
+      throw new Error('Missing required config.vers | config.versions');
+    }
+
+    // Fetch information about the target version
+    version = await find_version( config );
+    if (version == null) {
+      throw new Error(`Cannot find version ${config.vers}`);
+    }
+  }
+
+  config = Object.assign({version}, config || {});
+
+  let res;
+  if (version.type === 'interlinear') {
+    res = Interlinear.fetch.version( config );
+
+  } else {
+    res = Yvers.fetch.version( config );
+  }
+
+  return res;
 }
 
 module.exports  = {
-  getVersions,
-  findVersion,
-  getVersion,
+  list    : fetch_versions,
+
+  find    : find_version,
+  fetch   : fetch_version,
+  /*
+  extract :
+  prepare :
+  // */
 };

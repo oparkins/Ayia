@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-const Yargs = require('yargs');
-const Yvers = require('../lib/yvers');
-const Usage = require('../lib/usage');
+const Yargs     = require('yargs');
+const Versions  = require('../lib/versions');
+const Usage     = require('../lib/usage');
 const yargs	= Yargs
 	.usage('List versions')
   .options({
@@ -39,9 +39,10 @@ main().catch(err => { console.error('*** main:', err) });
  * async main
  *
  */
+
 async function main() {
   const args      = yargs.parse();
-  const versions  = await Yvers.fetch.versions( args );
+  const versions  = await Versions.list( args );
 
   versions.forEach( vers => {
     console.log('%s : %s : %s',

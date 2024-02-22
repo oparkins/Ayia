@@ -55,8 +55,9 @@ mongo-proxy:
 	./etc/mongo-proxy.sh "$(NS)" "$(REL)-mongodb"
 
 #? Build a container image
+#?  (NOTE: We use tar to generate the context to allow soft-links)
 container: package.json
-	podman build -t $(CONTAINER_NAME):$(CONTAINER_TAG) .
+	tar -ch . | podman build -t $(CONTAINER_NAME):$(CONTAINER_TAG) -
 	podman tag $(CONTAINER_NAME):$(CONTAINER_TAG) $(CONTAINER_NAME):latest
 
 #? Run the current container image
