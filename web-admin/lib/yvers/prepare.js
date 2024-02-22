@@ -82,9 +82,12 @@ async function prepare_version( config ) {
   const isCached  = await FsUtils.exists( versPath );
 
   if (config.force || ! isCached) {
-    // Ensure version.type reflects this source, but excludes the raw 'books'
+    /* Ensure version.type reflects this source, but excludes the raw 'books'
+     * and '_cache'
+     */
     const json  = { ...version, type:'yvers' };
     delete json.books;
+    delete json._cache;
 
     if (config.verbosity) {
       console.log('>>> %s : cache version data ...', ABBR);
