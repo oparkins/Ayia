@@ -143,13 +143,62 @@ async function fetch_version( config ) {
   return res;
 }
 
+/**
+ *  Extract the data for the named version.
+ *
+ *  @method extract_version
+ *  @param  config                  Extract configuration {Object};
+ *  @param  config.vers             The target version {String};
+ *  @param  [config.version = null] If provided, pre-fetched information about
+ *                                  the target version. If this is provided,
+ *                                  `config.vers` may be omitted {Version};
+ *  @param  [config.force = false]  If truthy, fetch even if the data is
+ *                                  already cached {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
+ *  @param  [config.returnVersion = false]
+ *                                  If truthy, return the top-level version
+ *                                  data {Boolean};
+ *
+ *  @return A promise for results {Promise};
+ *          - on success, the path to the fetched data or the version data
+ *                        {String | Version};
+ *          - on failure, rejects  with an error {Error};
+ */
+async function extract_version( config ) {
+  if (config == null) { throw new Error('Missing required config') }
+
+  let version = config.version;
+  if (version == null) {
+    if (config.vers == null) {
+      throw new Error('Missing required config.vers | config.versions');
+    }
+
+    // Fetch information about the target version
+    version = await find_version( config );
+    if (version == null) {
+      throw new Error(`Cannot find version ${config.vers}`);
+    }
+  }
+
+  config = Object.assign({version}, config || {});
+
+  let res;
+  if (version.type === 'interlinear') {
+    res = Interlinear.extract.version( config );
+
+  } else {
+    res = Yvers.extract.version( config );
+  }
+
+  return res;
+}
 module.exports  = {
   list    : fetch_versions,
 
   find    : find_version,
   fetch   : fetch_version,
+  extract : extract_version,
   /*
-  extract :
   prepare :
   // */
 };

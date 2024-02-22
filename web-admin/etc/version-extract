@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+const Yargs       = require('yargs');
+const Versions    = require('../lib/versions');
+const Usage       = require('../lib/usage');
+const { inspect } = require('../lib/inspect');
+
+const yargs	= Yargs
+	.usage('Extract a specific <vers>')
+  .positional('vers', {
+    describe: 'The desired version',
+    type    : 'string',
+  })
+  .options({
+    f: {
+      alias   : 'force',
+      describe: 'Force (re)fetch',
+      default : false,
+      type    : 'boolean',
+    },
+    v: {
+      alias   : 'verbosity',
+      describe: 'Increase debug verbosity',
+      count   : true,
+    },
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help();
+
+main().catch(err => { console.error('*** main:', err) });
+
+/****************************************************************************
+ * async main
+ *
+ */
+async function main() {
+  const args    = yargs.parse();
+  const [vers]  = args._;
+
+  if (vers == null) { Usage.yargs( yargs ) }
+  args.vers           = vers;
+  args.returnVersion  = true;
+
+  const version = await Versions.extract( args );
+
+  console.log('>>> %s cached to: %s',
+              version.abbreviation, version._cache.extract );
+}
+
+// vi: ft=javascript
