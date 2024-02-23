@@ -17,16 +17,13 @@ Rows & Columns:
     1   : Heb Sort                            {Number | Empty};
     2   : Grk Sort                            {Number | Empty};
     3   : BSB Sort                            {Number};
-    4   : Language (Hebrew | Greek)           {String};
+    4   : Language                            {String};
     5   : Vs                                  {Number};
     6   : WLC / Nestle Base ...               {String};
     7   : ⇔                                   {Empty};
     8   : Translit                            {String};
     9   : Parsing                             {String};
-    10  : The header label is empty but this  {String};
-          seems to be a continuation of
-          column 9 as a full description
-          of the 'Parsing' value
+    10  : No label : Describes Parsing        {String};
     11  : Strongs                             {Number};
     12  : Verse                               {String | Empty};
     13  : Heading                             {String | Empty};
@@ -51,6 +48,14 @@ Rows & Columns:
   </tr>
 
   <tr>
+   <td>4</td>
+   <td>Language (language)</td>
+   <td>
+    The language this entry references (Hebrew | Greek).
+   </td>
+  </tr>
+
+  <tr>
    <td>5</td>
    <td>Vs</td>
    <td>
@@ -62,7 +67,7 @@ Rows & Columns:
 
   <tr>
    <td>6</td>
-   <td>WLC / Nestle Base</td>
+   <td>WLC / Nestle Base (wlc)</td>
    <td>
     Text from the Westminster Leningrad Codex is the oldest complete
     manuscript of the Hebrew Bible in Hebrew, using the Masoretic Text and
@@ -74,8 +79,16 @@ Rows & Columns:
   </tr>
 
   <tr>
+   <td>8</td>
+   <td>Translit (translit)</td>
+   <td>
+    A transliteration of the WLC text.
+   </td>
+  </tr>
+
+  <tr>
    <td>9-10</td>
-   <td>Parsing</td>
+   <td>Parsing (tos / tos_label)</td>
    <td>
     Identifies the type-of-speech (Columnn 9) with descrpition (Column 10),
     for example:
@@ -110,6 +123,17 @@ Rows & Columns:
   </tr>
 
   <tr>
+   <td>11</td>
+   <td>Strongs (strongs)</td>
+   <td>
+     The strongs reference number. This is in relation to `Language` and is
+     typically represented with the first letter of the language followed by
+     this reference number. For example, with a 'Greek' entry and 'Strongs'
+     value of '123', this would be represnted as 'g123'.
+   </td>
+  </tr>
+
+  <tr>
    <td>12</td>
    <td>Verse</td>
    <td>
@@ -124,7 +148,7 @@ Rows & Columns:
 
   <tr>
    <td>13</td>
-   <td>Heading</td>
+   <td>Heading (heading)</td>
    <td>
     Seems to be a section heading of some sort that only appears in some
     entries.
@@ -133,7 +157,7 @@ Rows & Columns:
 
   <tr>
    <td>14</td>
-   <td>Cross Reference</td>
+   <td>Cross Reference (xref)</td>
    <td>
     Any cross reference to other verse(s).
     <br />
@@ -143,7 +167,7 @@ Rows & Columns:
 
   <tr>
    <td>15</td>
-   <td>BSB Version</td>
+   <td>BSB Version (text)</td>
    <td>
     The english translation for the Berean Standard Bible.
     <br />
@@ -156,8 +180,17 @@ Rows & Columns:
   </tr>
 
   <tr>
+   <td>16</td>
+   <td>Footnotes (footnotes)</td>
+   <td>
+     Footnote text for for the Berean Standard Bible.
+     This MAY have minimal HTML markup (e.g. &lt;i&gt;...&lt;/i&gt;).
+   </td>
+  </tr>
+
+  <tr>
    <td>17</td>
-   <td>BDB / Thayers</td>
+   <td>BDB / Thayers (bdb_notes)</td>
    <td>
     This can overflow multiple columns but is fully contained in Column 17.
     <br />
