@@ -2,7 +2,7 @@
 
 Ayia makes use of a number of Biblical sources:
 - YouVersion
-- [Berean Standard Bible (interlinear)](lib/interlinear/bsb)
+- [Berean Standard Bible (interlinear)](versions/interlinear/bsb)
 - Strongs
 
 These all need to be fetched, extracted, prepared and loaded into the Ayia

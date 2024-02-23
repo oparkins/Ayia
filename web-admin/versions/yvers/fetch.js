@@ -11,7 +11,7 @@ const {
   PATH_CACHE,
 } = require('./constants');
 
-const { fetch } = require('../fetch');
+const { fetch } = require('../../lib/fetch');
 
 /****************************************************************************
  * Public methods {

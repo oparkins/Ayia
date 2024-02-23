@@ -7,9 +7,9 @@
 const Fs        = require('fs');
 const Path      = require('path');
 const Readline  = require('readline');
-const FsUtils   = require('../../fs_utils');
-const Books     = require('../../books');
-const Refs      = require('../../refs');
+const FsUtils   = require('../../../lib/fs_utils');
+const Books     = require('../../../lib/books');
+const Refs      = require('../../../lib/refs');
 
 // Constants used later
 const {

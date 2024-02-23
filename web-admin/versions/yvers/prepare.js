@@ -6,9 +6,9 @@
 const Path            = require('path');
 const Fs              = require('fs/promises');
 const Cheerio         = require('cheerio');
-const Books           = require('../books');
-const Refs            = require('../refs');
-const FsUtils         = require('../fs_utils');
+const Books           = require('../../lib/books');
+const Refs            = require('../../lib/refs');
+const FsUtils         = require('../../lib/fs_utils');
 
 const { PATH_CACHE }  = require('./constants');
 const Extract         = require('./extract');

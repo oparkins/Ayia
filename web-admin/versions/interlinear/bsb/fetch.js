@@ -12,7 +12,7 @@ const {
   PATH_XLSX,
 } = require('./constants');
 
-const { fetch }   = require('../../fetch');
+const { fetch }   = require('../../../lib/fetch');
 const { Version } = require('./version');
 
 /****************************************************************************

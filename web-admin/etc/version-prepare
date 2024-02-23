@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const Yargs       = require('yargs');
-const Versions    = require('../lib/versions');
+const Versions    = require('../versions');
 const Usage       = require('../lib/usage');
 const { inspect } = require('../lib/inspect');
 
