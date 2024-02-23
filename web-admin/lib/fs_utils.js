@@ -10,7 +10,9 @@ const Fs  = require('fs/promises');
  *  @method exists
  *  @param  path    The target path {String};
  *
- *  @return true | false {Boolean};
+ *  @return A promise for results {Promise};
+ *          - on success, true | false {Boolean};
+ *          - on failure, an error {Error};
  */
 async function exists( path ) {
   let exists  = false;
@@ -28,7 +30,43 @@ async function exists( path ) {
 }
 
 /**
+ *  Check if the given path exists as a directory.
+ *
+ *  @method exists_dir
+ *  @param  path  The path to the target directory {String};
+ *
+ *  @return A promise for results {Promise};
+ *          - on success, true | false {Boolean};
+ *          - on failure, an error {Error};
+ */
+async function exists_dir( path ) {
+  let exists    = false;
+  let existsDir = false;
+  let error;
+
+  try {
+    const stats = await Fs.stat( path );
+
+    exists    = true;
+    existsDir = stats.isDirectory();
+
+  } catch(err) {
+    /* 'ENOENT' indicates that the target does not exist and so is not a
+     * directory.
+     */
+    if (err.code !== 'ENOENT') {
+      error = err;
+    }
+  }
+
+  if (error)  { throw error }
+
+  return existsDir;
+}
+
+/**
  *  Create the given directory (path) if it does not yet exist.
+ *
  *  @method make_dir
  *  @param  path  The path to the target directory {String};
  *
@@ -37,29 +75,11 @@ async function exists( path ) {
  *          - on failure, an error {Error};
  */
 async function make_dir( path ) {
-  let doMake  = false;
-  let error;
+  const existsDir = await exists_dir( path );
 
-  try {
-    const stats = await Fs.stat( path );
+  if (existsDir)  { return path }
 
-    if (! stats.isDirectory()) {
-      error = new Error('path exists but is not a directory');
-
-    } // else path exists and is a directory
-
-  } catch(err) {
-    if (err.code === 'ENOENT') {
-      // Path does not yet exist
-      doMake = true;
-
-    } else {
-      error = err;
-    }
-  }
-
-  if (error)  { throw error }
-
+  // Attempt to create the directory
   const create_opts  = {
     mode      : 0o770,
     recursive : true,
@@ -72,5 +92,6 @@ async function make_dir( path ) {
 
 module.exports = {
   exists,
+  exists_dir,
   make_dir,
 };
