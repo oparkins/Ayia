@@ -1,7 +1,7 @@
 The source for this version is:
   https://bereanbible.com/bsb_tables.xlsx
 
-This spreadsheet has 5 worksheets, first 4 of which are empty.
+This spreadsheet has 5 worksheets, the first 4 of which are empty.
 
 The 5th worksheet contains the data.
 
@@ -43,10 +43,10 @@ Rows & Columns:
  <tbody>
   <tr>
    <td>1-3</td>
-   <td>Heb/Grk/BSB Sort</td>
+   <td>Heb, Grk, BSB Sort</td>
    <td>
     Labels suggest they are language-specific sort orders but their values
-    seem to be some sort of index into the sentence...
+    seem to be some sort of index into the sentence.
    </td>
   </tr>
 
@@ -74,8 +74,8 @@ Rows & Columns:
   </tr>
 
   <tr>
-   <td>9-10:</td>
-   <td>rsing</td>
+   <td>9-10</td>
+   <td>Parsing</td>
    <td>
     Identifies the type-of-speech (Columnn 9) with descrpition (Column 10),
     for example:
