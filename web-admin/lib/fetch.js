@@ -120,7 +120,7 @@ function _stream_response( res, outPath ) {
     // Pipe response data to the output stream
     res.pipe( outStream );
 
-    outStream.on('error', (er) => {
+    outStream.on('error', (err) => {
       // Consume response data to free up memory
       res.resume();
       return reject( err );
