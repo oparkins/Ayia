@@ -1,6 +1,7 @@
 cache/**/*.json
 cache/**/*.xlsx
 cache/**/*.csv
+cache/**/*.zip
 etc/mongo-pass
 node_modules/
 tmp/
