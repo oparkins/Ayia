@@ -229,21 +229,12 @@ async function prepare_version( config ) {
       throw new Error('Missing required config.vers | config.versions');
     }
 
-    /* Ensure version data has been extracted and retrieve the top-level
-     * version information.
-     */
-    const configExtract = {
-      vers          : config.vers,
-      verbosity     : config.verbosity,
-      returnVersion : true,
-    };
-
-    version = await extract_version( configExtract );
+    // Fetch information about the target version
+    version = await find_version( config );
     if (version == null) {
       throw new Error(`Cannot find version ${config.vers}`);
     }
 
-    // Pass version down
     config = Object.assign({version}, config || {});
   }
 
