@@ -210,10 +210,18 @@ async function _xlsx_to_csv( config ) {
 
     throw new Error(`Extract ${ABBR}: soffice failed [ ${vrc} ]`);
 
-  } else if (config.verbosity) {
+  }
+
+  if (config.verbosity) {
     console.log('>>> Extract %s: soffice completed [ %s ]', ABBR, rc);
     if (stdout.length > 0) { console.log('stdout: %s', stdoutStr) }
     if (stderr.length > 0) { console.log('stderr: %s', stderrStr) }
+  }
+
+  // Check if the converted file exists
+  if (! Fs.existsSync( config.outPath ) ) {
+    // NO. soffice says it succeeded but there is no output file
+    throw new Error(`Extract ${ABBR}: FAILED to generated the output file`);
   }
 }
 
