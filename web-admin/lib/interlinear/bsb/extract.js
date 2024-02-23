@@ -4,6 +4,7 @@
  *  `Bsb.prepare.version()`.
  *
  */
+const Path      = require('path');
 const Fs        = require('fs');
 const CProc     = require('child_process');
 const Readline  = require('readline');
@@ -81,11 +82,12 @@ async function extract_version( config=null ) {
                         + 'extract from XLSX');
 
     } else if (config.verbosity) {
-      console.log('>>> Extract %s: soffice version: %s', ABBR, vout);
+      console.log('>>> Extract %s: soffice version: %s',
+                  ABBR, vout.toString().trim());
     }
 
     // Use libreoffice to convert XLSX to CSV
-    await _xlsx_to_csv( config.inPath, config.outPath );
+    await _xlsx_to_csv( config );
 
     if (config.verbosity) {
       console.log('>>> Extract %s: complete', ABBR);
@@ -114,8 +116,16 @@ async function extract_version( config=null ) {
  *  Use soffice/libre-office to convert an XLSX file to CSV
  *
  *  @method _xlsx_to_csv
- *  @param  path_xlsx   The path to the (input) XLSX file {String};
- *  @param  path_csv    The path to the (output) CSV file {String};
+ *  @param  config                  Fetch configuration {Object};
+ *  @param  config.version          If provided, pre-fetched information
+ *                                  about the target version
+ *                                  (Bsb.fetch.find()). If this is provided,
+ *                                  `config.vers` may be omitted {Version};
+ *  @param  config.inPath           The path to the input XLSX {String};
+ *  @param  config.outPath          The path to the output CSV {String};
+ *  @param  [config.force = false]  If truthy, fetch even if the output file
+ *                                  already exists {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
  *
  *  @note   soffice can only use the *directory* from `path_csv`;
  *
@@ -124,7 +134,11 @@ async function extract_version( config=null ) {
  *          - on failure, and error {Error};
  *  @private
  */
-async function _xlsx_to_csv( path_xlsx, path_csv ) {
+async function _xlsx_to_csv( config ) {
+  const path_xlsx = config.inPath;
+  const path_csv  = config.outPath;
+  const ABBR      = config.version.abbreviation;
+
   /* Params documented at:
    *  https://help.libreoffice.org/6.2/he/text/shared/guide/start_parameters.html
    *  https://help.libreoffice.org/latest/en-US/text/shared/guide/csv_params.html
@@ -151,14 +165,56 @@ async function _xlsx_to_csv( path_xlsx, path_csv ) {
               // 15 Detect numbers in scientific notation ([true] | false);
   ];
   const args  = [
+    '--quickstart',
+    '--safe-mode',
+    '--headless',
     '--convert-to',
     'csv:"Text - txt - csv (StarCalc)":' + params.join(','),
     '--outdir',
     Path.dirname( path_csv ),
     path_xlsx,
   ];
+  const opts  = {
+    cwd: process.cwd(),
+  };
 
-  return _exec( 'soffice', args );
+  if (config.verbosity > 1) {
+    console.log('>>> Extract %s: Exec soffice with arguments:',
+                ABBR, args);
+
+  } else if (config.verbosity) {
+    console.log('>>> Extract %s: Exec soffice to convert XLSX to CSV ...',
+                ABBR);
+  }
+
+  const [rc, stdout, stderr] = await _exec( 'soffice', args, opts );
+  const stdoutLines = stdout.toString().split('\n');
+  const stderrLines = stderr.toString().split('\n');
+  const stdoutStr   = stdoutLines.map( (line,idex) => {
+                        if (idex > 0) { line = '        ' + line }
+                        return line;
+                      }).join('\n');
+  const stderrStr   = stderrLines.map( (line,idex) => {
+                        if (idex > 0) { line = '        ' + line }
+                        return line;
+                      }).join('\n');
+
+  if (rc !== 0 || stderr.length > 0) {
+    const vrc = (rc ? rc
+                    : `${stderrLines.length} lines of stderr`);
+
+    console.error('*** Extract %s: soffice failed [ %s ]', ABBR, vrc);
+    if (stdout.length > 0) { console.error('stdout: %s', stdoutStr) }
+
+    console.error('stderr: %s', stderrStr);
+
+    throw new Error(`Extract ${ABBR}: soffice failed [ ${vrc} ]`);
+
+  } else if (config.verbosity) {
+    console.log('>>> Extract %s: soffice completed [ %s ]', ABBR, rc);
+    if (stdout.length > 0) { console.log('stdout: %s', stdoutStr) }
+    if (stderr.length > 0) { console.log('stderr: %s', stderrStr) }
+  }
 }
 
 /**
@@ -300,17 +356,18 @@ function _csv_to_json( path_csv, path_json ) {
  *  Spawn a child an capture all stdout and stderr data.
  *
  *  @method _exec
- *  @param  cmd   The command {String};
- *  @param  args  The set of arguments {Array};
+ *  @param  cmd       The command {String};
+ *  @param  args      The set of arguments {Array};
+ *  @param  [opts={}] Additional spawn options {Object};
  *
  *  @return A promise for results {Promise};
  *          - on success, resolves with [retCode, stdout, stderr] {Array};
  *          - on failure, rejects with an error {Error};
  *  @private
  */
-function _exec( cmd, args ) {
+function _exec( cmd, args, opts={} ) {
   return new Promise((resolve, reject) => {
-    const child   = CProc.spawn( cmd, args );
+    const child   = CProc.spawn( cmd, args, opts );
     const stdout  = [];
     const stderr  = [];
     let   rc      = 0;
