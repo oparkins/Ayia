@@ -2,12 +2,17 @@
 #
 # Create a proxy to the mongodb service
 #
-# Usage: mongo-proxy.sh [namespace [service]]
+# Usage: mongo-proxy.sh [context [namespace [service]]]
 #
-NS="${1:-"default"}"
-SVC="${2:-"ayia-mongodb"}"
+ETC="$(dirname $(realpath "$0"))"
+ROOT="$(dirname "$DIR")"
 
-PORT=$(kubectl --namespace=$NS get svc/$SVC | 
+[ $# -gt 0 ] && CTX=$1 || CTX="$( awk '/^CTX/{print $3}' $ROOT/Makefile)"
+[ $# -gt 1 ] &&  NS=$2 ||  NS="$( awk '/^NS/{ print $3}' $ROOT/Makefile)"
+[ $# -gt 2 ] && SVC=$3 || SVC="$( awk '/^REL/{printf("%s-mongodb",$3)}' \
+                                                         $ROOT/Makefile)"
+
+PORT=$(kubectl --context=$CTX --namespace=$NS get svc/$SVC |
         awk '/ClusterIP/{split($5,a,"/"); print a[1]}')
 if [ -z "$PORT" ]; then
   cat <<EOF
