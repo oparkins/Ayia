@@ -11,7 +11,7 @@
  *  The 5th worksheet contains the data.
  *    Column 0 seems to always be empty so the actual column count is 1
  *    less.
- *   
+ *
  *    Row 1: A comment about the source
  *    Row 2: The column headers / field identifiers
  *      1   : Heb Sort                        {Number | Empty};
@@ -31,7 +31,7 @@
  *      15  : BSB Version                     {String};
  *      16  : Footnotes                       {String | Empty};
  *      17..: BDB / Thayers                   {String};
- *   
+ *
  *    Columns 1-3 : Heb/Grk/BSB Sort
  *      Labels suggest they are language-specific sort orders but their values
  *      seem to be some sort of index into the sentence...
@@ -180,11 +180,18 @@ async function extract_version( config=null ) {
   // Prepare the cache location to receive generated data
   await FsUtils.make_dir( config.outPath );
 
+  /*******************************************************************
+   * :XXX: Since we're using 'version.json' as an indicator of
+   *       completion, postpone it's creation to the end of
+   *       processing.
+   */
   const versPath  = Path.join( config.outPath, 'version.json' );
   const isCached  = await FsUtils.exists( versPath );
-  let   doExtract = true;
 
   if (config.force || ! isCached) {
+    // Process this XLSX file
+    await _process_xlsx( config );
+
     /* Ensure version.type reflects this source, but excludes the "private"
      * variables (_handler, _cache).
      */
@@ -198,26 +205,14 @@ async function extract_version( config=null ) {
 
     Fs.writeFileSync( versPath, JSON.stringify( json, null, 2 )+'\n' );
 
-  } else {
-    /* No extraction necessary since 'force' is false and 'version.json' exists
-     * in the cache.
-     */
-    doExtract = false;
-
-    if (config.verbosity) {
-      console.log('>>> Extract %s: version data exists', ABBR);
-    }
-
-  }
-
-  if (doExtract) {
-    // Process this XLSX file
-    await _process_xlsx( config );
-
     if (config.verbosity) {
       console.log('>>> Extract %s: complete', ABBR);
     }
-  }
+
+  } else if (config.verbosity) {
+    console.log('>>> Extract %s: version data exists', ABBR);
+
+ }
 
   if (config.returnVersion) {
     // Pass along cache location information
@@ -324,9 +319,7 @@ function _process_xlsx( config ) {
       wsReader.on('row', (row) => {
         rowCount++;
 
-        row.values.forEach( (val, col) => {
-          _process_row( row, state );
-        });
+        _process_row( row, state );
       });
 
       if (state.verbosity > 1) {
@@ -466,13 +459,79 @@ function _process_row( row, state ) {
 function _finish_verse( state ) {
   if (state.cur_ref == null)  { return state }
 
-  const ABBR  = state.ABBR;
-  const ref   = state.cur_ref;
-  const key   = Refs.sortable( ref.book, ref.chapter, ref.verse );
-  const text  = state.verse_data
-                  .map(     entry => entry && entry.text )
-                  .filter(  entry => entry != null )
-                  .join(' ');
+  const ABBR      = state.ABBR;
+  const ref       = state.cur_ref;
+  const key       = Refs.sortable( ref.book, ref.chapter, ref.verse );
+
+  /* Generate full text from all text data, clean the text up a bit as we go:
+   *  - for each text item:
+   *    - exclude any '. .( .)*' prefix, ' . .( .)*' suffix, and ' -' suffix;
+   *    - trim all white-space from the start and end;
+   */
+  const text_ar = state.verse_data.map( entry => {
+    if (entry == null || entry.text == null)  { return }
+
+    let text  = String( entry.text );
+    if (text[0] === '-')  {
+      // Remove the special '-' prefix
+      text = text.slice(1).trim();
+    }
+
+    // Remove any '. .( .)*' prefix or ' . .( .)*' | ' -' suffix.
+    text = text.replace(/^\. \.( \.)*/, '')
+               .replace(/ \. \.( \.)*$/, '')
+               .replace(/ -$/, '')
+               .trim();
+
+    if (text.length < 1)  {
+      // Exclude empty text
+      return;
+    }
+
+    return text;
+  });
+
+  /*
+  console.log('%s: text_ar:', key, text_ar);
+  // */
+
+  /* Finally, combine all portions and perform some final cleanup:
+   *  - replace white-space that preceeds characters [,;:.?!”’—)}\]];
+   *  - replace white-space that follows  characters [“‘—({\[];
+   *
+   *  For Unicode punctuation (such as curly quotes, em-dashes, etc), you can
+   *  easily match on specific block ranges. The General Punctuation block is
+   *  \u2000-\u206F, and the Supplemental Punctuation block is \u2E00-\u2E7F.
+   *
+   *  Two additional replacements to handle cases that seem to occur between
+   *  chapters, e.g.
+   *    EXO.020.026: And you must not go up to My altar on steps, lest your
+   *                 nakedness be exposed on it.’ [’’]
+   *                    v                        ^^^^^
+   *    EXO.021.001: [“] These are the ordinances that you are to set before
+   *                 them:
+   *
+   *    EXO.021.036: But if it was known that the ox had a habit of goring,
+   *                 yet its owner failed to restrain it, he shall pay full
+   *                 compensation, ox for ox, and the dead [animal] will be
+   *                 his. [’’]
+   *                    v^^^^^
+   *    EXO.022.001: [“] If a man steals an ox or a sheep and slaughters or
+   *                 sells it, he must repay five oxen for an ox and four
+   *                 sheep for a sheep.
+   */
+  const text  = text_ar.filter( txt => (txt != null) )
+                  .join(' ')
+                  .replaceAll(/ +([,;:.?!”’—)}\]])/g, '$1')
+                  .replaceAll(/([“‘—({\[]) +/g, '$1')
+                  .trim()
+                  .replace(/^\[“\] /, '“')
+                  .replace(/ \[’’\]$/, '');
+
+  /*
+  console.log('%s:', key, text);
+  // */
+
   const verse = {
     markup: [ ...state.verse_data ],
     text  : text,
