@@ -85,9 +85,6 @@ async function extract_version( config ) {
                   version.abbreviation, books.size);
     }
 
-    // Include a 'type' in the version
-    version.type = 'yvers';
-
     if (config.verbosity > 1) {
       console.log('>>> Extract %s: generating flat JSON ...',
                   version.abbreviation);

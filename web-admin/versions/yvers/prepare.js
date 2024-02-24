@@ -90,10 +90,8 @@ async function prepare_version( config ) {
   const isCached  = await FsUtils.exists( versPath );
 
   if (config.force || ! isCached) {
-    /* Ensure version.type reflects this source, but excludes the raw 'books'
-     * and '_cache'
-     */
-    const json  = { ...version, type:'yvers' };
+    // Exclude the raw 'books' and '_cache' from the version data we cache
+    const json  = { ...version };
     delete json.books;
     delete json._cache;
 

@@ -62,10 +62,14 @@ async function fetch_versions( config=null) {
   }
 
   // Open the cached data, parse it as JSON and return
-  const data  = Fs.readFileSync( config.outPath );
-  const json  = JSON.parse( data );
+  const data      = Fs.readFileSync( config.outPath );
+  const json      = JSON.parse( data );
+  const versions  = json.response.data.versions;
 
-  return json.response.data.versions;
+  // Augment each version with our type information
+  versions.forEach( version => { version.type = 'yvers' } );
+
+  return versions;
 }
 
 /**
