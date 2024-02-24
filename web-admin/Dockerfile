@@ -21,7 +21,7 @@ RUN npm install && \
 FROM node:21.6.1-alpine3.19
 MAINTAINER D. Elmo Peele
 
-RUN apk add --no-cache bash make vim
+RUN apk add --no-cache bash make curl vim
 ADD sys/user.sh   /etc/bash/
 
 USER node
