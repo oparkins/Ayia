@@ -7,7 +7,8 @@ global: #{
 
 web_admin: #{
   image: #{
-    tag:  0.1.1
+    tag:        0.1.1
+    #pullPolicy: IfNotPresent
   #} web_admin.image
   persistence: #{
     storageClass: '-'
@@ -20,6 +21,7 @@ web_admin: #{
 web_api: #{
   image: #{
     tag:  0.1.0
+    #pullPolicy: IfNotPresent
   #} web_api.image
 #} web_api
 

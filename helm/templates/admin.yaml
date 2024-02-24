@@ -132,7 +132,8 @@ spec: # {
       containers: # {
         - name: server # {
           image:  harbor.nibious.com/ayia/web-admin:{{ .Values.web_admin.image.tag }}
-          imagePullPolicy:  IfNotPresent
+          imagePullPolicy: {{ .Values.web_admin.image.pullPolicy |
+                                default "IfNotPresent" }}
 
           env: #{
             - name:   MONGO_PROTO
