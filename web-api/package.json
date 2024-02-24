@@ -1,6 +1,6 @@
 {
   "name": "web-api",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "The web-api for the Ayia Bible study application",
   "main": "bin/web-api",
   "scripts": {
