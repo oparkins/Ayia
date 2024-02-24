@@ -54,8 +54,8 @@ async function main() {
   process.on('SIGTERM', onExit);
   // Establish signal/exit handlers }
 
-  // Listen according to the connection settings in `config.web_api`
-  server.listen( config.web_api, () => {
+  // Listen according to the connection settings in `config.web_admin`
+  server.listen( config.web_admin, () => {
     console.log('>>> Listening:', server.address());
   });
 }
