@@ -106,7 +106,10 @@ async function main() {
   const abbrev  = args.version.abbreviation;
 
   // Access/create the collection for this version
-  args.col = mongo.db.collection( abbrev );
+  args.col = {
+    versions: mongo.collections.versions,
+    version : mongo.db.collection( abbrev ),
+  };
 
   _store_version( args )
     .catch(err => {
@@ -137,7 +140,11 @@ async function main() {
  *  @param  [config.verbosity = 0]
  *                          Verbosity level {Number};
  *  @param  config.version  The meta-data of the target version {Version};
- *  @param  config.col      A connection to the mongodb collection for the
+ *  @param  config.col.versions
+ *                          A connection to the mongodb collection for the
+ *                          versions metadata {Collection};
+ *  @param  config.col.version
+ *                          A connection to the mongodb collection for the
  *                          target version {Collection};
  *
  *  Iterate over all files in the cache directory for this version.
@@ -203,7 +210,11 @@ async function _store_version( config ) {
  *  @param  [config.verbosity = 0]
  *                          Verbosity level {Number};
  *  @param  config.version  The meta-data of the target version {Version};
- *  @param  config.col      A connection to the mongodb collection for the
+ *  @param  config.col.versions
+ *                          A connection to the mongodb collection for the
+ *                          versions metadata {Collection};
+ *  @param  config.col.version
+ *                          A connection to the mongodb collection for the
  *                          target version {Collection};
  *  @param  version         The version meta-data to store {Object};
  *
@@ -223,7 +234,7 @@ async function _store_version_metadata( config, version ) {
   const update  = { $set: { ...outVers } };
   const opts    = { upsert: true };
 
-  await config.col.updateOne(query, update, opts);
+  await config.col.versions.updateOne(query, update, opts);
 }
 
 /**
@@ -231,6 +242,12 @@ async function _store_version_metadata( config, version ) {
  *
  *  @method _store_version_book
  *  @param  config          Store configuration {Object};
+ *  @param  config.col.versions
+ *                          A connection to the mongodb collection for the
+ *                          versions metadata {Collection};
+ *  @param  config.col.version
+ *                          A connection to the mongodb collection for the
+ *                          target version {Collection};
  *  @param  [config.ref_filter = null]
  *                          Any requested reference filter 'BOK[.ccc]'
  *                          {String};
@@ -254,7 +271,7 @@ async function _store_version_metadata( config, version ) {
  */
 async function _store_version_book( config, name, book ) {
   const version     = config.version;
-  const col         = config.col;
+  const col         = config.col.version;
   const ref_filter  = config.ref_filter;
   const ABBR        = version.abbreviation;
   const bulkWrite   = [];
