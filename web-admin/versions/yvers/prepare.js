@@ -114,7 +114,7 @@ async function prepare_version( config ) {
         console.log('>>> Prepare %s: %s parsing ...', ABBR, key);
       }
 
-      const bookJson  = _parseBook( key, val );
+      const bookJson  = _parseBook( config, key, val );
 
       if (bookJson) {
         if (config.verbosity > 1) {
@@ -149,13 +149,21 @@ async function prepare_version( config ) {
  *  Parse a single book.
  *
  *  @method _parseBook
- *  @param  abbrev        The book abbreviation {String};
- *  @param  chapters      The chapter data for this book {Object};
+ *  @param  config                  Conversion configuration {Object};
+ *  @param  config.version          If provided, extracted information for the
+ *                                  target version (Yvers.extract.version()).
+ *                                  If this is provided, `config.vers` may be
+ *                                  omitted {Version};
+ *  @param  [config.force = false]  If truthy, convert even if the output
+ *                                  already exists {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
+ *  @param  abbrev                  The book abbreviation {String};
+ *  @param  chapters                The chapter data for this book {Object};
  *
  *  @return A simple object representing the given book {Object | undefined};
  *  @private
  */
-function _parseBook( abbrev, chapters ) {
+function _parseBook( config, abbrev, chapters ) {
   const book    = Books.getBook( abbrev );
   // assert( book != null );
 
@@ -176,7 +184,7 @@ function _parseBook( abbrev, chapters ) {
        */
       const usfm  = _getAttr( $intros[0], 'data-usfm' );
 
-      book_obj[ chp ] = _parseIntro( $, $intros );
+      book_obj[ chp ] = _parseIntro( config, $, $intros );
       return;
     }
 
@@ -186,7 +194,7 @@ function _parseBook( abbrev, chapters ) {
      */
     const firstUsfm = `${abbrev}.${chp}.1`;
     const $chaps    = $( '.chapter' ).children();
-    book_obj[ chp ] = _parseChapter( $, $chaps, chp, book, firstUsfm );
+    book_obj[ chp ] = _parseChapter( config, $, $chaps, chp, book, firstUsfm );
   });
 
   // Validate the chapter count from the canonical data.
@@ -262,13 +270,21 @@ function _parseBook( abbrev, chapters ) {
  *  Parse an introduction.
  *
  *  @method _parseIntro
- *  @param  $       The top-level Cheerio instance {Cheerio};
- *  @param  $intro  The intro element(s) {Cheerio};
+ *  @param  config                  Conversion configuration {Object};
+ *  @param  config.version          If provided, extracted information for the
+ *                                  target version (Yvers.extract.version()).
+ *                                  If this is provided, `config.vers` may be
+ *                                  omitted {Version};
+ *  @param  [config.force = false]  If truthy, convert even if the output
+ *                                  already exists {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
+ *  @param  $                       The top-level Cheerio instance {Cheerio};
+ *  @param  $intro                  The intro element(s) {Cheerio};
  *
  *  @return A simple object representing the intro {Object};
  *  @private
  */
-function _parseIntro( $, $intro ) {
+function _parseIntro( config, $, $intro ) {
   const introJson = {
     content : [],
   };
@@ -290,16 +306,25 @@ function _parseIntro( $, $intro ) {
  *  Parse a chapter.
  *
  *  @method _parseChapter
- *  @param  $           The top-level Cheerio instance {Cheerio};
- *  @param  $chap       The chapter element(s) {Cheerio};
- *  @param  chp         The number of the current chapter {Number};
- *  @param  book        Metadata about the target book {Book};
- *  @param  firstUsfm   The absolute reference for the first verse {String};
+ *  @param  config                  Conversion configuration {Object};
+ *  @param  config.version          If provided, extracted information for the
+ *                                  target version (Yvers.extract.version()).
+ *                                  If this is provided, `config.vers` may be
+ *                                  omitted {Version};
+ *  @param  [config.force = false]  If truthy, convert even if the output
+ *                                  already exists {Boolean};
+ *  @param  [config.verbosity = 0]  Verbosity level {Number};
+ *  @param  $                       The top-level Cheerio instance {Cheerio};
+ *  @param  $chap                   The chapter element(s) {Cheerio};
+ *  @param  chp                     The number of the current chapter {Number};
+ *  @param  book                    Metadata about the target book {Book};
+ *  @param  firstUsfm               The absolute reference for the first verse
+ *                                  {String};
  *
  *  @return A simple object representing the chapter {Object};
  *  @private
  */
-function _parseChapter( $, $chap, chp, book, firstUsfm ) {
+function _parseChapter( config, $, $chap, chp, book, firstUsfm ) {
   // The first 'label' will be used as the chapter label.
   const chJson  = {
     verse_count : 0,
@@ -314,6 +339,8 @@ function _parseChapter( $, $chap, chp, book, firstUsfm ) {
    * Any non-verse metadata will be added to the previous "verse".
    */
   const verseState  = {
+    verbosity : config.verbosity,
+
     $,
 
     firstUsfm : firstUsfm,
@@ -498,6 +525,7 @@ function _addSiblingsToCurrentVerse( state, siblings ) {
  *
  *  @method _parseVerse
  *  @param  state           Processing state {Object};
+ *  @param  state.verbosity Verbosity level {Number};
  *  @param  state.$         The top-level Cheerio instance {Cheerio};
  *  @param  state.firstUsfm The absolute reference for the first verse
  *                          {String};
@@ -555,7 +583,9 @@ function _parseVerse( state, elVerse) {
   const curText = (state.fullText.get( usfm ) || []);
 
   if (! Array.isArray(verse) && verse._ref != null) {
-    console.warn('=== Multi-verse overlap @ %s:', usfm, verse);
+    if (state.verbosity > 1) {
+      console.warn('=== Multi-verse overlap @ %s:', usfm, verse);
+    }
 
     verse = [];
   }
@@ -609,6 +639,7 @@ function _parseVerse( state, elVerse) {
  *
  *  @method _interVerseProessing
  *  @param  state           Processing state {Object};
+ *  @param  state.verbosity Verbosity level {Number};
  *  @param  state.curMulti  The set of absolute reference(s) for the current
  *                          verse {String};
  *  @parm   state.verses    The map of verses by verse reference {Map};
