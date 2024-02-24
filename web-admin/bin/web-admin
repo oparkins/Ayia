@@ -1,0 +1,63 @@
+#!/usr/bin/env node
+/**
+ *  For now, this is a simple server the JUST responds to:
+ *    /healthcheck
+ *    /config
+ */
+const Path    = require('path');
+const Yargs   = require('yargs');
+const Express = require('express');
+const Http    = require('http');
+
+const load_config     = require('../lib/load_config');
+
+const args  = Yargs
+	.usage('Start an Ayia web API server')
+  .options({
+    c: {
+      alias   : 'config',
+      describe: 'A YAML configuration file',
+      default : Path.resolve(
+                  Path.join( __dirname, '..', 'etc', 'config.yaml' )
+                ),
+      type    : 'string',
+    },
+    v: {
+      alias   : 'verbosity',
+      describe: 'Increase debug verbosity',
+      count   : true,
+    },
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help()
+  .parse();
+
+async function main() {
+  const config  = load_config( args );
+  const app     = Express();
+
+  // Routes external to Svelte {
+  app.get('/healthcheck', (req, res) => { res.end('ok') });
+  app.get('/config',      (req, res) => { res.status( 200 ).json( config ) });
+  // Routes external to Svelte }
+
+  // Create a server
+  let server = Http.createServer( app );
+
+  // Establish signal/exit handlers {
+  const onExit  = (event) => {
+    console.log(' :', event);
+    if (server) { server.close(); server = null; }
+  };
+
+  process.on('SIGINT',  onExit);
+  process.on('SIGTERM', onExit);
+  // Establish signal/exit handlers }
+
+  // Listen according to the connection settings in `config.web_api`
+  server.listen( config.web_api, () => {
+    console.log('>>> Listening:', server.address());
+  });
+}
+
+main().catch(console.dir);

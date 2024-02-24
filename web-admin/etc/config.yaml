@@ -1,7 +1,7 @@
 verbosity:  1
 
 web_api: #{
-  host: localhost #api.ayia.nibious.com
+  host: localhost #admin.ayia.nibious.com
   port: 4000
 #} web_api
 
