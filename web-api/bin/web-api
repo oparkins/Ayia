@@ -41,7 +41,13 @@ async function main() {
 
   // Routes external to Svelte {
   app.get('/healthcheck', (req, res) => { res.end('ok') });
-  app.get('/config',      (req, res) => { res.status( 200 ).json( config ) });
+  app.get('/config',      (req, res) => {
+    // Exclude the db password
+    const safeConfig  = {...config};
+    safeConfig.mongodb.password = '<redacted>';
+
+    res.status( 200 ).json( safeConfig )
+  });
   // Routes external to Svelte }
 
   // Attach additional API routes
