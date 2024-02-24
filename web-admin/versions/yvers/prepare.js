@@ -49,6 +49,14 @@ async function prepare_version( config ) {
             }, config || {});
 
   let version = config.version;
+  if (version && version.books == null) {
+    /* Missing 'books', likely due to being passed incomplete, top-level-only
+     * version data. Force a pass through Extract to fill in 'books'.
+     */
+    config.vers = version.abbreviation;
+    version = null;
+  }
+
   if (version == null) {
     if (config.vers == null) {
       throw new Error('Missing required config.vers | config.versions');
