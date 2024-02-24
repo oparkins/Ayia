@@ -159,10 +159,7 @@ function _parseBook( abbrev, chapters ) {
   const book    = Books.getBook( abbrev );
   // assert( book != null );
 
-  const bkJson  = {
-    metadata: [],
-    chapters: {},
-  };
+  const book_obj  = {};
   Object.entries( chapters ).forEach( ([chp, lines]) => {
     const $         = Cheerio.load( lines.join( '' ) );
     const $intros   = $( '.intro' );
@@ -179,7 +176,7 @@ function _parseBook( abbrev, chapters ) {
        */
       const usfm  = _getAttr( $intros[0], 'data-usfm' );
 
-      bkJson.chapters[ chp ] = _parseIntro( $, $intros );
+      book_obj[ chp ] = _parseIntro( $, $intros );
       return;
     }
 
@@ -189,12 +186,11 @@ function _parseBook( abbrev, chapters ) {
      */
     const firstUsfm = `${abbrev}.${chp}.1`;
     const $chaps    = $( '.chapter' ).children();
-    bkJson.chapters[ chp ] = _parseChapter( $, $chaps, chp, book,
-                                            firstUsfm );
+    book_obj[ chp ] = _parseChapter( $, $chaps, chp, book, firstUsfm );
   });
 
   // Validate the chapter count from the canonical data.
-  const nonIntro    = Object.keys(bkJson.chapters).filter( name => {
+  const nonIntro    = Object.keys(book_obj).filter( name => {
                         return (! name.startsWith('INTRO') );
                       });
   const chapsFound  = nonIntro.length;
@@ -202,6 +198,61 @@ function _parseBook( abbrev, chapters ) {
   if (chapsFound !== chapsExpect) {
     console.error('*** %s : %d identified chapters out of %d expected',
                   book.abbr, chapsFound, chapsExpect);
+  }
+
+  /* From the intermediate form we've just assembled in `book_obj`:
+   *    {
+   *      metadata: [],
+   *      chapters: {
+   *        ch#: {
+   *          verse_count:  {Number},
+   *          label:        {String},
+   *          verses: [
+   *            vs#: [ ... ],
+   *            ...
+   *          ],
+   *          fullText: {
+   *            vs#:        {String},
+   *            ...
+   *          },
+   *        },
+   *        ...
+   *      },
+   *    }
+   *
+   * Generate the final form suitable for import into the database:
+   *    {
+   *      'BOK.ccc.vvv': {
+   *        markup: chapters[ccc].verses[vvv],
+   *        text  : chapters[ccc].fullText[vvv],
+   *      },
+   *      ...
+   *    }
+   */
+  const bkJson  = {};
+  for (let ch in book_obj) {
+    const chp = book_obj[ ch ];
+
+    if (ch.startsWith('INTRO')) {
+      // { content: [] }
+      const ref = `${book.abbr}.${ch}`;
+
+      bkJson[ ref ] = {
+        markup: chp.content,
+      };
+      continue;
+    }
+
+    // { verse_count, label, verses: [], fullText: [] }
+    for ( let vs in chp.verses ) {
+      const vrs = chp.verses[ vs ];
+      const ref = Refs.sortable( book.abbr, ch, vs );
+
+      bkJson[ ref ] = {
+        markup: vrs,
+        text  : chp.fullText[ vs ],
+      };
+    }
   }
 
   return bkJson;
