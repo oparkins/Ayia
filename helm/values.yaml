@@ -5,9 +5,21 @@ global: #{
   pullSecret: ayia-pull-creds
 #} global
 
+web_admin: #{
+  image: #{
+    tag:  0.1.0
+  #} web_admin.image
+  persistence: #{
+    storageClass: '-'
+    accessModes:
+      - ReadWriteOnce
+    size: 8Gi
+  #} web_admin.persistence
+#} web_admin
+
 web_api: #{
   image: #{
-    tag:  0.0.4
+    tag:  0.1.0
   #} web_api.image
 #} web_api
 
