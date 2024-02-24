@@ -1,5 +1,5 @@
 containers/
-etc/mongo-pass
+etc/mongo-*
 node_modules/
 tmp/
 .git/
