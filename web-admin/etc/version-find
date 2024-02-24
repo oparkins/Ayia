@@ -29,6 +29,10 @@ async function main() {
   args.vers = vers;
 
   const version = await Versions.find( args );
+  if (version == null) {
+    console.error('*** Cannot find a version matching: %s', vers);
+    return;
+  }
 
   // Remove any "private" fields, those that begin with '_'
   Object.keys( version ).forEach( key => {
