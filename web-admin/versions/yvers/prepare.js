@@ -405,8 +405,8 @@ function _parseChapter( $, $chap, chp, book, firstUsfm ) {
     const [ bk, ch, vs ]  = id.split('.');
     let   text;
 
-    if (verse.$ref == null) {
-      // This is NOT a $ref verse so flatten the fullText for this verse
+    if (verse._ref == null) {
+      // This is NOT a _ref verse so flatten the fullText for this verse
       let texts = verseState.fullText.get( id );
 
       if (! Array.isArray(texts)) {
@@ -554,7 +554,7 @@ function _parseVerse( state, elVerse) {
   let   verse   = (state.verses.get(   usfm ) || []);
   const curText = (state.fullText.get( usfm ) || []);
 
-  if (! Array.isArray(verse) && verse.$ref != null) {
+  if (! Array.isArray(verse) && verse._ref != null) {
     console.warn('=== Multi-verse overlap @ %s:', usfm, verse);
 
     verse = [];
@@ -630,7 +630,7 @@ function _interVerseProcessing( state ) {
     for (let idex = 1; idex < state.curMulti.length; idex++) {
       const usfm  = state.curMulti[ idex ];
 
-      state.verses.set( usfm, { $ref: ref } );
+      state.verses.set( usfm, { _ref: ref } );
     }
   }
 
