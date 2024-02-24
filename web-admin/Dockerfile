@@ -3,10 +3,11 @@
 FROM node:21.6.1-alpine3.19 AS builder
 
 ADD --chown=node:node \
-      package.json            /app/
+      package.json Makefile     /app/
 
-ADD --chown=node:node etc/    /app/etc/
-ADD --chown=node:node lib/    /app/lib/
+ADD --chown=node:node etc/      /app/etc/
+ADD --chown=node:node lib/      /app/lib/
+ADD --chown=node:node versions/ /app/versions/
 
 WORKDIR /app
 
@@ -17,12 +18,16 @@ RUN npm install && \
 FROM node:21.6.1-alpine3.19
 MAINTAINER D. Elmo Peele
 
+RUN apk add --no-cache bash make vim
+
 USER node
 WORKDIR /app
 
 COPY --from=builder /app /app
 
-# Expose the configuration volume (etc/config.yaml)
-VOLUME [ "/app/etc" ]
+# Expose:
+#   - the configuration volume (etc/config.yaml)
+#   - the cache volume
+VOLUME [ "/app/etc", "/app/cache" ]
 
 CMD [ "npx", "nodemon", "--", "./bin/web-admin", "-c", "./etc/config.yaml" ]
