@@ -2,9 +2,11 @@
 #FROM node:21.6.1-bookworm-slim
 FROM node:21.6.1-alpine3.19 AS builder
 
+# Explicitly specify files/directories for better control over what we include
 ADD --chown=node:node \
       package.json Makefile     /app/
 
+ADD --chown=node:node bin/      /app/bin/
 ADD --chown=node:node etc/      /app/etc/
 ADD --chown=node:node lib/      /app/lib/
 ADD --chown=node:node tests/    /app/tests/
