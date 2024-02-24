@@ -7,6 +7,7 @@ ADD --chown=node:node \
 
 ADD --chown=node:node etc/      /app/etc/
 ADD --chown=node:node lib/      /app/lib/
+ADD --chown=node:node tests/    /app/tests/
 ADD --chown=node:node versions/ /app/versions/
 
 WORKDIR /app
@@ -19,11 +20,13 @@ FROM node:21.6.1-alpine3.19
 MAINTAINER D. Elmo Peele
 
 RUN apk add --no-cache bash make vim
+ADD sys/user.sh   /etc/bash/
 
 USER node
 WORKDIR /app
 
 COPY --from=builder /app /app
+ADD sys/.bashrc     /home/node/
 
 # Expose:
 #   - the configuration volume (etc/config.yaml)

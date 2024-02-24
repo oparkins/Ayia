@@ -63,7 +63,7 @@ container: package.json
 container-run:
 	podman run --rm -it \
 	    --privileged \
-	    $(CONTAINER_NAME):$(CONTAINER_TAG) sh
+	    $(CONTAINER_NAME):$(CONTAINER_TAG) bash -l
 
 #? Save the image to a tarball
 container-save: containers

@@ -3,3 +3,4 @@ etc/mongo-pass
 node_modules/
 tmp/
 .git/
+etc/mongo*
