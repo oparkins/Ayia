@@ -20,7 +20,7 @@ web_admin: #{
 
 web_api: #{
   image: #{
-    tag:  0.1.2
+    tag:  0.1.3
     #pullPolicy: IfNotPresent
   #} web_api.image
 #} web_api
