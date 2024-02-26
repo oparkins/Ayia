@@ -2,6 +2,7 @@
 const Path    = require('path');
 const Yargs   = require('yargs');
 const Express = require('express');
+const Cors    = require('cors');
 const Http    = require('http');
 
 const load_config     = require('../lib/load_config');
@@ -39,7 +40,10 @@ async function main() {
    */
   Object.assign( config.mongodb, mongo );
 
-  // Routes external to Svelte {
+  // Enable all CORS requests
+  app.use( Cors() );
+
+  // Static routes {
   app.get('/healthcheck', (req, res) => { res.end('ok') });
   app.get('/config',      (req, res) => {
     // Exclude the db password
@@ -48,9 +52,9 @@ async function main() {
 
     res.status( 200 ).json( safeConfig )
   });
-  // Routes external to Svelte }
+  // Static routes }
 
-  // Attach additional API routes
+  // Additional API routes
   add_api_routes( app, config );
 
   // Create a server

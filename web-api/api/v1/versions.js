@@ -98,6 +98,7 @@ async function _versions_get( config, req, res ) {
     const fields  = {
       _id               : 0,
       id                : 1,
+      type              : 1,
       abbreviation      : 1,
       language          : 1,
       local_abbreviation: 1,
