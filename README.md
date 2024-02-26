@@ -37,6 +37,8 @@ load a pull secret within the k8s cluster:
 ```
 cd helm
 ./etc/make-pull-creds.sh
+# Creates a k8s secret populated with the credentials file generated via
+# `podman login`
 ```
 
 With this secret in place, you will be able to create k8s pods that pull their
@@ -44,17 +46,25 @@ image from the `harbor.nibious.com` repository.
 
 
 Before installing the helm chart, you may need to create/update the web-api
-container image.
+and web-admin container images.
 ```
+# web-api
 cd ../web-api
+
+make image
+
+make image-push
+
+# web-admin
+cd ../web-admin
 
 make image
 
 make image-push
 ```
 
-With a container image in place, you can now perform a helm install to create
-mongodb and web-api resources:
+With the container images in place, you can now perform a helm install to
+create mongodb, web-admin, and web-api resources:
 ```
 cd ../helm
 
