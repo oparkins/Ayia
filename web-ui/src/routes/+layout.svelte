@@ -85,7 +85,7 @@
         <NavLi href='/settings'>Settings</NavLi>
       </NavUl>
   </Navbar>
-  <div class='flex flex-row w-screen h-full'>
+  <div class='flex flex-row w-screen h-full overflow-hidden'>
     <main class='grow basis-full flex flex-row h-full px-4'>
       <slot />
     </main>
