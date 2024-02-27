@@ -91,17 +91,42 @@
 
   let version         = null;
   let vers_abbr       = null;
+  let verse_ref       = '';
   let dropdown_open   = false;
   let content         = null;
   let content_loading = false;
 
-  // Initialize version and vers_abbr whenever $versions changes
-  $: version   = ($versions && $versions.versions[0]);
-  $: vers_abbr = ($versions && $versions.versions[0].abbreviation);
+  /* Initialize/Update 'version', 'vers_abbr', 'verse_ref' whenever '$versions'
+   * or '$verse' change.
+   */
+  $: update_state( $versions, $verse )
 
   // When either `version` or `verse` change, update content
   $: fetch_content( version, $verse );
 
+  /**
+   *  Update our local state whenever the store 'versions' or 'verse' changes.
+   *
+   *  @method update_state
+   *  @param  versions  The versions store {Object};
+   *                      { total, versions, books }
+   *  @param  verse     The verse reference store {Objecct};
+   *                      { book, chapter, verse, ui_ref, api_ref }
+   *
+   *  This updates `version`, `vers_abbr`, and `verse_ref`.
+   *
+   *  @return void;
+   */
+  function update_state( versions, verse ) {
+    if (versions) {
+      version   = versions.versions[0];
+      vers_abbr = version.abbreviation;
+    }
+
+    if (verse) {
+      verse_ref = verse.ui_ref;
+    }
+  }
 
   /**
    *  Fetch content based upon the current `vers_abbr` and parsed `verse`.
@@ -282,6 +307,7 @@
         type='text'
         placeholder='Verse'
         class='{ CssClass.input.join(' ') }'
+        bind:value={ verse_ref }
         on:change={  verse_change }
         required
       />

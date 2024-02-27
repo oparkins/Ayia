@@ -32,7 +32,7 @@ export const  drawer_open = _writable_ls( 'drawer_open', false,
 
 Agent.get('versions')
   .then( res => {
-    console.log('%s versionss:', res.total);
+    console.log('%s versions:', res.total);
     versions.set( res );
   })
   .catch( err => {
