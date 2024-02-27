@@ -12,6 +12,7 @@
 
   import { versions, verse }  from '$lib/stores';
   import { set_verse }        from '$lib/verse_ref';
+  import Agent                from '$lib/agent';
 
   // Is this the primary verse which all others follow?
   export let primary  = true;
@@ -88,18 +89,80 @@
 
   };
 
-  let version       = null;
-  let vers_abbr     = null;
-  let dropdown_open = false;
+  let version         = null;
+  let vers_abbr       = null;
+  let dropdown_open   = false;
+  let content         = null;
+  let content_loading = false;
 
   // Initialize version and vers_abbr whenever $versions changes
   $: version   = ($versions && $versions.versions[0]);
   $: vers_abbr = ($versions && $versions.versions[0].abbreviation);
 
+  // When either `version` or `verse` change, update content
+  $: fetch_content( version, $verse );
+
+
+  /**
+   *  Fetch content based upon the current `vers_abbr` and parsed `verse`.
+   *
+   *  @method fetch_content
+   *  @param  version   The selected version {Object};
+   *                      { abbreviation, ... }
+   *  @param  verse     The verse reference {Objecct};
+   *                      { book, chapter, verse, ui_ref, api_ref }
+   *
+   *  This sets the `contoent_loading` flag and, upon completion, the `content`
+   *  value.
+   *
+   *  @return void;
+   */
+  function fetch_content( version, verse ) {
+    if (version == null || verse == null) { return }
+
+    const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
+
+    content_loading = true;
+    Agent.get( path )
+      .then( res => {
+        console.log('fetch_content():', res);
+
+        content = res;
+      })
+      .catch( err => {
+        console.error('fetch_content():', err);
+      })
+      .finally( () => {
+        content_loading = false;
+      });
+  }
+
+  /**
+   *  Toggle the drop-down open value.
+   *
+   *  @method dropdown_toggle
+   *
+   *  Toggles the `dropdown_open` state.
+   *
+   *  @return void
+   */
   function dropdown_toggle() {
     dropdown_open = !dropdown_open;
   }
 
+  /**
+   *  Handle a select event within the drop-down.
+   *
+   *  @method dropdown_select
+   *  @param  event   The triggering event {PointerEvent};
+   *
+   *  Updates:
+   *    - vers_abbr
+   *    - version
+   *    - dropdown_open = false
+   *
+   *  @return void
+   */
   function dropdown_select( event ) {
     const versions_ro = get( versions );
     const target      = event.target;
@@ -117,6 +180,16 @@
     dropdown_open = false;
   }
 
+  /**
+   *  Return the CSS classes for a drop-down item based upon whether the item
+   *  value is the currently selected value.
+   *
+   *  @method item_classes
+   *  @param  item      The current item {Object};
+   *  @param  selected  The currently selected item {String};
+   *
+   *  @return The set of CSS classes {String};
+   */
   function item_classes( item, selected ) {
     const classes = CssClass.item.slice();
 
@@ -132,6 +205,16 @@
     return classes.join(' ');
   }
 
+  /**
+   *  Handle a change to the verse input.
+   *
+   *  @method verse_change
+   *  @param  event   The triggering event {Event};
+   *
+   *  Invokes `verse_ref:set_verse()` with the new input value.
+   *
+   *  @return void
+   */
   function verse_change( event ) {
     const target    = event.target;
     const new_verse = target.value;
@@ -160,7 +243,7 @@
   }
 </script>
 
-<div class='flex flex-col w-full h-full py-4'>
+<div class='flex flex-col w-full h-full py-4 overflow-hidden'>
   <Card size='md' class='bg-gray-100 dark:bg-gray-900 mx-auto h-full'>
     <div class='flex flex-row w-full mb-4'>
       <button
@@ -205,9 +288,20 @@
      {/if}
     </div>
 
-    <div class='flex flex-col w-full h-full'>
-      { $verse ? `${$verse.ui_ref} [ ${$verse.api_ref} ]`
-               : 'Select the desired verse above' }
+    <div class='flex flex-col w-full h-full overflow-y-auto'>
+      {#if content_loading}
+        Loading { $verse.ui_ref } ...
+      {:else if content}
+        {#each Object.entries(content.verses) as [label,verse]}
+          <div>
+            {label}: {verse.text}
+          </div>
+        {/each}
+      {:else if $verse}
+        { $verse.ui_ref } [ { $verse.api_ref } ]
+      {:else}
+        Select the desired verse above
+      {/if}
     </div>
   </Card>
 </div>
