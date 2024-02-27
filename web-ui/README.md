@@ -1,6 +1,11 @@
 # Ayia web-ui
 
-A web-based Bible study application.
+A web-based Bible study application using:
+- [Svelte](https://svelte.dev/docs/introduction);
+- [Flowbite-svelte](https://flowbite-svelte.com/docs/pages/introduction),
+  built on [Flowbite](https://flowbite.com/docs/getting-started/introduction/)
+  (a [Tailwind](https://tailwindcss.com/docs/installation) component library).
+  The use of Tailwind means we don't need any direct CSS styling within Svelte;
 
 ## Developing
 

@@ -31,43 +31,39 @@ help:
 	@echo
 
 #? Build the svelte application
-build: static/css/smui.css
+build:
 	@npm run build
 
 #? Build the svelte application, rebuilding on any change
 #?
-build-watch: static/css/smui.css
+build-watch:
 	@npm run build -- --watch
 
 #? Build the dev svelte application (with source maps)
-build-dev: static/css/smui.css
+build-dev:
 	@npm run build -- --mode=development
 
 #? Build the dev svelte application, rebuilding on any change
-build-dev-watch: static/css/smui.css
+build-dev-watch:
 	@npm run build -- --mode=development --watch
 
-#? Build the smui theme
-#?
-build-theme: static/css/smui.css
-
 #? Run a vite dev server
-dev: static/css/smui.css
+dev:
 	@npm run dev
 
 #? Run the svelte application in preview mode
 #?
-preview: static/css/smui.css
+preview:
 	@npm run preview
 
 #? Run the svelte application using our custom server
-server-run: static/css/smui.css
+server-run:
 	@./web-ui
 
 #? Run the svelte application using our custom server
 #? restarting on any changes.
 #?
-server-run-watch: static/css/smui.css
+server-run-watch:
 	@npm run server-watch
 
 #? Build containers
@@ -118,10 +114,3 @@ container-clean:
 #############################################################################
 # Private (no help)
 #
-src/theme:
-	npx smui-theme template $@
-
-static/css/smui.css: src/theme \
-	             src/theme/_smui-theme.scss \
-	             src/theme/dark/_smui-theme.scss
-	npm run build-theme

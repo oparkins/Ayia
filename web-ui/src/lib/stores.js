@@ -1,9 +1,10 @@
 /**
  *  Available stores:
  *    theme         {String};
- *    drawer_closed {Boolean};
  *    user          {Object};
  *    errors        {Object}  -- arrays keyed by type (e.g. auth_password);
+ *
+ *    drawer_open   {Boolean};
  */
 
 // Only include on the client side {
@@ -11,91 +12,103 @@ export const csr = true;
 export const ssr = false;
 // Only include on the client side }
 
-import { writable } from "svelte/store";
+import { writable } from 'svelte/store';
+import Agent        from '$lib/agent';
 
-// Browser-side LocalStorage access
-const localStorage  = (typeof(window) !== 'undefined'
-                          ? window.localStorage
-                          : null);
+// Create shared stores
+export const  theme       = _writable_ls( 'color-theme', 'dark' );
+export const  user        = _writable_ls( 'user', null,
+                                          (val) => JSON.stringify(val),
+                                          (str) => JSON.parse(str) );
+export const  errors      = writable( [] );
+export const  versions    = writable( null );
+export const  verse       = writable( null );
+
+/*
+export const  drawer_open = _writable_ls( 'drawer_open', false,
+                                          (val) => (val ? 'true' : 'false'),
+                                          (str) => (str === 'true') );
+// */
+
+Agent.get('versions')
+  .then( res => {
+    console.log('%s versionss:', res.total);
+    versions.set( res );
+  })
+  .catch( err => {
+    console.error('Cannot get versions:', err);
+  });
 
 /****************************************************************************
- * theme {
+ * Private methods {
  *
  */
-export const  theme = writable( 'dark' );
 
-if (localStorage) {
-  const storedVal = localStorage.getItem("theme");
+/**
+ *  Create a new writable store that, if localStorage is available, is linked
+ *  to localStorage.
+ *
+ *  @method _writable_ls
+ *  @param  key                 The store key {String};
+ *  @param  def_val             The default value {Mixed};
+ *  @param  [serialize=null]    A serialize method {Function};
+ *                                  serialize( storeValue ) => String;
+ *  @param  [deserialize=null]  A deserialize method {Function};
+ *                                  deserialize( String ) => storeValue;
+ *
+ *  @return A new writable store {Writable};
+ *  @private
+ */
+function _writable_ls( key, def_val, serialize=null, deserialize=null ) {
+  // Default serialize/deserialize to no-ops
+  if (serialize   == null) { serialize   = (val) => val }
+  if (deserialize == null) { deserialize = (val) => val }
 
-  if (storedVal) {
-    theme.set( storedVal );
+  // Browser-side LocalStorage access
+  const localStorage  = (typeof(window) !== 'undefined'
+                            ? window.localStorage
+                            : null);
+  const get_ls        = (localStorage
+                          ? () => deserialize( localStorage.getItem( key ) )
+                          : () => def_val);
+
+  const  key_init  = get_ls();
+  const  key_store = writable( key_init );
+
+  if (localStorage) {
+    const put_ls  = (val) => localStorage.setItem( key, serialize( val ) );
+
+    // Keep localStorage in-sync
+    key_store.subscribe(value => {
+      /*
+      console.log('>>> store.%s: changed:', key, value);
+      // */
+
+      put_ls( value );
+    });
+
+    // Keep store in-sync with external localStorage changes
+    window.addEventListener('storage', (event) => {
+      /*
+      console.log('>>> localStorage.%s: %s changed:',
+                  key, event.key, event.newValue);
+      // */
+
+      if (event.key == null) {
+        // The ensure store is being cleared
+        put_ls( def_val );
+        return;
+      }
+
+      if (event.key === key) {
+        //key_store.set( get_ls() );
+        key_store.set( deserialize( event.newValue ) );
+      }
+    });
   }
 
-  // Keep localStorage in-sync
-  theme.subscribe(value => {
-    /*
-    console.log('store.theme.updated:', value);
-    // */
-
-    localStorage.setItem("theme", value === 'dark' ? 'dark' : 'light');
-  });
+  return key_store;
 }
 
-/* theme }
-/****************************************************************************
- * drawer_closed {
- *
- */
-export const  drawer_closed = writable( false );
-
-if (localStorage) {
-  const storedVal = ( localStorage.getItem("drawer_closed") === 'true' );
-
-  if ( storedVal === true ) {
-    drawer_closed.set( storedVal );
-  }
-
-  // Keep localStorage in-sync
-  drawer_closed.subscribe(value => {
-    /*
-    console.log('store.drawer_closed.updated:', value);
-    // */
-
-    localStorage.setItem("drawer_closed", (value ? 'true' : 'false'));
-  });
-
-}
-
-/* drawer_closed }
- ****************************************************************************
- * user {
- *
- */
-export const  user  = writable( null );
-
-if (localStorage) {
-  const storedVal  = (localStorage.user
-                        ? JSON.parse(localStorage.getItem("user"))
-                        : null);
-
-  user.set( storedVal );
-
-  // Keep localStorage in-sync
-  user.subscribe(value => {
-    /*
-    console.log('store.user.updated:', value);
-    // */
-
-    localStorage.setItem("user", (value ? JSON.stringify(value) : null));
-  });
-}
-
-/* user }
- ****************************************************************************
- * errors {
- *
- */
-export const  errors  = writable( [] );
-
-/* errors }
+/* Private methods }
  ****************************************************************************/

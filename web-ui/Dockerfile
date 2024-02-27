@@ -7,6 +7,7 @@ ADD --chown=node:node ./  /app
 WORKDIR /app
 
 RUN npm install && \
+    npm run build \
     chown -R node:node .
 
 ###

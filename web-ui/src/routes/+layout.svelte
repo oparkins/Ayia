@@ -1,69 +1,92 @@
 <script>
-  import { onMount } from 'svelte';
+  import '../app.pcss';
 
-  import TopAppBar, { Row, Section, Title } from '@smui/top-app-bar';
-  import List,      { Item,
-                      Separator,
-                      Graphic,
-                      Text,
-                      PrimaryText,
-                      SecondaryText }       from '@smui/list';
-  import IconButton                         from '@smui/icon-button'
+  import { get }  from 'svelte/store';
 
-  import { icons }          from '$lib/icons';
-  import ToggleTheme        from '$lib/ToggleTheme.svelte';
-  import UserButton         from '$lib/UserButton.svelte';
-  import Drawer             from '$lib/Drawer.svelte';
-  import { theme,
-           drawer_closed }  from "$lib/stores.js";
+  import {
+    Navbar, NavBrand, NavLi, NavUl, NavHamburger,
+    DarkMode, Button, Input,
+  } from 'flowbite-svelte';
 
-  const toggle_drawer = () => {
-    /*
-    console.log('toggle_drawer()');
+  import { SearchOutline } from 'flowbite-svelte-icons';
+
+  import { theme } from '$lib/stores';
+
+  /**
+   *  Mirror flow-bite DarkTheme changes to our store.
+   *  
+   *  @method themeChanged
+   *  @param  ev      The triggering event {PointerEvent};
+   *
+   *  flow-bite/DarkTheme changes are applied directly to localStorage and,
+   *  since we are on the same page, are not reflected in a 'storage' event
+   *  to enable synchronizing localStorage with our store.
+   */
+  const themeChanged = (ev) => {
+    const curTheme  = get( theme );
+    const newTheme  = localStorage.getItem('color-theme');
+
+    if (curTheme !== newTheme) {
+      /*
+      console.log('>>> themeChanged:', ev);
+      console.log('>>>   %s => %s', curTheme, newTheme);
+      // */
+
+      theme.set( newTheme );
+    }
+
+    /* flow-bite/DarkTheme toggleTheme()
+    const target = ev.target as HTMLElement;
+    const isDark = target.ownerDocument.documentElement.classList.toggle('dark');
+    if (target.ownerDocument === document)
+      // we are NOT in the iFrame
+      localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
     // */
-
-    drawer_closed.set( !$drawer_closed );
-
   };
-
-  /*
-  console.log('layout.drawer_closed[ %s ]', String($drawer_closed));
-  // */
 </script>
 
 <svelte:head>
   <!-- fonts -->
-  <link rel="stylesheet" href="/css/fonts.css" />
-
-  <!-- theme -->
-  {#if $theme == 'dark'}
-    <link rel="stylesheet" href="/css/smui-dark.css" />
-  {:else}
-    <link rel="stylesheet" href="/css/smui.css" />
-  {/if}
+  <link rel='stylesheet' href='/css/fonts.css'>
 </svelte:head>
 
-<div class="app">
-  <TopAppBar variant='static' dense>
-    <Row>
-      <Section>
-        <IconButton
-            class="material-icons"
-            on:click={ toggle_drawer } >
-          { $drawer_closed ? icons.drawer_open : icons.drawer_close }
-        </IconButton>
-        <Title>CMDAA</Title>
-        <ToggleTheme />
-      </Section>
-      <Section align="end" toolbar>
-        <UserButton />
-      </Section>
-    </Row>
-  </TopAppBar>
-  <div class="app-body">
-    <Drawer />
+<div class='flex flex-col h-screen w-screen'>
+  <Navbar fluid>
+      <NavBrand href='/'>
+        <span class='self-start whitespace-nowrap text-xl font-semibold dark:text-white'>
+          Ayia
+        </span>
+      </NavBrand>
+      <div class='flex md:order-2'>
+        <div class='p-0 m-0' aria-hidden='true' on:click={ themeChanged }>
+          <DarkMode class='mx-4' />
+        </div>
 
-    <main class="main-content">
+        <Button
+            color='none'
+            data-collapse-toggle='mobile-menu-3'
+            aria-controls='mobile-menu-3'
+            aria-expanded='false'
+            class='md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 me-1'
+        >
+          <SearchOutline class='w-5 h-5' />
+        </Button>
+        <div class='hidden relative md:block'>
+          <div class='flex absolute inset-y-0 start-0 items-center ps-3 pointer-events-none'>
+            <SearchOutline class='w-4 h-4' />
+          </div>
+          <Input id='search-navbar' class='ps-10' placeholder='Search...' />
+        </div>
+        <NavHamburger />
+      </div>
+      <NavUl>
+        <NavLi href='/' active={true}>Home</NavLi>
+        <NavLi href='/about'>About</NavLi>
+        <NavLi href='/settings'>Settings</NavLi>
+      </NavUl>
+  </Navbar>
+  <div class='flex flex-row w-screen h-full'>
+    <main class='grow basis-full flex flex-row h-full px-4'>
       <slot />
     </main>
   </div>
@@ -82,37 +105,5 @@
     -webkit-font-smoothing:   antialiased;
     -moz-osx-font-smoothing:  grayscale;
     -webkit-text-size-adjust: 100%;
-  }
-
-  .app {
-    display:        flex;
-    flex-direction: column;
-    height:         100vh;
-    width:          100vw;
-  }
-  .app-body {
-    display:        flex;
-    flex-direction: row;
-    width:          100vw;
-    height:         100%;
-    min-height:     600px;
-
-    box-sizing:     border-box;
-  }
-
-  main.main-content {
-    flex-basis:     100%;
-    flex-grow:      1;
-
-    display:        flex;
-    flex-direction: row;
-
-    height:         100%;
-
-    /*overflow:       auto;*/
-
-    padding:        0 1em;
-
-    box-sizing:     border-box;
   }
 </style>
