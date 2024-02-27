@@ -1,0 +1,138 @@
+# ConfigMap {
+apiVersion: v1
+kind: ConfigMap
+metadata: # {
+  name:   ayia-ui  #&service_cm_name ayia-ui
+  labels:
+    app:      ayia-ui
+    release:  ayia
+# } ConfigMap.metadata
+data: # {
+  config.yaml: |
+    verbosity:  0
+
+    web_ui: # {
+      port: 5173
+    # } web_ui
+
+    web_services: # {
+      host: api.ayia.nibious.com
+      port: 443
+    #} web_services
+# } ConfigMap.data
+# } ConfigMap
+---
+# Service {
+apiVersion: v1
+kind: Service
+metadata: # {
+  name: ayia-ui  #&service_name ayia-ui
+  labels:
+    app:      ayia-ui
+    release:  ayia
+# } Service.metadata
+spec: # {
+  selector: # {
+    app:      ayia-ui
+    release:  ayia
+  # } Service.spec.selector
+  ports: # {
+    - protocol:   TCP
+      port:       80    #&service_public_port 80
+      targetPort: 5173  #*service_private_port
+  # } Service.spec.ports
+# } Service.spec
+# } Service
+---
+# Deployment {
+apiVersion: apps/v1
+kind: Deployment
+metadata: # {
+  name: ayia-ui
+  labels:
+    app:      ayia-ui
+    release:  ayia
+# } Deployment.metadata
+spec: # {
+  selector:
+    matchLabels:
+      app:      ayia-ui
+      release:  ayia
+  strategy:
+    type: Recreate
+  template: # {
+    metadata: # {
+      labels: # {
+        app:      ayia-ui
+        release:  ayia
+      # } Deployment.spec.template.metadata.labels
+    # } Deployment.spec.template.metadata
+    spec: # {
+      imagePullSecrets:
+        - name: {{ .Values.global.pullSecret }}
+
+      containers: # {
+        - name: server # {
+          image:  harbor.nibious.com/ayia/web-ui:{{ .Values.web_ui.image.tag }}
+          imagePullPolicy: {{ .Values.web_ui.image.pullPolicy |
+                                default "IfNotPresent" }}
+
+          volumeMounts: # {
+            - name:       config
+              mountPath:  /app/etc/config.yaml
+              subPath:    config.yaml
+              readOnly:   true
+          # } Deployment.spec.template.spec.containers[server].volumeMounts
+
+        # } Deployment.spec.template.spec.containers[server]
+      # } Deployment.spec.template.spec.containers
+
+      volumes: # {
+        - name: config
+          configMap:
+            name:   ayia-ui  #*service_cm_name
+      # } Deployment.spec.template.spec.volumes
+    # } Deployment.spec.template.spec
+  # } Deployment.spec.template
+# } Deployment.spec
+# } Deployment
+---
+# Ingress {
+apiVersion: networking.k8s.io/v1
+kind:       Ingress
+metadata: # {
+  name: ayia-ui
+
+  labels: # {
+    app:      ayia-ui
+    release:  ayia
+  # } Ingress.metadata.labels
+
+  annotations: # {
+    cert-manager.io/cluster-issuer: "nibious-letsencrypt"
+    kubernetes.io.ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-body-size: "512m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+  # } Ingress.metadata.annotations
+
+# } Ingress.metadata
+spec: # {
+  rules:
+    - host: ui.ayia.nibious.com
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: ayia-ui  #*service_name
+              port:
+                number: 80  #*service_public_port
+  tls:
+    - secretName: ui-ayia-nibious-com-tls
+      hosts:
+        - ui.ayia.nibious.com
+# } Ingress.spec
+# } Ingress
+---

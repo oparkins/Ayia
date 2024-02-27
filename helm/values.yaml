@@ -25,6 +25,13 @@ web_api: #{
   #} web_api.image
 #} web_api
 
+web_ui: #{
+  image: #{
+    tag:  0.0.1
+    #pullPolicy: IfNotPresent
+  #} web_ui.image
+#} web_ui
+
 mongodb: #{
   image: #{
     # :XXX: Use the latest v4 which does NOT require the CPU to support AVX
