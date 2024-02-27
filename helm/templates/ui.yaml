@@ -16,7 +16,7 @@ data: # {
     # } web_ui
 
     web_services: # {
-      host: api.ayia.nibious.com
+      host: {{ .Values.web_api.ingress.host }}
       port: 443
     #} web_services
 # } ConfigMap.data
@@ -119,7 +119,7 @@ metadata: # {
 # } Ingress.metadata
 spec: # {
   rules:
-    - host: ui.ayia.nibious.com
+    - host: {{ .Values.web_ui.ingress.host }}
       http:
         paths:
         - path: /
@@ -130,9 +130,9 @@ spec: # {
               port:
                 number: 80  #*service_public_port
   tls:
-    - secretName: ui-ayia-nibious-com-tls
+    - secretName: ui-ayia-tls
       hosts:
-        - ui.ayia.nibious.com
+        - {{ .Values.web_ui.ingress.host }}
 # } Ingress.spec
 # } Ingress
 ---

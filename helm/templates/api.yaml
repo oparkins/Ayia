@@ -157,7 +157,7 @@ metadata: # {
 # } Ingress.metadata
 spec: # {
   rules:
-    - host: api.ayia.nibious.com
+    - host: {{ .Values.web_api.ingress.host }}
       http:
         paths:
         - path: /
@@ -168,9 +168,9 @@ spec: # {
               port:
                 number: 80  #*service_public_port
   tls:
-    - secretName: api-ayia-nibious-com-tls
+    - secretName: api-ayia-tls
       hosts:
-        - api.ayia.nibious.com
+        - {{ .Values.web_api.ingress.host }}
 # } Ingress.spec
 # } Ingress
 ---
