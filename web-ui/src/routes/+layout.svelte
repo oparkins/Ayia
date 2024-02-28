@@ -45,11 +45,6 @@
   };
 </script>
 
-<svelte:head>
-  <!-- fonts -->
-  <link rel='stylesheet' href='/css/fonts.css'>
-</svelte:head>
-
 <div class='flex flex-col h-screen w-screen'>
   <Navbar fluid>
       <NavBrand href='/'>
