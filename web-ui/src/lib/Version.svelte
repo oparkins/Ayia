@@ -12,6 +12,7 @@
 
   import SelectVersion  from '$lib/SelectVersion.svelte';
   import SelectVerse    from '$lib/SelectVerse.svelte';
+  import Render         from '$lib/render';
 
   import {
     version   as version_store,
@@ -42,6 +43,15 @@
 
   let content         = null;
   let content_loading = false;
+  let default_render  = ( key, verse ) => {
+    return `
+      <div class='verse'>
+        <span class='ref'>${key}</span>
+        <span class='text'>${verse.text}</span>
+      </div>
+    `
+  };
+  let render          = default_render;
 
   // When either `version` or `verse_store` change, update content
   $: fetch_content( $version, $verse_store );
@@ -65,6 +75,20 @@
 
     const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
 
+    switch( version.type ) {
+      case 'yvers':
+        render = Render.yvers;
+        break;
+
+      case 'interlinear':
+        render = Render.interlinear;
+        break;
+
+      default:
+        render = default_render;
+        break;
+    }
+
     content_loading = true;
     Agent.get( path )
       .then( res => {
@@ -79,11 +103,46 @@
         content_loading = false;
       });
   }
+
+  const CssClass  = {
+    container: [
+      'flex',
+      'flex-col',
+      'w-full',
+      'h-full',
+      'py-4',
+      'overflow-hidden',
+    ],
+
+    card: [
+      'bg-gray-100',
+      'dark:bg-gray-900',
+      'mx-auto',
+      'h-full',
+    ],
+
+    controls: [
+      'flex',
+      'flex-row',
+      'w-full',
+      'mb-4',
+    ],
+
+    body: [
+      'flex',
+      'flex-col',
+      'w-full',
+      'h-full',
+      'overflow-y-auto',
+      'text-gray-800',
+      'dark:text-gray-200',
+    ],
+  };
 </script>
 
-<div class='flex flex-col w-full h-full py-4 overflow-hidden'>
-  <Card size='md' class='bg-gray-100 dark:bg-gray-900 mx-auto h-full'>
-    <div class='flex flex-row w-full mb-4'>
+<div class={ CssClass.container.join(' ') }>
+  <Card size='md' class={ CssClass.card.join(' ') }>
+    <div class={ CssClass.controls.join(' ') }>
       <SelectVersion column={ column } />
 
      {#if column === 'primary'}
@@ -91,14 +150,12 @@
      {/if}
     </div>
 
-    <div class='flex flex-col w-full h-full overflow-y-auto'>
+    <div class={ CssClass.body.join(' ') }>
       {#if content_loading}
         Loading { $verse_store.ui_ref } ...
       {:else if content}
         {#each Object.entries(content.verses) as [label,verse]}
-          <div>
-            {label}: {verse.text}
-          </div>
+          {@html render( label, verse )}
         {/each}
       {:else if $verse_store}
         { $verse_store.ui_ref } [ { $verse_store.api_ref } ]
