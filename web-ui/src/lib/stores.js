@@ -16,13 +16,14 @@ import { writable } from 'svelte/store';
 import Agent        from '$lib/agent';
 
 // Create shared stores
-export const  theme       = _writable_ls( 'color-theme', 'dark' );
-export const  user        = _writable_ls( 'user', null,
-                                          (val) => JSON.stringify(val),
-                                          (str) => JSON.parse(str) );
-export const  errors      = writable( [] );
-export const  versions    = writable( null );
-export const  verse       = writable( null );
+export const  theme           = _writable_ls( 'color-theme', 'dark' );
+export const  user            = _writable_ls( 'user', null,
+                                              (val) => JSON.stringify(val),
+                                              (str) => JSON.parse(str) );
+export const  errors          = writable( [] );
+export const  versions        = writable( null );
+export const  verse           = writable( null );
+export const  primary_version = writable( null );
 
 /*
 export const  drawer_open = _writable_ls( 'drawer_open', false,
@@ -34,6 +35,11 @@ Agent.get('versions')
   .then( res => {
     console.log('%s versions:', res.total);
     versions.set( res );
+
+    if (Array.isArray( res.versions )) {
+      // Initialize 'primary_version' to the first
+      primary_version.set( res.versions[0] );
+    }
   })
   .catch( err => {
     console.error('Cannot get versions:', err);
