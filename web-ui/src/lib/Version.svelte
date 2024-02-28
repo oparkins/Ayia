@@ -1,5 +1,5 @@
 <script>
-  import { get } from 'svelte/store';
+  import { get, writable, derived } from 'svelte/store';
 
   import {
     Card,
@@ -10,9 +10,10 @@
   } from 'flowbite-svelte';
   import { ChevronDownSolid } from 'flowbite-svelte-icons';
 
-  import { versions, verse }  from '$lib/stores';
-  import { set_verse }        from '$lib/verse_ref';
-  import Agent                from '$lib/agent';
+  import { versions, primary_version, verse }  from '$lib/stores';
+
+  import { set_verse }  from '$lib/verse_ref';
+  import Agent          from '$lib/agent';
 
   // Is this the primary verse which all others follow?
   export let primary  = true;
@@ -89,51 +90,35 @@
 
   };
 
-  let version         = null;
-  let vers_abbr       = null;
-  let verse_ref       = '';
+  let verse_input     = ($verse_ref && $verse_ref.ui_ref || '');
   let dropdown_open   = false;
   let content         = null;
   let content_loading = false;
 
-  /* Initialize/Update 'version', 'vers_abbr', 'verse_ref' whenever '$versions'
-   * or '$verse' change.
+  /* Alias for this component:
+   *    primary : primary column
+   *    column# : secondary column (by number)    :TODO:
    */
-  $: update_state( $versions, $verse )
+  const version = primary_version;
+
+  // Derive local state from store
+  const vers_abbr = derived( version, ($version) => {
+    return ( $version && $version.local_abbreviation );
+  });
+  const verse_ref = derived( verse, ($verse) => {
+    verse_input = ( $verse && $verse.ui_ref );
+    return verse_input;
+  });
 
   // When either `version` or `verse` change, update content
-  $: fetch_content( version, $verse );
-
-  /**
-   *  Update our local state whenever the store 'versions' or 'verse' changes.
-   *
-   *  @method update_state
-   *  @param  versions  The versions store {Object};
-   *                      { total, versions, books }
-   *  @param  verse     The verse reference store {Objecct};
-   *                      { book, chapter, verse, ui_ref, api_ref }
-   *
-   *  This updates `version`, `vers_abbr`, and `verse_ref`.
-   *
-   *  @return void;
-   */
-  function update_state( versions, verse ) {
-    if (versions) {
-      version   = versions.versions[0];
-      vers_abbr = version.abbreviation;
-    }
-
-    if (verse) {
-      verse_ref = verse.ui_ref;
-    }
-  }
+  $: fetch_content( $version, $verse );
 
   /**
    *  Fetch content based upon the current `vers_abbr` and parsed `verse`.
    *
    *  @method fetch_content
    *  @param  version   The selected version {Object};
-   *                      { abbreviation, ... }
+   *                      { abbreviation, local_abbreviation, ... }
    *  @param  verse     The verse reference {Objecct};
    *                      { book, chapter, verse, ui_ref, api_ref }
    *
@@ -182,7 +167,6 @@
    *  @param  event   The triggering event {PointerEvent};
    *
    *  Updates:
-   *    - vers_abbr
    *    - version
    *    - dropdown_open = false
    *
@@ -198,8 +182,7 @@
                 value, new_version);
 
     if (new_version) {
-      vers_abbr = new_version.abbreviation;
-      version   = new_version;
+      version.set( new_version );
     }
 
     dropdown_open = false;
@@ -219,11 +202,11 @@
     const classes = CssClass.item.slice();
 
     /*
-    console.log('item_classes(): item.abbreviation[ %s ], selected[ %s ]',
-                item.abbreviation, selected);
+    console.log('item_classes(): item.abbreviation[ %s / %s ], selected[ %s ]',
+                item.local_abbreviation, item.abbreviation, selected);
     // */
 
-    if (item.abbreviation === selected) {
+    if (item.local_abbreviation === selected) {
       classes.push( ...CssClass.item_active );
     }
 
@@ -277,7 +260,7 @@
         class='{ CssClass.button.join(' ') }'
         on:click={ dropdown_toggle }
       >
-        { vers_abbr }
+        { $vers_abbr }
         <ChevronDownSolid class='w-3 h-3 ms-2' />
       </button>
       <Dropdown
@@ -287,7 +270,7 @@
       >
        {#each ($versions ? $versions.versions : []) as vers, idex}
         <DropdownItem
-            class='{ item_classes( vers, vers_abbr ) }'
+            class='{ item_classes( vers, $vers_abbr ) }'
             value={ idex }
             on:click={ dropdown_select }
         >
@@ -295,7 +278,7 @@
             {vers.title}
           </div>
           <div class='text-gray-400 pointer-events-none'>
-            {vers.abbreviation}
+            {vers.local_abbreviation}
           </div>
         </DropdownItem>
        {/each}
@@ -307,7 +290,7 @@
         type='text'
         placeholder='Verse'
         class='{ CssClass.input.join(' ') }'
-        bind:value={ verse_ref }
+        bind:value={ verse_input }
         on:change={  verse_change }
         required
       />
