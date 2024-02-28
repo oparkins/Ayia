@@ -52,7 +52,7 @@ description:
   <tr><th>Tag</th><th>Rendering</th></tr>
  </thead>
  <tbody>
-  <tr>
+  <tr valign='top'>
    <td>
     <a href='https://ubsicap.github.io/usx/parastyles.html#b'>b</a>
    </td>
@@ -66,7 +66,7 @@ description:
    </td>
   </tr>
 
-  <tr>
+  <tr valign='top'>
    <td>
     <a href='https://ubsicap.github.io/usx/parastyles.html#li'>li#</a>
    </td>
@@ -75,26 +75,24 @@ description:
     An out-dented paragraph meant to highlight the items of a list.<br />
     <tt>#</tt> represents the level of indent<br />
     <tt>li = li1</tt> (see notes on numbered @style attributes)<br />
-
-    Within YouVersion, and empty <b>li#</b> element seems to indicate a
-    line-break.
+    <p>Within YouVersion, and empty <b>li#</b> element seems to indicate a
+    line-break.</p>
    </td>
   </tr>
 
-  <tr>
+  <tr valign='top'>
    <td>
     <a href='https://ubsicap.github.io/usx/parastyles.html#label'>label</a>
    </td>
    <td>
     Represents the label (text) for a verse.<br />
     Items <i>before</i> the label occur <i>before</i> the verse.<br />
-
-    This is not part of the USX format but rather extracted from the YouVersion
-    markup of USX data.
+    <p>This is not part of the USX format but rather extracted from the
+    YouVersion markup of USX data.</p>
    </td>
   </tr>
 
-  <tr>
+  <tr valign='top'>
    <td>
     <a href='https://ubsicap.github.io/usx/notes.html#footnote-char-style-types'>
       note.f
@@ -102,21 +100,19 @@ description:
    </td>
    <td>
     An element for marking various footnote content types.<br />
-
     This will be an array with elements of the type:
     <pre>
       { %type%: "Text" }
     </pre>
-
-    The valid types are any of the <a
-    href='https://ubsicap.github.io/usx/notes.html#footnote-char-style-types'>footnote
-    style types</a>, for example:
+    <p>The valid types are any of the
+    <a href='https://ubsicap.github.io/usx/notes.html#footnote-char-style-types'>footnote
+    style types</a>, for example:</p>
     <table>
      <thead>
       <tr><th>name</th><th>use</th></tr>
      </thead>
      <tbody>
-      <tr>
+      <tr valign='top'>
        <td>label or fl</td>
        <td>
         Footnote “label” text.<br />
@@ -125,32 +121,28 @@ description:
         words “Or” in an alternative translation style note, “Others”, “Heb.”,
         “LXX” etc.).
       </tr>
-
-      <tr>
+      <tr valign='top'>
        <td>fr</td>
        <td>
         Footnote “origin” reference.<br />
         This is the chapter and verse(s) that note refers to.
        </td>
       </tr>
-
-      <tr>
+      <tr valign='top'>
        <td>ft</td>
        <td>
         Footnote text<br />
         The primary (explanatory) text of the footnote.
        </td>
       </tr>
-
-      <tr>
+      <tr valign='top'>
        <td>fk</td>
        <td>
         A specific keyword/term from the text for which the footnote is being
         provided.
        </td>
       </tr>
-
-      <tr>
+      <tr valign='top'>
        <td>fq</td>
        <td>
         A quotation from the current scripture text translation for which the
@@ -159,8 +151,7 @@ description:
         suspension dots “…”).
        </td>
       </tr>
-
-      <tr>
+      <tr valign='top'>
        <td>fqa</td>
        <td>
         Footnote alternate translation.<br />
@@ -168,36 +159,33 @@ description:
         translation, and an alternate translation.
        </td>
       </tr>
-
-      <tr>
+      <tr valign='top'>
        <td>fp</td>
        <td>
         Footnote additional paragraph.<br />
         Use this marker to if you need to indicate the start of a new paragraph
         within a footnote (uncommon).
        </td>
-
-      <tr>
+      <tr valign='top'>
        <td>fv</td>
        <td>
         Footnote verse number.<br />
         A verse number in the the text quotation or alternative translation.
        </td>
       </tr>
-      </tr>
      </tbody>
     </table>
    </td>
   </tr>
 
-  <tr>
+  <tr valign='top'>
    <td><a href='https://ubsicap.github.io/usx/parastyles.html#p'>p</a></td>
    <td>
     Normal paragraph.
    </td>
   </tr>
 
-  <tr>
+  <tr valign='top'>
    <td><a href='https://ubsicap.github.io/usx/parastyles.html#pi'>pi#</a></td>
    <td>
     Indented paragraph.<br />
@@ -207,7 +195,7 @@ description:
    </td>
   </tr>
 
-  <tr>
+  <tr valign='top'>
    <td><a href='https://ubsicap.github.io/usx/parastyles.html#q'>q#</a></td>
    <td>
     Poetic line.<br />
@@ -216,7 +204,7 @@ description:
    </td>
   </tr>
 
-  <tr>
+  <tr valign='top'>
    <td><a href='https://ubsicap.github.io/usx/parastyles.html#s'>s#</a></td>
    <td>
     Section heading.<br />
