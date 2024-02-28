@@ -60,7 +60,6 @@ description:
     Blank line.<br />
     May be used to explicitly indicate additional white space between
     paragraphs.<br />
-
     <p>A para element with b style type should always be empty. b should not
     be used before or after titles to indicate white-space.</p>
    </td>
