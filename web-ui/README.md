@@ -204,6 +204,15 @@ description:
   </tr>
 
   <tr valign='top'>
+   <td><a href='https://ubsicap.github.io/usx/parastyles.html#r'>r</a></td>
+   <td>
+    Parallel passage reference(s).<br />
+    A reference to a parallel passage usually located under a section heading
+    <tt>s#</tt>.
+   </td>
+  </tr>
+
+  <tr valign='top'>
    <td><a href='https://ubsicap.github.io/usx/parastyles.html#s'>s#</a></td>
    <td>
     Section heading.<br />
