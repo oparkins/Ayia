@@ -116,10 +116,10 @@ description:
        <td>label or fl</td>
        <td>
         Footnote “label” text.<br />
-        Can be used for marking or “labeling” a word or words which are used
-        consistently across certain types of translation notes (such as the
-        words “Or” in an alternative translation style note, “Others”, “Heb.”,
-        “LXX” etc.).
+        Can be used for marking or “labeling” a word or words which are<br />
+        used consistently across certain types of translation notes<br />
+        (such as the words “Or” in an alternative translation style note,<br />
+        “Others”, “Heb.”, “LXX” etc.).
       </tr>
       <tr valign='top'>
        <td>fr</td>
@@ -138,33 +138,33 @@ description:
       <tr valign='top'>
        <td>fk</td>
        <td>
-        A specific keyword/term from the text for which the footnote is being
-        provided.
+        A specific keyword/term from the text for which the footnote is<br />
+        being provided.
        </td>
       </tr>
       <tr valign='top'>
        <td>fq</td>
        <td>
-        A quotation from the current scripture text translation for which the
-        note is being provided.<br />
-        Longer quotations are sometimes shortened using an ellipsis (i.e.
-        suspension dots “…”).
+        A quotation from the current scripture text translation for which<br />
+        the note is being provided.<br />
+        Longer quotations are sometimes shortened using an ellipsis<br />
+        (i.e.  suspension dots “…”).
        </td>
       </tr>
       <tr valign='top'>
        <td>fqa</td>
        <td>
         Footnote alternate translation.<br />
-        Used to distinguish between a quotation of the current scripture text
-        translation, and an alternate translation.
+        Used to distinguish between a quotation of the current scripture<br />
+        text translation, and an alternate translation.
        </td>
       </tr>
       <tr valign='top'>
        <td>fp</td>
        <td>
         Footnote additional paragraph.<br />
-        Use this marker to if you need to indicate the start of a new paragraph
-        within a footnote (uncommon).
+        Use this marker to if you need to indicate the start of a new<br />
+        paragraph within a footnote (uncommon).
        </td>
       <tr valign='top'>
        <td>fv</td>
