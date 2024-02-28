@@ -23,7 +23,12 @@ export const  user            = _writable_ls( 'user', null,
 export const  errors          = writable( [] );
 export const  versions        = writable( null );
 export const  verse           = writable( null );
-export const  primary_version = writable( null );
+
+export const  version = {
+  primary:  writable( null ),
+  column1:  writable( null ),
+  column2:  writable( null ),
+};
 
 /*
 export const  drawer_open = _writable_ls( 'drawer_open', false,
@@ -37,8 +42,8 @@ Agent.get('versions')
     versions.set( res );
 
     if (Array.isArray( res.versions )) {
-      // Initialize 'primary_version' to the first
-      primary_version.set( res.versions[0] );
+      // Initialize 'version.primary' to the first
+      version.primary.set( res.versions[0] );
     }
   })
   .catch( err => {
