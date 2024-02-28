@@ -32,7 +32,7 @@ running at: https://api.ayia.nibious.com/
 
 #### Type: `yvers`
 Versions of this type have verse entries of the form:
-```
+```yaml
 {
   GEN.001.001: {
     markup: {
@@ -218,7 +218,7 @@ description:
 
 #### Type: `interlinear`
 Versions of this type have verse entries of the form:
-```
+```yaml
 {
   GEN.001.001: {
     markup: {
@@ -232,7 +232,7 @@ Versions of this type have verse entries of the form:
 ```
 
 These entries have a fairly consistent content of the form:
-```
+```yaml
 {
   language:   The language this entry references (Hebrew | Greek) {String},
   abs_vs:     The absolute verse number {Number};
