@@ -42,7 +42,7 @@ export function set_verse( verse_ref, apply_bounds = false ) {
     // First character is numeric
   }
 
-  const book                  = find_book( bk );
+  const book  = find_book( bk );
 
   if (book == null) {
     console.log('set_verse( %s ): Unknown book[ %s ] ...',
@@ -102,6 +102,42 @@ export function set_verse( verse_ref, apply_bounds = false ) {
     ui_ref,
     api_ref,
   } );
+}
+
+/**
+ *  Find the entry from `versions` for the named version.
+ *
+ *  @method find_version
+ *  @param  name    The version name or abbreviation {String};
+ *
+ *  @return The version entry if found {Object};
+ *            {id, abbreviation, title, local_abbreviation, local_title,
+ *             language, type }
+ */
+export function find_version( name ) {
+  if (typeof(name) !== 'string' || name.length < 3) {
+    // `name` is not usable
+    return;
+  }
+
+  const versions_ro = get( versions );
+  if (versions_ro == null || !Array.isArray(versions_ro.versions)) {
+    // We don't yet have access to `versions`
+    return;
+  }
+
+  name = title_case( name );
+
+  const name_no_ws  = name.replaceAll(/\s/g, '');
+  const ABBR        = name.toUpperCase().slice(0,8);
+  const version     = versions.versions.find( entry => {
+    if (entry.abbreviation.startsWith( ABBR ))        { return true }
+    if (entry.local_abbreviation.startsWith( ABBR ))  { return true }
+    if (entry.title.startsWith( name ))               { return true }
+    if (entry.local_title.startsWith( name ))         { return true }
+  });
+
+  return version;
 }
 
 /**
