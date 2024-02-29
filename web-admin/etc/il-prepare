@@ -5,7 +5,7 @@
  *
  */
 const Yargs       = require('yargs');
-const Interlinear = require('../lib/interlinear');
+const Interlinear = require('../versions/interlinear');
 const Usage       = require('../lib/usage');
 const yargs	      = Yargs
 	.usage('Prepare a <vers> for import into the database')

@@ -5,7 +5,7 @@
  *
  */
 const Yargs = require('yargs');
-const Yvers = require('../lib/yvers');
+const Yvers = require('../versions/yvers');
 const Usage = require('../lib/usage');
 const yargs	= Yargs
 	.usage('Prepare a <vers> for import into the database')

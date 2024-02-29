@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const Interlinear = require('../lib/interlinear');
+const Interlinear = require('../versions/interlinear');
 
 async function main() {
   const args  = process.argv.slice(1);

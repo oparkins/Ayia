@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const Yargs   = require('yargs');
 const Books   = require('../lib/books');
-const Yvers   = require('../lib/yvers');
+const Yvers   = require('../versions/yvers');
 const Cheerio = require('cheerio');
 const sprintf = require('sprintf-js').sprintf;
 const Usage   = require('../lib/usage');

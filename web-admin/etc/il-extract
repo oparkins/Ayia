@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const Yargs       = require('yargs');
-const Interlinear = require('../lib/interlinear');
+const Interlinear = require('../versions/interlinear');
 const Usage       = require('../lib/usage');
 const yargs	      = Yargs
 	.usage('Extract processable data for version <vers>')
