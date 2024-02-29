@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Login to harbor
+#
+#   This ASSUME you have safely stored you harbor authentication token
+#   (read-only by you) in
+#     ~/.local/harbor.nibious.com
+#
+podman login --username $USER --password $(cat ~/.local/harbor.nibious.com) \
+  harbor.nibious.com/ayia

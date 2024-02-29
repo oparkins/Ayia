@@ -28,7 +28,13 @@ retrieve your CLI secret from [harbor.nibious.com](https://harbor.nibious.com).
 
 With this secret, use `podman` to login to harbor:
 ```
-podman login harbor.nibious.com/ayia
+podman login --username $USER harbor.nibious.com/ayia
+
+# If you have saved the harbor.nibious.com token (read-only by you) in
+#   ~/.local/harbor.nicious.com
+podman login --username $USER --password $(cat ~/.local/harbor.nibious.com) \
+  harbor.nibious.com/ayia
+
 ```
 
 This will generate a credentials file at
