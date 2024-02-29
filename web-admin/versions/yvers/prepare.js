@@ -348,8 +348,9 @@ function _parseChapter( config, $, $chap, chp, book, firstUsfm ) {
     verseMax  : 0,
     label     : null,
 
-    verses    : new Map(),
-    fullText  : new Map(),
+    verses    : new Map(),  // Collect markup for verses
+    fullText  : new Map(),  // Collect the full text of verses
+    parents   : new Map(),  // Identify verse breaks
     verse     : [],
   };
 
@@ -377,17 +378,16 @@ function _parseChapter( config, $, $chap, chp, book, firstUsfm ) {
 
     if ($verses.length > 0) {
       $verses.each( (kdex, vs) => {
-        // Check if there are non-verse siblings.
-        const siblings  = $(vs).siblings(':not(.verse)');
-        if (siblings.length > 0) {
-          _addSiblingsToCurrentVerse( verseState, siblings );
-        }
+        /* Add any non-verse siblings between the previous verse and this one
+         * to the current verse.
+         */
+        _addSiblingsToCurrentVerse( verseState, vs );
 
         _parseVerse( verseState, vs );
       });
 
     } else {
-      /* There are no verses so process the child directly and add it to the 
+      /* There are no verses so process the child directly and add it to the
        * previous verse set.
        *
        * This is how we maintain inter-verse metadata.
@@ -475,20 +475,32 @@ function _parseChapter( config, $, $chap, chp, book, firstUsfm ) {
  *  @parm   state.verse     The current entry from `state.verses` references
  *                          via `state.curUsfm` {Array};
  *  @parm   state.fullText  The map of fullText by verse reference {Map};
- *  @param  siblings        The set of non-verse sibling element(s) {Cheerio};
+ *  @param  vs              The current verse element {Element};
  *
  *  @return An updated state {Object};
  *  @private
  */
-function _addSiblingsToCurrentVerse( state, siblings ) {
-  const curText = (state.fullText.get( state.curUsfm ) || []);
+function _addSiblingsToCurrentVerse( state, vs ) {
+  const siblings  = [];
+  let   sib       = vs.prev;
+  let   sibCls    = (sib && _getClasses( sib ));
+  //console.log('>>> verse: check for non-verse siblings ...');
+  while (sib && ! sibCls.includes('verse')) {
+    siblings.push( sib );
+
+    //console.log('>>> verse.sib:', sibCls);
+    sib    = sib.prev;
+    sibCls = (sib && _getClasses( sib ));
+  }
+  if (siblings.length < 1) { return state }
 
   /*
   console.log('>>> _addSiblingsToCurrentVerse(): %d siblings in %s to:',
               siblings.length, state.label, state.curUsfm);
   // */
 
-  siblings.each( (idex, el) => {
+  const curText = (state.fullText.get( state.curUsfm ) || []);
+  siblings.forEach( (el, idex) => {
     const json  = _parseEl( state.$, el );
     /*
     console.log('el[ %s ]:', typeof(json), json);
@@ -579,8 +591,8 @@ function _parseVerse( state, elVerse) {
   }
 
   // Retrieve the target verse and fullText arrays
-  let   verse   = (state.verses.get(   usfm ) || []);
-  const curText = (state.fullText.get( usfm ) || []);
+  let   verse       = (state.verses.get(   usfm ) || []);
+  const curText     = (state.fullText.get( usfm ) || []);
 
   if (! Array.isArray(verse) && verse._ref != null) {
     if (state.verbosity > 1) {
@@ -589,6 +601,25 @@ function _parseVerse( state, elVerse) {
 
     verse = [];
   }
+
+  /* Determine if this is a verse break
+   *    A single reference broken across elements
+   *        <p>
+   *          <verse JHN.3.1> ... </verse>
+   *          <verse JHN.3.2> ... </verse>  <--+
+   *        </p>                               | verse break between 2 and 3
+   *        <p>                                |
+   *          <verse JHN.3.2> ... </verse>  <--+
+   *          <verse JHN.3.3> ... </verse>
+   *        </p>
+   */
+  const curParent   =  elVerse.parent;
+  const lastParent  =  state.parents.get(  usfm ) || curParent;
+  if (curParent !== lastParent) {
+    // Verse break -- add to the current verse before we switch to the next
+    verse.push( {br:''} );
+  }
+  state.parents.set( usfm, curParent );
 
   // Parse this verse into JSON form and retrieve the first key/value.
   const json  = _parseEl( state.$, elVerse );
@@ -606,8 +637,11 @@ function _parseVerse( state, elVerse) {
       if (text) { curText.push( text ) }
 
       if (typeof(item) === 'string') {
-        // Label this raw text with our parent label
-        verse.push( {[state.label]:item} );
+        // IFF the text is non-empty, add it using our parent label
+        if (item.trim().length > 0) {
+          verse.push( {[state.label]:item} );
+
+        }
 
       } else {
         verse.push( item );
@@ -615,7 +649,7 @@ function _parseVerse( state, elVerse) {
     });
 
   } else {
-    // Label this sub-item with our parent label
+    // IFF the text is non-empty, add it using our parent label
     /*
     console.log('label[ %s ], key[ %s ], val:', state.label, key, json[key]);
     // */
@@ -623,7 +657,10 @@ function _parseVerse( state, elVerse) {
     const text  = _verseText( state.label, json[key] );
     if (text) { curText.push( text ) }
 
-    verse.push( {[state.label]:json[key]} );
+    if (text.trim().length > 0) {
+      verse.push( {[state.label]:json[key]} );
+
+    }
   }
 
   state.verse = verse;

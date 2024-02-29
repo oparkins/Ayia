@@ -1,6 +1,6 @@
 {
   "name": "web-admin",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "The web-admin for the Ayia Bible study application",
   "main": "bin/web-admin",
   "scripts": {
