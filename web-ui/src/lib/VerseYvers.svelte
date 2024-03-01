@@ -11,6 +11,12 @@
   } from 'flowbite-svelte';
   import { ChevronDownSolid, AnnotationSolid } from 'flowbite-svelte-icons';
 
+  import {
+    show_footnotes,
+    show_xrefs,
+    show_redletters,
+  }  from '$lib/stores';
+
   import {html_raw}   from '$lib/render/yvers';
   import VerseNote    from '$lib/VerseNote.svelte';
 
@@ -27,13 +33,17 @@
    *  Generate the HTML markup information needed to render the given markup.
    *
    *  @method html_markup
-   *  @param  markup    The target markup element {Object};
-   *  @param  m_dex     The index of this markup element {Number};
+   *  @param  markup          The target markup element {Object};
+   *  @param  m_dex           The index of this markup element {Number};
+   *  @param  show            Show configuration (from state) {Object};
+   *  @param  show.footnotes  Show footnotes {State};
+   *  @param  show.xrefs      Show cross-references {State};
+   *  @param  show.redletters Show red-letters {State};
    *
    *  @return HTML markup information {Object | Array};
    *            { tag, raw, component, props }
    */
-  function html_markup( markup, m_dex ) {
+  function html_markup( markup, m_dex, show={} ) {
     const m_key   = Object.keys(markup)[0];
     const m_val   = markup[m_key];
     const css     = `${m_key}`;
@@ -63,7 +73,16 @@
         break;
 
       case 'note.x':    // Cross-reference : fall-through
+        if (! show.xrefs ) {
+          return null;
+        }
+        // fall-through
+
       case 'note.f': {  // Footnote
+        if (! show.footnotes && m_key === 'note.f') {
+          return null;
+        }
+
         const id      = `${verse_ref.replaceAll('.','-')}-${m_dex}`;
         const type    = (m_key.split('.').pop() === 'x'
                           ? 'xref'
@@ -104,7 +123,13 @@
           html.raw  = `<p class='${m_key[0]} ${m_key}'>${m_val}</p>`;
 
         } else {
-          html.raw  = html_raw( m_key, m_val );
+          let render_key  = m_key;
+          if (! show.redletters && m_key === 'wj') {
+            // Hide the red-letters
+            render_key = 'p';
+          }
+
+          html.raw  = html_raw( render_key, m_val );
         }
       } break;
     }
@@ -121,14 +146,18 @@
 {#if Array.isArray( verse.markup ) }
 <div class='verse'>
  {#each verse.markup as markup, m_dex}
-  {@const html = html_markup( markup, m_dex ) }
-  {#if html.tag === '@component'}
+  {@const html = html_markup( markup, m_dex, {footnotes : $show_footnotes,
+                                              xrefs     : $show_xrefs,
+                                              redletters: $show_redletters} ) }
+  {#if html != null}
+   {#if html.tag === '@component'}
     <svelte:component this={ html.component } { ...html.props }>
       {@html html.raw}
     </svelte:component>
-  {:else}
+   {:else}
     {@html html.raw}
-  {/if }
+   {/if }
+  {/if}
  {/each}
 </div>
 {/if}
