@@ -61,12 +61,17 @@
     @apply  text-red-400;
   }
 
-  .chapter .verse > .note {
-    @apply  inline-block pr-2;
+  .chapter .verse .note {
+    @apply  inline-block;
+    margin-left:  .025rem;
+    margin-right: .25rem;
+  }
+  .chapter .verse .note+.note {
+    margin-left:  -.275rem;
   }
 
   .chapter .note.label {
-    @apply  shrink-0 w-3 h-3 text-gray-400;
+    @apply  shrink-0 w-4 h-4 text-gray-400;
   }
 
   .chapter .note.content {
