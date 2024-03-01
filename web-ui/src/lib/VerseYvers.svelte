@@ -62,24 +62,35 @@
         html.raw  = `<i class='${css}'>${m_val}</i>`;
         break;
 
-      case 'note.f':    // Footnote
-      case 'note.x': {  // Cross-reference
+      case 'note.x':    // Cross-reference : fall-through
+      case 'note.f': {  // Footnote
         const id      = `${verse_ref.replaceAll('.','-')}-${m_dex}`;
+        const type    = (m_key.split('.').pop() === 'x'
+                          ? 'xref'
+                          : 'foot');
         let   label   = '#';
         const content = m_val.map( n_obj => {
-                          const i_key = Object.keys(n_obj)[0];
-                          const i_val = n_obj[i_key];
-                          if (i_key === 'label') {
-                            label = i_val;
-                            return;
-                          }
-                          return html_raw( i_key, i_val );
-                        })
-                        .filter( el => el != null );
+          if (typeof(n_obj) === 'string') {
+            return (type === 'xref'
+                      ? `<span class='xt'>${n_obj}</span>`
+                      : n_obj);
+          }
+
+          const i_key = Object.keys(n_obj)[0];
+          const i_val = n_obj[i_key];
+          if (i_key === 'label') {
+            label = i_val;
+            return;
+          }
+          return html_raw( i_key, i_val );
+
+        })
+        .filter( el => el != null )
+        .join('');
 
         html.tag        = '@component';
         html.component  = VerseNote;
-        html.props      = { id, label };
+        html.props      = { id, label, type };
         html.raw        = content;
 
       } break;
@@ -101,8 +112,13 @@
     return html;
   }
 
+/* verse.makup with be:
+ *  - an array  [ { tag: value }, ... ];
+ *  - an object { _ref: "%multi-verse-reference" };
+ */
 </script>
 
+{#if Array.isArray( verse.markup ) }
 <div class='verse'>
  {#each verse.markup as markup, m_dex}
   {@const html = html_markup( markup, m_dex ) }
@@ -115,3 +131,4 @@
   {/if }
  {/each}
 </div>
+{/if}
