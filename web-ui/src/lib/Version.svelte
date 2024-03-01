@@ -132,9 +132,6 @@
       'overflow-y-auto',
       'text-gray-800',
       'dark:text-gray-200',
-
-      // Custom CSS class
-      'chapter',
     ],
   };
 </script>
@@ -149,7 +146,7 @@
      {/if}
     </div>
 
-    <div class={ CssClass.body.join(' ') }>
+    <div class='chapter { CssClass.body.join(' ') }'>
       {#if content_loading}
         Loading { $verse_store.ui_ref } ...
       {:else if content}
