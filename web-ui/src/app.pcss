@@ -3,14 +3,19 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --chapter-font-size:  16px;
+}
+
 @layer components {
+
   /* Allow font to be customized per user for the presentation of chapter
    * content.
    */
   .chapter {
-    font-size:  16px;
+    font-size:  var( --chapter-font-size );
 
-    @apply  text-justify pl-2 pr-4;
+    @apply  text-justify leading-tight pl-2 pr-4;
   }
 
   .chapter .s,
