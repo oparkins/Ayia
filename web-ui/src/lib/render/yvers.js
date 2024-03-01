@@ -39,6 +39,11 @@ export function html_raw( key, val ) {
   const html  = [
     `<span class='${key}'>`,
   ];
+  if (key === 'fq' || key === 'fqa') {
+    // fq : Quotation from current scripture
+    // fqa: Alternative Translation
+    html.push( ` “` );
+  }
 
   if (Array.isArray(val)) {
     // Flatten this array
@@ -68,7 +73,12 @@ export function html_raw( key, val ) {
 
   }
 
+  if (key === 'fq' || key === 'fqa') {
+    // fq : Quotation from current scripture
+    // fqa: Alternative Translation
+    html.push( `” ` );
+  }
   html.push('</span>');
 
-  return html.join('\n');
+  return html.join('');
 }
