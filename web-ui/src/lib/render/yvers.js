@@ -4,114 +4,71 @@
  */
 
 /**
- *  Fetch the CSS classes for theh given yvers type.
+ *  Render raw HTML for the given item key/value where the value is an array or
+ *  string.
  *
- *  @method yvers_css
- *  @param  type    The target type {String};
+ *  @method html_raw
+ *  @param  key The markup item key {String};
+ *  @param  val The markup item value {String | Array};
  *
- *  @return The CSS classes {String};
- */
-function yvers_css( type ) {
-  const primary = type.split('.').shift();
-  const css     = [ type ];
-
-  switch( primary ) {
-    case 'label':
-      css.push( 'text-yellow-400' );
-      break;
-
-    case 'note':
-      css.push( 'text-blue-400' );
-      break;
-
-    case 'wj':
-      css.push( 'text-red-400' );
-      break;
-
-    default:
-      switch( primary[0] ) {
-        case 's':
-          css.push( ...[
-            'pt-4',
-            'text-lg',
-            'text-center',
-            'font-bold',
-          ]);
-          break;
-
-        case 'r':
-          css.push( ...[
-            'text-md',
-            'text-center',
-            'italic',
-          ]);
-          break;
-      }
-      break;
-  }
-
-  return css.join(' ');
-}
-
-/**
- *  Render a verse from a 'yvers' version.
+ *  Example:
+ *    key:  'p'
+ *    val:  "Jesus answered him, "
  *
- *  @method yvers_render_verse
- *  @param  key           The key for this verse {String};
- *  @param  verse         The verse entry {Object}
- *  @param  verse.markup  yvers-specific markup {Array};
- *  @param  verse.text    Raw text of this verse {String};
+ *    html:
+ *      <span class='p'>Jesus answered him, </span>
+ *
+ *  Example:
+ *    key: 'wj'
+ *    val: [
+ *            "“I assure you ",
+ *            { it: "and" },
+ *            " most solemnly say to you, unless a person is born again"
+ *         ]
+ *
+ *    html:
+ *      <span class='wj'>
+ *        “I assure you
+ *        <i>and</i>
+ *        most solemnly say to you, unless a person is born again
+ *      </span>
  *
  *  @return The rendered HTML {String};
  */
-export function yvers_render_verse( key, verse ) {
-  if (verse == null || ! Array.isArray(verse.markup)) { return '' }
-
+export function html_raw( key, val ) {
   const html  = [
-    `<div class='verse'>`,
+    `<span class='${key}'>`,
   ];
 
-  verse.markup.forEach( markup => {
-    const key     = Object.keys(markup)[0];
-    const val     = markup[key];
-    const keyCss  = yvers_css( key );
+  if (Array.isArray(val)) {
+    // Flatten this array
+    val.forEach( el => {
+      if (typeof(el) === 'string') {
+        html.push( el );
+        return;
+      }
 
-    switch( key ) {
-      case 'label':   // Verse label
-        html.push( `<sup class="verse ${keyCss}">${val}</sup>` );
-        break;
+      // Assume this is an object
+      const i_key = Object.keys(el)[0];
+      const i_val = el[i_key];
 
-      case 'b':       // Blank line
-        html.push( `<br />` );
-        break;
+      switch( i_key ) {
+        case 'it':  // italic
+          html.push( `<i>${i_val}</i>` );
+          break;
 
-      case 'note.f':  // Footnote
-      case 'note.x':  // Cross-reference
-        /* :TODO: Need to include note content to be presented either via hover
-         *        or click (or in a sidebar)
-         */
-        html.push( `<span class="${keyCss}">#</span>` );
-        break;
+        default:
+          html.push( `<span class='${i_key}'>${i_val}</span>` );
+          break;
+      }
+    });
 
-      default:
-        if (key[0] === 's' || key[0] === 'r') {
-          let text  = val;
+  } else {
+    html.push( val );
 
-          if (Array.isArray(val)) {
-            text = val.join('');
-          }
+  }
 
-          html.push( `<p class="${keyCss}">${text}</p>` );
-
-        } else {
-          html.push( `<span class="${keyCss}">${val}</span>` );
-        }
-        break;
-    }
-    
-  });
-
-  html.push('</div>');
+  html.push('</span>');
 
   return html.join('\n');
 }

@@ -1,18 +1,15 @@
 <script>
+  import { onMount, onDestroy } from 'svelte';
+
   import { derived } from 'svelte/store';
 
-  import {
-    Card,
-    Dropdown,
-    DropdownItem,
-    Label,
-    Input,
-  } from 'flowbite-svelte';
-  import { ChevronDownSolid } from 'flowbite-svelte-icons';
+  import { Card } from 'flowbite-svelte';
 
   import SelectVersion  from '$lib/SelectVersion.svelte';
   import SelectVerse    from '$lib/SelectVerse.svelte';
-  import Render         from '$lib/render';
+
+  import VerseText      from '$lib/VerseText.svelte';
+  import VerseYvers     from '$lib/VerseYvers.svelte';
 
   import {
     version   as version_store,
@@ -43,15 +40,7 @@
 
   let content         = null;
   let content_loading = false;
-  let default_render  = ( key, verse ) => {
-    return `
-      <div class='verse'>
-        <span class='ref'>${key}</span>
-        <span class='text'>${verse.text}</span>
-      </div>
-    `
-  };
-  let render          = default_render;
+  let verse_el        = VerseText;
 
   // When either `version` or `verse_store` change, update content
   $: fetch_content( $version, $verse_store );
@@ -77,15 +66,17 @@
 
     switch( version.type ) {
       case 'yvers':
-        render = Render.yvers;
+        verse_el = VerseYvers;
         break;
 
+      /*
       case 'interlinear':
-        render = Render.interlinear;
+        verse_el = VerseInterlinear;
         break;
+      // */
 
       default:
-        render = default_render;
+        verse_el = VerseText;
         break;
     }
 
@@ -102,6 +93,10 @@
       .finally( () => {
         content_loading = false;
       });
+  }
+
+  function click_verse( event ) {
+    console.log('Version.click_verse:', event);
   }
 
   const CssClass  = {
@@ -129,13 +124,16 @@
     ],
 
     body: [
-      'flex',
-      'flex-col',
+      //'flex',
+      //'flex-col',
       'w-full',
       'h-full',
       'overflow-y-auto',
       'text-gray-800',
       'dark:text-gray-200',
+
+      // Custom CSS class
+      'chapter',
     ],
   };
 </script>
@@ -154,8 +152,12 @@
       {#if content_loading}
         Loading { $verse_store.ui_ref } ...
       {:else if content}
-        {#each Object.entries(content.verses) as [label,verse]}
-          {@html render( label, verse )}
+        {#each Object.entries(content.verses) as [verse_ref, verse]}
+          <svelte:component
+              this={      verse_el }
+              verse_ref={ verse_ref }
+              verse={     verse }
+          />
         {/each}
       {:else if $verse_store}
         { $verse_store.ui_ref } [ { $verse_store.api_ref } ]

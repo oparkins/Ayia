@@ -2,3 +2,99 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  /* Allow font to be customized per user for the presentation of chapter
+   * content.
+   */
+  .chapter {
+    font-size:  16px;
+  }
+
+  .chapter .s,
+  .chapter .s1,
+  .chapter .s2,
+  .chapter .s3,
+  .chapter .s4 {
+    text-align:     center;
+    padding-top:    1em;
+    padding-bottom: .5em;
+
+    font-size:      1.2em;
+    line-height:    1.8;
+
+    font-weight:    bold;
+  }
+
+  .chapter .r {
+    position:       relative;
+    top:            -.5em;
+
+    text-align:     center;
+    padding-bottom: .5em;
+
+    font-size:    .9em;
+    line-height:  1;
+
+    font-style:   italic;
+  }
+
+  .chapter .break {
+    padding-bottom: 1em;
+  }
+  .chapter .s + .break,
+  .chapter .r + .break {
+    padding-bottom: 0;
+  }
+
+  .chapter .verse.label {
+    @apply  text-yellow-700;
+  }
+
+  :is(.dark) .chapter .verse.label {
+    @apply  text-yellow-400;
+  }
+
+  .chapter .verse .wj {
+    @apply  text-red-400;
+  }
+
+  .chapter .note.label {
+    @apply  shrink-0 w-3 h-3 text-gray-400;
+  }
+
+  .chapter .note.content {
+    @apply  max-w-64 text-gray-800;
+  }
+
+  :is(.dark) .chapter .note.content {
+    @apply  text-gray-200;
+  }
+
+  .chapter .note.content .fr {
+    @apply  text-sm opacity-70;
+  }
+
+  .chapter .note.content .fq::before,
+  .chapter .note.content .fqa::before {
+    content:  '“';
+  }
+  .chapter .note.content .fq::after,
+  .chapter .note.content .fqa::after {
+    content:  '”';
+  }
+
+  /**************************************************************************
+   * Single version display
+   */
+  .chapter .verse {
+    @apply  contents;
+  }
+
+  /**************************************************************************
+   * Parallel display
+   */
+  .parallel .chapter .verse {
+    @apply  block;
+  }
+}
