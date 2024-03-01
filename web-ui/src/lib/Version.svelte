@@ -114,6 +114,7 @@
       'dark:bg-gray-900',
       'mx-auto',
       'h-full',
+      '!p-4',
     ],
 
     controls: [
