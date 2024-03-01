@@ -18,7 +18,10 @@
     input: [
       'inline-flex',
       'z-10',
-      'text-gray-500',
+      'rounded-s-none',
+      'rounded-e-lg',
+
+      'text-black',
       'bg-gray-100',
       'border',
       'border-gray-300',
@@ -26,13 +29,12 @@
       'focus:ring-4',
       'focus:outline-none',
       'focus:ring-gray-100',
+
+      'dark:text-white',
       'dark:bg-gray-700',
       'dark:hover:bg-gray-600',
       'dark:focus:ring-gray-700',
-      'dark:text-white',
       'dark:border-gray-600',
-      'rounded-s-none',
-      'rounded-e-lg',
     ],
   };
 

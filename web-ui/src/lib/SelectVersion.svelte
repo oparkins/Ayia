@@ -41,21 +41,22 @@
       'text-sm',
       'font-medium',
       'text-center',
-      'text-gray-500',
-      'bg-gray-100',
       'border',
-      'border-gray-300',
-      'hover:bg-gray-200',
       'focus:ring-4',
       'focus:outline-none',
+      'w-32',
+
+      'text-gray-500',
+      'bg-gray-100',
+      'border-gray-300',
+      'hover:bg-gray-200',
       'focus:ring-gray-100',
+
       'dark:bg-gray-700',
       'dark:hover:bg-gray-600',
       'dark:focus:ring-gray-700',
       'dark:text-white',
       'dark:border-gray-600',
-
-      'w-32',
     ],
 
     item: [
@@ -68,11 +69,11 @@
     item_active: [
       'font-bold',
 
-      'text-white',
-
+      'text-black',
       'bg-gray-200',
       'hover:bg-gray-100',
 
+      'dark:text-white',
       'dark:bg-gray-600',
       'dark:hover:bg-bgray-600',
     ],
