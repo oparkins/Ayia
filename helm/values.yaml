@@ -7,7 +7,7 @@ global: #{
 
 web_admin: #{
   image: #{
-    tag:        0.1.5
+    tag:        0.1.6
     #pullPolicy: IfNotPresent
   #} web_admin.image
   persistence: #{
@@ -19,7 +19,7 @@ web_admin: #{
 
   ingress: #{
     host: admin.ayia.nibious.com
-  #} web_ui.ingress
+  #} web_admin.ingress
 #} web_admin
 
 web_api: #{
@@ -35,7 +35,7 @@ web_api: #{
 
 web_ui: #{
   image: #{
-    tag:  0.0.3
+    tag:  0.0.4
     #pullPolicy: IfNotPresent
   #} web_ui.image
 
