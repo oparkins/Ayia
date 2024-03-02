@@ -25,8 +25,11 @@
   const book          = (isFirstVerse && find_book( bk ));
   const ch_num        = (isFirstVerse && parseInt( ch ));
 
+  /*
   console.log('VerseYvers(): verse_ref[ %s ], isFirstVerse[ %s ], book:',
               verse_ref, String(isFirstVerse), book);
+  // */
+
   /**
    *  Generate the HTML markup information needed to render the given markup.
    *
