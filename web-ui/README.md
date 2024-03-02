@@ -213,6 +213,16 @@ description:
   </tr>
 
   <tr valign='top'>
+   <td>
+    <a href='https://ubsicap.github.io/usx/charstyles.html#sc'>sc</a>
+   </td>
+   <td>
+    Small-cap text.<br />
+    line-break.</p>
+   </td>
+  </tr>
+
+  <tr valign='top'>
    <td><a href='https://ubsicap.github.io/usx/parastyles.html#s'>s#</a></td>
    <td>
     Section heading.<br />
