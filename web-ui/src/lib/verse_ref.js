@@ -163,7 +163,7 @@ export function find_book( name ) {
   }
 
   // Convert the name to title-case (which also condenses all white-space)
-  name = title_case( name );
+  name = title_case( name.trim() );
 
   const name_no_ws  = name.replaceAll(/\s/g, '');
   const ABBR        = name.toUpperCase().slice(0,3);
