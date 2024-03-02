@@ -60,6 +60,10 @@
         html.raw  = `<i class='${css}'>${m_val}</i>`;
         break;
 
+      case 'sc':      // Small-cap text
+        html.raw  = `<span class='${css}'>${m_val}</span>`;
+        break;
+
       case 'note.x':    // Cross-reference : fall-through
         if (! show.xrefs ) {
           return null;
