@@ -12,3 +12,17 @@ export function set_cssVariable( name, val ) {
     document.documentElement.style.setProperty( name, val );
   }
 }
+
+/**
+ *  Retrieve the current, active, root-level value of the given CSS variable.
+ *
+ *  @method get_cssVariable
+ *  @param  name    The name of the variable (e.g. '--test') {String};
+ *
+ *  @return The value of the CSS variable {String};
+ */
+function get_cssVariable( name ) {
+  if (typeof(document) !== 'undefined') {
+    document.documentElement.computedStyleMap().get( name );
+  }
+}
