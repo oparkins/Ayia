@@ -36,8 +36,11 @@
  *  @return The rendered HTML {String};
  */
 export function html_raw( key, val ) {
+  const css   = (typeof(key) === 'string' && key.length > 0
+                  ? `class='${key}'`
+                  : '');
   const html  = [
-    `<span class='${key}'>`,
+    `<span ${css}>`,
   ];
   if (key === 'fq' || key === 'fqa') {
     // fq : Quotation from current scripture
