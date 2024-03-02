@@ -112,7 +112,8 @@
 
         if ( isSect || isRef) {
           // This is a section or reference
-          html.raw  = `<p class='${m_key[0]} ${m_key}'>${m_val}</p>`;
+          const render_val  = html_raw( null, m_val );
+          html.raw  = `<p class='${m_key[0]} ${m_key}'>${render_val}</p>`;
 
         } else {
           let render_key  = m_key;
