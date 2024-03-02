@@ -11,17 +11,15 @@
   import { SearchOutline } from 'flowbite-svelte-icons';
 
   import { theme, content_font_size } from '$lib/stores';
-
-  console.log('+layout: $content_font_size[ %s ]', $content_font_size);
+  import { set_cssVariable }          from '$lib/css';
 
   // Subscribe to changes to the content_font_size to apply them to the DOM
   content_font_size.subscribe( (val) => {
+    /*
     console.log('+layout: $content_font_size changed to [ %s ]', val);
+    // */
 
-    if (typeof(document) !== 'undefined') {
-      document.documentElement.style.setProperty( '--content-font-size',
-                                                  `${val}px` );
-    }
+    set_cssVariable( '--content-font-size', `${val}px` );
   });
 
   /**
@@ -61,10 +59,21 @@
   <script>
     if ('content_font_size' in localStorage) {
       // explicit preference - immediately apply overrides
-      const font_size = localStorage.getItem('content_font_size');
+      const ls_val    = localStorage.getItem('content_font_size');
+      const font_size = parseInt( ls_val );
 
-      document.documentElement.style.setProperty( '--content-font-size',
-                                                  `${font_size}px` );
+      /*
+      console.log('+layout: Client-init, ls_val[ %s ] => %s / %s ...',
+                    ls_val, typeof(font_size), font_size);
+      // */
+
+      if (! Number.isNaN( font_size )) {
+        /* :XXX: No access to our helper function (set_cssVarialbe()) so
+         *       manually perform this early initialization.
+         */
+        document.documentElement.style.setProperty( '--content-font-size',
+                                                    `${font_size}px` );
+      }
     }
   </script>
 </svelte:head>
