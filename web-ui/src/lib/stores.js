@@ -16,8 +16,8 @@ export const csr = true;
 export const ssr = false;
 // Only include on the client side }
 
-import { writable } from 'svelte/store';
-import Agent        from '$lib/agent';
+import { get, writable }  from 'svelte/store';
+import Agent              from '$lib/agent';
 
 // Create shared stores
 export const  theme             = _writable_ls(      'color-theme', 'dark' );
@@ -26,13 +26,13 @@ export const  content_font_size = _writable_int_ls(  'content_font_size', 16 );
 export const  show_footnotes    = _writable_bool_ls( 'show_footnotes',  true );
 export const  show_xrefs        = _writable_bool_ls( 'show_xrefs',      true );
 export const  show_redletters   = _writable_bool_ls( 'show_redletters', true );
+export const  verse             = _writable_json_ls( 'verse', null );
 
 export const  errors            = writable( [] );
 export const  versions          = writable( null );
-export const  verse             = writable( null );
 
 export const  version = {
-  primary:  writable( null ),
+  primary:  _writable_json_ls( 'version_primary', null ),
   column1:  writable( null ),
   column2:  writable( null ),
 };
@@ -48,7 +48,7 @@ Agent.get('versions')
     console.log('%s versions:', res.total);
     versions.set( res );
 
-    if (Array.isArray( res.versions )) {
+    if (Array.isArray( res.versions ) && get(verse) == null) {
       // Initialize 'version.primary' to the first
       version.primary.set( res.versions[0] );
     }

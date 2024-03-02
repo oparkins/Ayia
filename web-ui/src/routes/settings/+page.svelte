@@ -3,6 +3,7 @@
 
   import {
     Card,
+    Helper,
     Label,
     Range,
     Table,
@@ -12,11 +13,15 @@
     TableHead,
     TableHeadCell,
     Toggle,
-    Helper,
-    NumberInput,
   } from 'flowbite-svelte';
 
   import {
+    theme,
+    versions,
+    version as version_store,
+    verse,
+    user,
+
     content_font_size,
     show_footnotes,
     show_xrefs,
@@ -25,7 +30,7 @@
 
   import VerseYvers from '$lib/VerseYvers.svelte';
 
-  import { theme, versions, verse, user } from '$lib/stores.js';
+  const version_primary =version_store.primary;
 
   const example = {
     ref:  'JHN.003.003',
@@ -238,39 +243,45 @@
           <TableHeadCell class='w-full'>Value</TableHeadCell>
         </TableHead>
         <TableBody>
-          <TableBodyRow>
+          <TableBodyRow class='align-top'>
             <TableBodyCell><b>theme</b></TableBodyCell>
             <TableBodyCell>{ $theme }</TableBodyCell>
           </TableBodyRow>
-          <TableBodyRow>
+          <TableBodyRow class='align-top'>
             <TableBodyCell><b>content_font_size</b></TableBodyCell>
             <TableBodyCell>{ $content_font_size }px</TableBodyCell>
           </TableBodyRow>
-          <TableBodyRow>
+          <TableBodyRow class='align-top'>
             <TableBodyCell><b>show_footnotes</b></TableBodyCell>
             <TableBodyCell>{ $show_footnotes }</TableBodyCell>
           </TableBodyRow>
-          <TableBodyRow>
+          <TableBodyRow class='align-top'>
             <TableBodyCell><b>show_xrefs</b></TableBodyCell>
             <TableBodyCell>{ $show_xrefs }</TableBodyCell>
           </TableBodyRow>
-          <TableBodyRow>
+          <TableBodyRow class='align-top'>
             <TableBodyCell><b>show_redletters</b></TableBodyCell>
             <TableBodyCell>{ $show_redletters }</TableBodyCell>
           </TableBodyRow>
-          <TableBodyRow>
+          <TableBodyRow class='align-top'>
             <TableBodyCell><b>versions</b></TableBodyCell>
             <TableBodyCell>
 						{ $versions ? $versions.total : -1 }
             </TableBodyCell>
           </TableBodyRow>
-          <TableBodyRow>
+          <TableBodyRow class='align-top'>
+            <TableBodyCell><b>version_primary</b></TableBodyCell>
+            <TableBodyCell>
+              <pre>{ JSON.stringify( $version_primary, null, 2 ) }</pre>
+            </TableBodyCell>
+          </TableBodyRow>
+          <TableBodyRow class='align-top'>
             <TableBodyCell><b>verse</b></TableBodyCell>
             <TableBodyCell>
               <pre>{ JSON.stringify( $verse, null, 2 ) }</pre>
             </TableBodyCell>
           </TableBodyRow>
-          <TableBodyRow>
+          <TableBodyRow class='align-top'>
             <TableBodyCell><b>user</b></TableBodyCell>
             <TableBodyCell>
               <pre>{ JSON.stringify( $user, null, 2 ) }</pre>
