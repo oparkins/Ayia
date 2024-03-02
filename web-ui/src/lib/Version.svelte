@@ -146,7 +146,7 @@
      {/if}
     </div>
 
-    <div class='chapter { CssClass.body.join(' ') }'>
+    <div class='content { CssClass.body.join(' ') }'>
       {#if content_loading}
         Loading { $verse_store.ui_ref } ...
       {:else if content}

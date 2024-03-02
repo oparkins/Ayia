@@ -31,22 +31,22 @@
   }
 }
 
+
 @layer components {
 
-  /* Allow font to be customized per user for the presentation of chapter
-   * content.
+  /* Allow font to be customized per user for the presentation of content.
    */
-  .chapter {
-    font-size:  var( --chapter-font-size );
+  .content {
+    font-size:  var( --content-font-size );
 
     @apply  text-justify leading-tight pl-2 pr-4;
   }
 
-  .chapter .s,
-  .chapter .s1,
-  .chapter .s2,
-  .chapter .s3,
-  .chapter .s4 {
+  .content .s,
+  .content .s1,
+  .content .s2,
+  .content .s3,
+  .content .s4 {
     text-align:     center;
     padding-top:    1em;
     padding-bottom: .5em;
@@ -57,7 +57,7 @@
     font-weight:    bold;
   }
 
-  .chapter .r {
+  .content .r {
     position:       relative;
     top:            -.5em;
 
@@ -70,62 +70,62 @@
     font-style:   italic;
   }
 
-  .chapter .break {
+  .content .break {
     padding-bottom: 1em;
   }
-  .chapter .s + .break,
-  .chapter .r + .break {
+  .content .s + .break,
+  .content .r + .break {
     padding-bottom: 0;
   }
 
-  .chapter .verse.label {
-    @apply  inline-block px-1 text-yellow-700;
+  .content .verse.label {
+    @apply  inline-block px-[.25em] text-yellow-700;
   }
 
-  :is(.dark) .chapter .verse.label {
+  :is(.dark) .content .verse.label {
     @apply  text-yellow-400;
   }
 
-  .chapter .verse .wj {
+  .content .verse .wj {
     @apply  text-red-400;
   }
 
-  .chapter .verse .note {
+  .content .verse .note {
     @apply  inline-block;
-    margin-left:  .025rem;
-    margin-right: .25rem;
+    margin-left:  .025em;
+    margin-right: .25em;
   }
-  .chapter .verse .note+.note {
-    margin-left:  -.275rem;
-  }
-
-  .chapter .note.label {
-    @apply  shrink-0 w-4 h-4 text-gray-400;
+  .content .verse .note+.note {
+    margin-left:  -.275em;
   }
 
-  .chapter .note.content {
-    @apply  max-w-64 text-start text-gray-800;
+  .content .note.label {
+    @apply  shrink-0 w-[1em] h-[1em] text-gray-400;
   }
 
-  :is(.dark) .chapter .note.content {
+  .content .note.content {
+    @apply  max-w-[50ch] text-start text-gray-800;
+  }
+
+  :is(.dark) .content .note.content {
     @apply  text-gray-200;
   }
 
-  .chapter .note.content .fr {
-    @apply  text-sm pr-2 opacity-70;
+  .content .note.content .fr {
+    @apply  text-sm pr-[.5em] opacity-70;
   }
 
   /**************************************************************************
    * Single version display
    */
-  .chapter .verse {
+  .content .verse {
     @apply  inline;
   }
 
   /**************************************************************************
    * Parallel display
    */
-  .parallel .chapter .verse {
+  .parallel .content .verse {
     @apply  block;
   }
 }
