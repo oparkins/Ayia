@@ -1,17 +1,5 @@
 <script>
   import {
-    Button,
-    Card,
-    Dropdown,
-    DropdownItem,
-    Input,
-    Label,
-    Popover,
-    Tooltip,
-  } from 'flowbite-svelte';
-  import { ChevronDownSolid, AnnotationSolid } from 'flowbite-svelte-icons';
-
-  import {
     show_footnotes,
     show_xrefs,
     show_redletters,

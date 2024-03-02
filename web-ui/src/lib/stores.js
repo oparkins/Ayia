@@ -20,16 +20,16 @@ import { writable } from 'svelte/store';
 import Agent        from '$lib/agent';
 
 // Create shared stores
-export const  theme           = _writable_ls(      'color-theme', 'dark' );
-export const  user            = _writable_json_ls( 'user', null );
-export const  font_size       = _writable_int_ls(  'font_size', 16 );
-export const  show_footnotes  = _writable_bool_ls( 'show_footnotes',  true );
-export const  show_xrefs      = _writable_bool_ls( 'show_xrefs',      true );
-export const  show_redletters = _writable_bool_ls( 'show_redletters', true );
+export const  theme             = _writable_ls(      'color-theme', 'dark' );
+export const  user              = _writable_json_ls( 'user', null );
+export const  content_font_size = _writable_int_ls(  'content_font_size', 16 );
+export const  show_footnotes    = _writable_bool_ls( 'show_footnotes',  true );
+export const  show_xrefs        = _writable_bool_ls( 'show_xrefs',      true );
+export const  show_redletters   = _writable_bool_ls( 'show_redletters', true );
 
-export const  errors          = writable( [] );
-export const  versions        = writable( null );
-export const  verse           = writable( null );
+export const  errors            = writable( [] );
+export const  versions          = writable( null );
+export const  verse             = writable( null );
 
 export const  version = {
   primary:  writable( null ),

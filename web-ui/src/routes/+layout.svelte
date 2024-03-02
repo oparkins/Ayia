@@ -10,7 +10,19 @@
 
   import { SearchOutline } from 'flowbite-svelte-icons';
 
-  import { theme } from '$lib/stores';
+  import { theme, content_font_size } from '$lib/stores';
+
+  console.log('+layout: $content_font_size[ %s ]', $content_font_size);
+
+  // Subscribe to changes to the content_font_size to apply them to the DOM
+  content_font_size.subscribe( (val) => {
+    console.log('+layout: $content_font_size changed to [ %s ]', val);
+
+    if (typeof(document) !== 'undefined') {
+      document.documentElement.style.setProperty( '--content-font-size',
+                                                  `${val}px` );
+    }
+  });
 
   /**
    *  Mirror flow-bite DarkTheme changes to our store.
@@ -44,6 +56,18 @@
     // */
   };
 </script>
+
+<svelte:head>
+  <script>
+    if ('content_font_size' in localStorage) {
+      // explicit preference - immediately apply overrides
+      const font_size = localStorage.getItem('content_font_size');
+
+      document.documentElement.style.setProperty( '--content-font-size',
+                                                  `${font_size}px` );
+    }
+  </script>
+</svelte:head>
 
 <div class='flex flex-col h-screen w-screen'>
   <Navbar fluid>
