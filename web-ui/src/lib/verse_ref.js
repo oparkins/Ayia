@@ -168,7 +168,7 @@ export function find_book( name ) {
   const name_no_ws  = name.replaceAll(/\s/g, '');
   const ABBR        = name.toUpperCase().slice(0,3);
   const book        = books.find( entry => {
-    if (ABBR === entry.abbreviation)    { return true }
+    if (ABBR === entry.abbr)            { return true }
     if (entry.name.startsWith( name ))  { return true }
   });
 
