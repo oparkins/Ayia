@@ -107,16 +107,22 @@
   });
 
   /**
-   *  Toggle the drop-down open value.
+   *  Handle a show event from the drop-down.
    *
-   *  @method dropdown_toggle
+   *  @method dropdown_show
+   *  @param  event         The triggering event {Event};
+   *  @param  event.detail  True/showing, False/hidden {Boolean};
    *
-   *  Toggles the `dropdown_open` state.
+   *  Keep our 'dropdown_open' in-sync with drop-down's internal state.
    *
    *  @return void
    */
-  function dropdown_toggle() {
-    dropdown_open = !dropdown_open;
+  function dropdown_show( event ) {
+    /*
+    console.log('dropdown_show():', event);
+    // */
+
+    dropdown_open = event.detail;
   }
 
   /**
@@ -144,7 +150,7 @@
       version.set( new_version );
     }
 
-    dropdown_open = false;
+    if (dropdown_open) { dropdown_open = false }
   }
 
   /**
@@ -179,14 +185,14 @@
     id='versions-button'
     type='button'
     class={ CssClass.button.join(' ') }
-    on:click={ dropdown_toggle }
   >
-    { $vers_abbr }
+    { $vers_abbr } : { String(dropdown_open) }
     <ChevronDownSolid class='w-3 h-3 ms-2' />
   </button>
   <Dropdown
       open={ dropdown_open }
       class='overflow-y-auto max-h-[50vh] h-full'
+      on:show={ dropdown_show }
       triggeredBy='#versions-button'
   >
    {#each ($versions_store ? $versions_store.versions : []) as vers, idex}
