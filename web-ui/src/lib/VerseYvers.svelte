@@ -5,8 +5,9 @@
     show_redletters,
   }  from '$lib/stores';
 
-  import {html_raw}   from '$lib/render/yvers';
-  import VerseNote    from '$lib/VerseNote.svelte';
+  import { find_book }  from '$lib/verse_ref';
+  import { html_raw }   from '$lib/render/yvers';
+  import VerseNote      from '$lib/VerseNote.svelte';
 
   /* Information about the verse to present:
    *  - verse_ref     The reference for this verse {String};
@@ -17,6 +18,15 @@
   export let verse_ref;
   export let verse;
 
+  const [ bk, ch, vs ]  = (typeof(verse_ref) === 'string'
+                            ? verse_ref.split('.')
+                            : []);
+  const isFirstVerse  = (vs === '001');
+  const book          = (isFirstVerse && find_book( bk ));
+  const ch_num        = (isFirstVerse && parseInt( ch ));
+
+  console.log('VerseYvers(): verse_ref[ %s ], isFirstVerse[ %s ], book:',
+              verse_ref, String(isFirstVerse), book);
   /**
    *  Generate the HTML markup information needed to render the given markup.
    *
@@ -135,6 +145,13 @@
  *  - an object { _ref: "%multi-verse-reference" };
  */
 </script>
+
+{#if book}
+<div class='chapter header'>
+  <span class='chapter name'>{ book.name }</span>
+  <span class='chapter number'>{ ch_num }</span>
+</div>
+{/if}
 
 {#if Array.isArray( verse.markup ) }
 <div class='verse'>

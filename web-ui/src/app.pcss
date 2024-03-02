@@ -39,7 +39,19 @@
   .content {
     font-size:  var( --content-font-size );
 
-    @apply  text-justify leading-tight pl-2 pr-4;
+    @apply  text-justify leading-tight pl-2 pr-4 overflow-x-hidden;
+  }
+
+  .content .chapter.header {
+    @apply  flex flex-row justify-between pb-[.5em];
+  }
+  .content .chapter.name {
+    @apply      leading-none font-bold opacity-50;
+    font-size:  2em;
+  }
+  .content .chapter.number {
+    @apply      leading-none font-black text-yellow-700;
+    font-size:  2em;
   }
 
   .content .s,
