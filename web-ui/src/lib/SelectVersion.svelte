@@ -102,6 +102,15 @@
   }
 
   // Derive local state from store
+  const versions_sorted = derived( versions_store, ($versions_store) => {
+    const versions  = ($versions_store ? $versions_store.versions : []);
+
+    console.log('SelectVersion(): Sort %d versions ...', versions.length);
+    return versions.sort( (a,b) => {
+      return a.title.localeCompare( b.title );
+    });
+  });
+
   const vers_abbr = derived( version, ($version) => {
     return ( $version && $version.local_abbreviation );
   });
@@ -138,10 +147,10 @@
    *  @return void
    */
   function dropdown_select( event ) {
-    const versions_ro = get( versions_store );
+    const versions_ro = get( versions_sorted );
     const target      = event.target;
     const value       = target.value;
-    const new_version = versions_ro.versions[ value ];
+    const new_version = versions_ro[ value ];
 
     console.log('dropdown_select(): value[ %s ], new_version:',
                 value, new_version);
@@ -186,19 +195,18 @@
     type='button'
     class={ CssClass.button.join(' ') }
   >
-    { $vers_abbr } : { String(dropdown_open) }
-    <ChevronDownSolid class='w-3 h-3 ms-2' />
+    { $vers_abbr }<ChevronDownSolid class='w-4 h-4 ms-2' />
   </button>
   <Dropdown
-      open={ dropdown_open }
+      on:show={   dropdown_show }
       class='overflow-y-auto max-h-[50vh] h-full'
-      on:show={ dropdown_show }
       triggeredBy='#versions-button'
   >
-   {#each ($versions_store ? $versions_store.versions : []) as vers, idex}
+   {#each $versions_sorted as vers, idex}
     <DropdownItem
         class={ item_classes( vers, $vers_abbr ) }
         value={ idex }
+        active={ vers.local_abbreviation === $vers_abbr }
         on:click={ dropdown_select }
     >
       <div class='flex-grow pointer-events-none'>
