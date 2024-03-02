@@ -96,6 +96,7 @@
   /*************************************************************************/
   const version       = version_store[ column ];
   let   dropdown_open = false;
+  let   container_el  = null;
 
   if (version == null) {
     throw new Error(`Invalid column [ ${column} ]`);
@@ -122,16 +123,33 @@
    *  @param  event         The triggering event {Event};
    *  @param  event.detail  True/showing, False/hidden {Boolean};
    *
-   *  Keep our 'dropdown_open' in-sync with drop-down's internal state.
+   *  IF there is an active item, scroll it into view.
    *
    *  @return void
    */
   function dropdown_show( event ) {
-    /*
-    console.log('dropdown_show():', event);
-    // */
+    const isOpen  = (event.detail);
 
-    dropdown_open = event.detail;
+    if (! isOpen) { return }
+
+    // Wait a tick for the dropdown to be rendered
+    setTimeout( () => {
+      // Locate the currently active element
+      const active_el = (container_el
+                          ? container_el.querySelector('[active="true"]')
+                          : null);
+
+      if (active_el) {
+        // Scroll the active element into view
+        if (active_el.scrollIntoViewIfNeeded) {
+          // A+ class browsers
+          active_el.scrollIntoViewIfNeeded();
+        } else {
+          // Firefox
+          active_el.scrollIntoView({block:'center'});
+        }
+      }
+    }, 0);
   }
 
   /**
@@ -186,7 +204,6 @@
 
     return classes.join(' ');
   }
-
 </script>
 
 <div class={ CssClass.container.join(' ') }>
@@ -198,24 +215,27 @@
     { $vers_abbr }<ChevronDownSolid class='w-4 h-4 ms-2' />
   </button>
   <Dropdown
+      bind:open={ dropdown_open }
       on:show={   dropdown_show }
       class='overflow-y-auto max-h-[50vh] h-full'
       triggeredBy='#versions-button'
   >
-   {#each $versions_sorted as vers, idex}
-    <DropdownItem
-        class={ item_classes( vers, $vers_abbr ) }
-        value={ idex }
-        active={ vers.local_abbreviation === $vers_abbr }
-        on:click={ dropdown_select }
-    >
-      <div class='flex-grow pointer-events-none'>
-        {vers.title}
-      </div>
-      <div class='text-gray-400 pointer-events-none'>
-        {vers.local_abbreviation}
-      </div>
-    </DropdownItem>
-   {/each}
+    <div bind:this={ container_el }>
+     {#each $versions_sorted as vers, idex}
+      <DropdownItem
+          class={ item_classes( vers, $vers_abbr ) }
+          value={ idex }
+          active={ vers.local_abbreviation === $vers_abbr }
+          on:click={ dropdown_select }
+      >
+        <div class='flex-grow pointer-events-none'>
+          {vers.title}
+        </div>
+        <div class='text-gray-400 pointer-events-none'>
+          {vers.local_abbreviation}
+        </div>
+      </DropdownItem>
+     {/each}
+    </div>
   </Dropdown>
 </div>
