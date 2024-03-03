@@ -282,10 +282,17 @@
      {/if}
     </div>
 
-    <div class='content { CssClass.body.join(' ') }'>
+    <div class='content { Css.body.join(' ') }'>
       {#if content_loading}
         Loading { $verse_store.ui_ref } ...
       {:else if content}
+        {#if (book && $verse_store) }
+          <div class='chapter header'>
+            <span class='chapter name'>{ book.name }</span>
+            <span class='chapter number'>{ $verse_store.chapter }</span>
+          </div>
+        {/if}
+
         {#each Object.entries(content.verses) as [verse_ref, verse]}
           <svelte:component
               this={      verse_el }
