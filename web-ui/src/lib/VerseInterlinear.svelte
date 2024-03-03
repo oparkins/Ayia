@@ -15,6 +15,11 @@
 
 
 {#if Array.isArray( verse.markup ) }
+
+{#if verse.markup[0].heading != null}
+  <p class='s'>{verse.markup[0].heading}</p>
+{/if}
+
 <div class='inline-flex flex-wrap'>
   <p class="pt-[1em]">{verse_num}</p>
   {#each verse.markup as markup, m_dex}

@@ -251,7 +251,8 @@
             <Toggle color='blue'
                     checked={ $show_interlin_english }
                     data-target='show_interlin_english'
-                    on:change={ do_toggle } />
+                    disabled
+                     />
           </div>
         </Label>
 

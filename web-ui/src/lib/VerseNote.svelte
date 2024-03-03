@@ -14,12 +14,12 @@
 
 </script>
 
-<div class='note {type || 'foot'}'>
+<div class='inline note {type || 'foot'}'>
   <sup>
    {#if type === 'xref'}
-    <LinkOutline id={ id } class='note label' title={ label } />
+    <LinkOutline id={ id } class='inline note label' title={ label } />
    {:else}
-    <MessageCaptionSolid id={ id } class='note label' title={ label } />
+    <MessageCaptionSolid id={ id } class='inline note label' title={ label } />
    {/if}
   </sup>
   <Popover triggeredBy='#{id}' class='note content'>
