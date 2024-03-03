@@ -24,20 +24,17 @@
  
 <div class="pl-[1em] pr-[1em] pt-[1em] inline-flex flex-col">
   {#if $show_interlin_english }
-    <p id='en_{word_ref}' class="text-yellow-300 text-[1.125em] whitespace-nowrap">{word.text}
-      
-      {#if $show_xrefs && word.xref != null}
+  <div>
+    <p id='en_{word_ref}' class="inline text-yellow-300 text-[1.125em] whitespace-nowrap">{word.text}</p>
+    {#if $show_xrefs && word.xref != null}
         <VerseNote id='xref_{word_ref}' type="xref">
           {word.xref}
         </VerseNote>
       {/if}
-
-    </p>
-
+    </div>
     <Popover triggeredBy='#en_{word_ref}' placement='bottom' class='note content z-20'>
       {word.bdb}
     </Popover>
-    
   {/if}
 
 
