@@ -10,6 +10,8 @@
 
   import VerseText      from '$lib/VerseText.svelte';
   import VerseYvers     from '$lib/VerseYvers.svelte';
+  import VerseInterlinear     from '$lib/VerseInterlinear.svelte';
+
 
   import {
     version   as version_store,
@@ -69,11 +71,9 @@
         verse_el = VerseYvers;
         break;
 
-      /*
       case 'interlinear':
         verse_el = VerseInterlinear;
         break;
-      // */
 
       default:
         verse_el = VerseText;

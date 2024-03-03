@@ -26,6 +26,14 @@ export const  content_font_size = _writable_int_ls(  'content_font_size', 16 );
 export const  show_footnotes    = _writable_bool_ls( 'show_footnotes',  true );
 export const  show_xrefs        = _writable_bool_ls( 'show_xrefs',      true );
 export const  show_redletters   = _writable_bool_ls( 'show_redletters', true );
+//      Stores for specific interlinear component (xrefs options will be respected)
+export const  show_interlin_english   = _writable_bool_ls( 'show_interlin_english',   true );
+export const  show_interlin_translit  = _writable_bool_ls( 'show_interlin_translit',  false );
+export const  show_interlin_wlc       = _writable_bool_ls( 'show_interlin_wlc',       true );
+export const  show_interlin_strongs   = _writable_bool_ls( 'show_interlin_strongs',   true );
+export const  show_interlin_tos       = _writable_bool_ls( 'show_interlin_tos',       true );
+
+
 export const  verse             = _writable_json_ls( 'verse', null );
 
 export const  errors            = writable( [] );

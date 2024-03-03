@@ -26,7 +26,16 @@
     show_footnotes,
     show_xrefs,
     show_redletters,
+
+    show_interlin_english,
+    show_interlin_translit,
+    show_interlin_wlc,
+    show_interlin_strongs,
+    show_interlin_tos
   }  from '$lib/stores';
+
+  import * as stores from '$lib/stores';
+
 
   import VerseYvers from '$lib/VerseYvers.svelte';
 
@@ -134,11 +143,8 @@
     console.log('do_toggle(): storeItem[ %s ], isChecked[ %s ]',
                 storeItem, String(isChecked));
 
-    switch( storeItem ) {
-      case 'show_footnotes':  show_footnotes.set(  isChecked ); break;
-      case 'show_xrefs':      show_xrefs.set(      isChecked ); break;
-      case 'show_redletters': show_redletters.set( isChecked ); break;
-    }
+   stores[storeItem].set(isChecked); 
+
   }
 
   /**
@@ -233,6 +239,72 @@
                   on:change={ do_toggle } />
         </div>
       </Label>
+
+      <h5 class="pt-4">Interlinear Settings</h5>
+
+      <div class="p-4">
+        <Label>
+          <div class='flex flex-row items-center py-2'>
+            <div class='w-[20ch] shrink-0'>
+              Show English
+            </div>
+            <Toggle color='blue'
+                    checked={ $show_interlin_english }
+                    data-target='show_interlin_english'
+                    on:change={ do_toggle } />
+          </div>
+        </Label>
+
+        <Label>
+          <div class='flex flex-row items-center py-2'>
+            <div class='w-[20ch] shrink-0'>
+              Always Display Transliteration
+              <Helper>If off, will be available by hovering over original language</Helper>
+            </div>
+            <Toggle color='blue'
+                    checked={ $show_interlin_translit }
+                    data-target='show_interlin_translit'
+                    on:change={ do_toggle } />
+          </div>
+        </Label>
+
+        <Label>
+          <div class='flex flex-row items-center py-2'>
+            <div class='w-[20ch] shrink-0'>
+              Show Original Language
+            </div>
+            <Toggle color='blue'
+                    checked={ $show_interlin_wlc }
+                    data-target='show_interlin_wlc'
+                    on:change={ do_toggle } />
+          </div>
+        </Label>
+
+
+        <Label>
+          <div class='flex flex-row items-center py-2'>
+            <div class='w-[20ch] shrink-0'>
+              Show Strongs
+            </div>
+            <Toggle color='blue'
+                    checked={ $show_interlin_strongs }
+                    data-target='show_interlin_strongs'
+                    on:change={ do_toggle } />
+          </div>
+        </Label>
+
+        <Label>
+          <div class='flex flex-row items-center py-2'>
+            <div class='w-[20ch] shrink-0'>
+              Show Type of Speech
+            </div>
+            <Toggle color='blue'
+                    checked={ $show_interlin_tos }
+                    data-target='show_interlin_tos'
+                    on:change={ do_toggle } />
+          </div>
+        </Label>
+      </div>
     </div>
 
     <h5>Current Settings</h5>
@@ -286,6 +358,26 @@
             <TableBodyCell>
               <pre>{ JSON.stringify( $user, null, 2 ) }</pre>
             </TableBodyCell>
+          </TableBodyRow>
+          <TableBodyRow class='align-top'>
+            <TableBodyCell><b>show_interlin_english</b></TableBodyCell>
+            <TableBodyCell>{ $show_interlin_english }</TableBodyCell>
+          </TableBodyRow>
+          <TableBodyRow class='align-top'>
+            <TableBodyCell><b>show_interlin_wlc</b></TableBodyCell>
+            <TableBodyCell>{ $show_interlin_wlc }</TableBodyCell>
+          </TableBodyRow>
+          <TableBodyRow class='align-top'>
+            <TableBodyCell><b>show_interlin_translit</b></TableBodyCell>
+            <TableBodyCell>{ $show_interlin_translit }</TableBodyCell>
+          </TableBodyRow>
+          <TableBodyRow class='align-top'>
+            <TableBodyCell><b>show_interlin_tos</b></TableBodyCell>
+            <TableBodyCell>{ $show_interlin_tos }</TableBodyCell>
+          </TableBodyRow>
+          <TableBodyRow class='align-top'>
+            <TableBodyCell><b>show_interlin_strongs</b></TableBodyCell>
+            <TableBodyCell>{ $show_interlin_strongs }</TableBodyCell>
           </TableBodyRow>
         </TableBody>
       </Table>
