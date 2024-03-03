@@ -32,7 +32,7 @@
         </VerseNote>
       {/if}
     </div>
-    <Popover triggeredBy='#en_{word_ref}' placement='bottom' class='note content z-20'>
+    <Popover triggeredBy='#en_{word_ref}' placement='bottom' class='note-content z-20'>
       {word.bdb}
     </Popover>
   {/if}
@@ -46,7 +46,7 @@
     </p>
 
     {#if !$show_interlin_translit }
-      <Popover triggeredBy='#wlc_{word_ref}' placement='bottom' class='note content z-20'>
+      <Popover triggeredBy='#wlc_{word_ref}' placement='bottom' class='note-content z-20'>
         {word.translit}
       </Popover>
     {/if}
@@ -60,7 +60,7 @@
   <p id='tos_{word_ref}' class="text-[.875em]">
     {word.tos}
   </p>
-  <Popover triggeredBy='#tos_{word_ref}' placement='bottom' class='note content z-20'>
+  <Popover triggeredBy='#tos_{word_ref}' placement='bottom' class='note-content z-20'>
     {word.tos_label}
   </Popover>
   {/if}
