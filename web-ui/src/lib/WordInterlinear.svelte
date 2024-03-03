@@ -21,48 +21,44 @@
 
 </script>
 
- 
-<div class="pl-[1em] pr-[1em] pt-[1em] inline-flex flex-col">
+<div class='text-center leading-none'>
   {#if $show_interlin_english }
-  <div>
-    <p id='en_{word_ref}' class="inline text-yellow-300 text-[1.125em]">{word.text}</p>
-    {#if $show_xrefs && word.xref != null}
-        <VerseNote id='xref_{word_ref}' type="xref" label="#">
+    <div>
+      <p id='en_{word_ref}' class='inline'>{word.text}</p>
+      {#if $show_xrefs && word.xref != null}
+        <VerseNote id='xref_{word_ref}' type='xref' label='#'>
           {word.xref}
         </VerseNote>
       {/if}
+      <Popover
+          class='note-content z-20'
+          triggeredBy='#en_{word_ref}'
+          placement='bottom'
+      >
+        {word.bdb}
+        <div class='px-[.5em] pt-[.5em] text-[.8em] text-gray-400'>
+          <p>{word.tos_label} ( {word.tos} )</p>
+          <p>Strongs {word.language}: {word.strongs}</p>
+        </div>
+      </Popover>
     </div>
-    <Popover triggeredBy='#en_{word_ref}' placement='bottom' class='note-content z-20'>
-      {word.bdb}
-    </Popover>
   {/if}
 
-
   {#if $show_interlin_wlc }
-    <p id='wlc_{word_ref}'>{word.wlc}
-      {#if $show_interlin_strongs }
-        <sup>{word.strongs}</sup>
-      {/if}
-    </p>
+    <p id='wlc_{word_ref}' class='text-blue-400 text-[.9em]'>{word.wlc}</p>
 
     {#if !$show_interlin_translit }
-      <Popover triggeredBy='#wlc_{word_ref}' placement='bottom' class='note-content z-20'>
+      <Popover
+          class='note-content z-20'
+          triggeredBy='#wlc_{word_ref}'
+          placement='bottom'
+      >
         {word.translit}
       </Popover>
     {/if}
   {/if}
 
   {#if $show_interlin_translit }
-    <p class="text-[.75em]">({word.translit})</p>
+    <p class='text-gray-400 text-[.9em]'>{word.translit}</p>
   {/if}
-
-  {#if $show_interlin_tos }
-  <p id='tos_{word_ref}' class="text-[.875em]">
-    {word.tos}
-  </p>
-  <Popover triggeredBy='#tos_{word_ref}' placement='bottom' class='note-content z-20'>
-    {word.tos_label}
-  </Popover>
-  {/if}
-  
 </div>
