@@ -25,9 +25,9 @@
 <div class="pl-[1em] pr-[1em] pt-[1em] inline-flex flex-col">
   {#if $show_interlin_english }
   <div>
-    <p id='en_{word_ref}' class="inline text-yellow-300 text-[1.125em] whitespace-nowrap">{word.text}</p>
+    <p id='en_{word_ref}' class="inline text-yellow-300 text-[1.125em]">{word.text}</p>
     {#if $show_xrefs && word.xref != null}
-        <VerseNote id='xref_{word_ref}' type="xref">
+        <VerseNote id='xref_{word_ref}' type="xref" label="#">
           {word.xref}
         </VerseNote>
       {/if}
@@ -64,8 +64,5 @@
     {word.tos_label}
   </Popover>
   {/if}
-
   
 </div>
-
-   
