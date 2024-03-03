@@ -152,7 +152,7 @@ function _writable_ls( key, def_val, serialize=null, deserialize=null ) {
   const localStorage  = (typeof(window) !== 'undefined'
                             ? window.localStorage
                             : null);
-  const get_ls        = (localStorage
+  const get_ls        = (localStorage && key in localStorage
                           ? () => deserialize( localStorage.getItem( key ) )
                           : () => def_val);
 
