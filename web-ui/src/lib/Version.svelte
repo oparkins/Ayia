@@ -5,8 +5,6 @@
 
   import {
     BottomNav,
-    BottomNavItem,
-    Tooltip,
     Card,
   } from 'flowbite-svelte';
 
@@ -81,7 +79,7 @@
       'mx-auto',
       'h-full',
       '!p-4',
-      '!pb-0',
+      '!pb-14',
     ],
 
     controls: [
@@ -92,55 +90,55 @@
     ],
 
     body: [
-      //'flex',
-      //'flex-col',
       'w-full',
       'h-full',
+      'pb-4',
+
       'overflow-y-auto',
+
       'text-gray-800',
       'dark:text-gray-200',
+
+      'border-b',
+      'border-gray-200',
+      'dark:border-gray-600',
     ],
 
     nav_outer: [
       'h-10',
+      'bottom-3',
+
+      'border-none',
 
       'bg-transparent',
       'dark:bg-transparent',
     ],
 
     nav_inner: [
-      'grid-cols-2',
+      'grid-cols-3',
       'p-1',
       'mw-unset',
     ],
 
-    // BottomNavItem.btnClass
-    nav_item: [
-      'disabled:bg-transparent',
-      'disabled:dark:bg-transparent',
+    // BottomNav buttons
+    nav_button_container: [
+      'flex',
+      'items-center',
+      'justify-center',
     ],
 
-    nav_icon: [
-      'w-5',
-      'h-5',
+    nav_button: [
+      'grow',
+      'flex',
+      'items-center',
+      'px-8',
 
-      'text-gray-500',
-      'group-hover:text-primary-600',
+      'focus:outline-none',
 
-      'dark:text-gray-400',
-      'dark:group-hover:text-primary-500',
-    ],
+      'text-white',
+      'dark:text-gray-300',
 
-    nav_icon_disabled: [
-      'w-5',
-      'h-5',
-      'opacity-50',
-
-      'text-gray-500',
-      'group-hover:text-gray-500',
-
-      'dark:text-gray-400',
-      'dark:group-hover:dark:text-gray-400',
+      'disabled:opacity-50',
     ],
   };
 
@@ -256,20 +254,6 @@
 
     set_verse( new_ref );
   }
-
-  /**
-   *  Retrieve the proper styling for a nav icon based upon `isDisabled`
-   *
-   *  @method nav_icon_class
-   *  @param  isDisabled    Is navigation disabled? {Boolean};
-   *
-   *  @return The class {String};
-   */
-  function nav_icon_class( isDisabled ) {
-    return (isDisabled
-              ? Css.nav_icon_disabled.join(' ')
-              : Css.nav_icon.join(' ') );
-  }
 </script>
 
 <div class={ Css.container.join(' ') }>
@@ -309,32 +293,51 @@
 
    {#if column === 'primary'}
     <BottomNav
-        position='sticky'
-        navType='card'
+        position='fixed'
+        navType='application'
         classOuter='{ Css.nav_outer.join(' ') }'
         classInner='{ Css.nav_inner.join(' ') }'>
-      <BottomNavItem
-          appBtnPosition='left'
-          disabled={ prev_disabled }
-          on:click={ chapter_prev }
-          btnClass='{ Css.nav_item.join(' ') }'
-      >
-        <CaretLeftSolid class='{ nav_icon_class( prev_disabled ) }' />
-        {#if (!prev_disabled)}
-        <Tooltip>Previous Chapter</Tooltip>
-        {/if}
-      </BottomNavItem>
-      <BottomNavItem
-          appBtnPosition='right'
-          disabled={ next_disabled }
-          on:click={ chapter_next }
-          btnClass='{ Css.nav_item.join(' ') }'
-      >
-        <CaretRightSolid class='{ nav_icon_class( next_disabled ) }' />
-        {#if (!next_disabled)}
-        <Tooltip>Next Chapter</Tooltip>
-        {/if}
-      </BottomNavItem>
+      <div class='col-span-1 { Css.nav_button_container.join(' ') }'>
+        <button
+            type='button'
+            disabled={ prev_disabled }
+            on:click={ chapter_prev }
+            class='{ Css.nav_button.join(' ') } justify-start'>
+          <svg  aria-hidden='true'
+                class='w-5 h-5 sm:w-6 sm:h-6'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+                xmlns='http://www.w3.org/2000/svg'>
+            <path stroke-linecap='round'
+                  stroke-linejoin='round'
+                  stroke-width='2'
+                  d='M15 19l-7-7 7-7' />
+          </svg>
+        </button>
+      </div>
+      <div class='col-span-1 { Css.nav_button_container.join(' ') }'>
+        <!-- { $verse_store ? $verse_store.ui_ref : '' } -->
+      </div>
+      <div class='col-span-1 { Css.nav_button_container.join(' ') }'>
+        <button
+            type='button'
+            disabled={ next_disabled }
+            on:click={ chapter_next }
+            class='{ Css.nav_button.join(' ') } justify-end'>
+          <svg  aria-hidden='true'
+                class='w-5 h-5 sm:w-6 sm:h-6'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+                xmlns='http://www.w3.org/2000/svg'>
+            <path stroke-linecap='round'
+                  stroke-linejoin='round'
+                  stroke-width='2'
+                  d='M9 5l7 7-7 7' />
+          </svg>
+        </button>
+      </div>
     </BottomNav>
    {/if}
   </Card>
