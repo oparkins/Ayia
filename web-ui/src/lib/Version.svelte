@@ -134,7 +134,7 @@
 
       'focus:outline-none',
 
-      'text-white',
+      'text-gray-700',
       'dark:text-gray-300',
 
       'disabled:opacity-50',
