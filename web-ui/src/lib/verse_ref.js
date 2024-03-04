@@ -13,7 +13,7 @@ const Book_RE = /^([123] ?)?([^0-9.]+)(?:[. ]*[0-9]+|$)/;
  *
  *  @method set_verse
  *  @param  verse_ref               The incoming verse reference {String};
- *  @param  [apply_bounds = false]  If truthy and the chapter or verse are
+ *  @param  [apply_bounds = true]   If truthy and the chapter or verse are
  *                                  out-of-bounds, update them to be within
  *                                  bounds. Otherwise, the reference is invalid
  *                                  {Boolean};
@@ -21,7 +21,7 @@ const Book_RE = /^([123] ?)?([^0-9.]+)(?:[. ]*[0-9]+|$)/;
  *  @return The validated reference or undefined {Object};
  *            { book, chapter, verse, ui_ref, api_ref }
  */
-export function set_verse( verse_ref, apply_bounds = false ) {
+export function set_verse( verse_ref, apply_bounds = true ) {
   const versions_ro = get( versions );
 
   if (verse_ref == null || verse_ref.length < 3) {
@@ -58,7 +58,7 @@ export function set_verse( verse_ref, apply_bounds = false ) {
   let   vs_num    = parseInt( vs );
   const max_chaps = book.verses.length - 1;
 
-  if (ch_num < 1) { 
+  if (Number.isNaN(ch_num) || ch_num < 1) {
     if (! apply_bounds) { /* Invalid */ return }
     ch_num = 1;
   }
@@ -97,8 +97,8 @@ export function set_verse( verse_ref, apply_bounds = false ) {
 
   verse.set( {
     book    : bk,
-    chapter : (ch_num ? ch : ''),
-    verse   : (vs_num ? vs : ''),
+    chapter : (ch_num || ''),
+    verse   : (vs_num || ''),
     ui_ref,
     api_ref,
   } );
