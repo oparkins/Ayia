@@ -114,7 +114,7 @@
       </NavUl>
   </Navbar>
   <div class='flex flex-row w-screen h-full overflow-hidden'>
-    <main class='grow basis-full flex flex-row h-full px-4'>
+    <main class='grow basis-full flex flex-row h-full'>
       <slot />
     </main>
   </div>
