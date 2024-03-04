@@ -69,7 +69,6 @@
       'flex-col',
       'w-full',
       'h-full',
-      'py-4',
       'overflow-hidden',
     ],
 
