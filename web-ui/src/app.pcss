@@ -9,13 +9,13 @@
 
     --scrollbar-size:         .5em;
     --scrollbar-radius:       .5em;
-    --scrollbar-track-hex:    #bdbdbd;      /* grey-300 */
-    --scrollbar-thumb-rgb:    33 33 33;     /* grey-900 */
+    --scrollbar-track-hex:    transparent;
+    --scrollbar-thumb-rgb:    182 188 197;  /* grey-350 */
   }
 
   :is(.dark) {
-    --scrollbar-track-hex:    #040404;      /* grey-999 */
-    --scrollbar-thumb-rgb:    75 85 99;     /* grey-600 */
+    --scrollbar-track-hex:    transparent;
+    --scrollbar-thumb-rgb:    31 41 55;     /* grey-800 */
   }
 
   *::-webkit-scrollbar {
@@ -27,7 +27,7 @@
 
   *::-webkit-scrollbar-thumb {
     border-radius:  var( --scrollbar-radius );
-    background:     rgb( var( --scrollbar-thumb-rgb ) / .5 );
+    background:     rgb( var( --scrollbar-thumb-rgb ) );
   }
 }
 
