@@ -27,11 +27,11 @@
     show_xrefs,
     show_redletters,
 
-    show_interlin_english,
-    show_interlin_translit,
-    show_interlin_wlc,
-    show_interlin_strongs,
-    show_interlin_tos
+    show_il_english,
+    show_il_translit,
+    show_il_wlc,
+    show_il_strongs,
+    show_il_tos
   }  from '$lib/stores';
 
   import * as stores from '$lib/stores';
@@ -118,6 +118,28 @@
       'dark:text-gray-200',
     ],
 
+    label: [
+      'flex',
+      'flex-row',
+      'items-center',
+      'py-2',
+    ],
+    label_text: [
+      'w-[30ch]',
+      'shrink-0',
+    ],
+    label_helper: [
+      'inline',
+      'opacity-50',
+    ],
+    label_control: [
+      'grow',
+
+      'flex',
+      'flex-column',
+      'justify-center',
+    ],
+
     current_values: [
       'grow',
     ],
@@ -185,12 +207,12 @@
     </Card>
 
     <div class='p-4'>
-      <Label>
-        <div class='flex flex-row items-center py-2'>
-          <div class='w-[20ch] shrink-0 flex flex-row justify-between'>
-            <span>Font Size</span>
-            <span class='pr-4'>{ $content_font_size }</span>
-          </div>
+      <Label class='{ Css.label.join(' ') }'>
+        <div class='{ Css.label_text.join(' ')} flex flex-row justify-between'>
+          <span>Font Size</span>
+          <span class='pr-4'>{ $content_font_size }</span>
+        </div>
+        <div class='{ Css.label_control.join(' ') }'>
           <Range color='blue' size='lg'
                  min={  12 }
                  max={  36 }
@@ -201,12 +223,14 @@
         </div>
       </Label>
 
-      <Label>
-        <div class='flex flex-row items-center py-2'>
-          <div class='w-[20ch] shrink-0'>
-            Show footnotes
-            <Helper>(when available)</Helper>
-          </div>
+      <Label class='{ Css.label.join(' ') }'>
+        <div class='{ Css.label_text.join(' ') }'>
+          Show footnotes
+          <Helper class='{ Css.label_helper.join(' ') }'>
+            (when available)
+          </Helper>
+        </div>
+        <div class='{ Css.label_control.join(' ') }'>
           <Toggle color='blue'
                   checked={ $show_footnotes }
                   data-target='show_footnotes'
@@ -214,12 +238,14 @@
         </div>
       </Label>
 
-      <Label>
-        <div class='flex flex-row items-center py-2'>
-          <div class='w-[20ch] shrink-0'>
-            Show Cross-references
-            <Helper>(when available)</Helper>
-          </div>
+      <Label class='{ Css.label.join(' ') }'>
+        <div class='{ Css.label_text.join(' ') }'>
+          Show Cross-references
+          <Helper class='{ Css.label_helper.join(' ') }'>
+            (when available)
+          </Helper>
+        </div>
+        <div class='{ Css.label_control.join(' ') }'>
           <Toggle color='blue'
                   checked={ $show_xrefs }
                   data-target='show_xrefs'
@@ -227,12 +253,14 @@
         </div>
       </Label>
 
-      <Label>
-        <div class='flex flex-row items-center py-2'>
-          <div class='w-[20ch] shrink-0'>
-            Red letters
-            <Helper>(when available)</Helper>
-          </div>
+      <Label class='{ Css.label.join(' ') }'>
+        <div class='{ Css.label_text.join(' ') }'>
+          Red letters
+          <Helper class='{ Css.label_helper.join(' ') }'>
+            (when available)
+          </Helper>
+        </div>
+        <div class='{ Css.label_control.join(' ') }'>
           <Toggle color='blue'
                   checked={ $show_redletters }
                   data-target='show_redletters'
@@ -240,68 +268,70 @@
         </div>
       </Label>
 
-      <h5 class="pt-4">Interlinear Settings</h5>
-
-      <div class="p-4">
-        <Label>
-          <div class='flex flex-row items-center py-2'>
-            <div class='w-[20ch] shrink-0'>
-              Show English
-            </div>
+      <h5 class='pt-4'>Interlinear Settings</h5>
+      <div class='p-4 pt-0'>
+        <Label class='{ Css.label.join(' ') }'>
+          <div class='{ Css.label_text.join(' ') }'>
+            Show English
+          </div>
+          <div class='{ Css.label_control.join(' ') }'>
             <Toggle color='blue'
-                    checked={ $show_interlin_english }
-                    data-target='show_interlin_english'
+                    checked={ $show_il_english }
+                    data-target='show_il_english'
+                    class='opacity-25'
                     disabled
-                     />
+            />
           </div>
         </Label>
 
-        <Label>
-          <div class='flex flex-row items-center py-2'>
-            <div class='w-[20ch] shrink-0'>
-              Always Display Transliteration
-              <Helper>If off, will be available by hovering over original language</Helper>
-            </div>
+        <Label class='{ Css.label.join(' ') }'>
+          <div class='{ Css.label_text.join(' ') }'>
+            Always Display Transliteration
+            <Helper class='{ Css.label_helper.join(' ') } block pl-4'>
+              If off, will be available by hovering over original language
+            </Helper>
+          </div>
+          <div class='{ Css.label_control.join(' ') }'>
             <Toggle color='blue'
-                    checked={ $show_interlin_translit }
-                    data-target='show_interlin_translit'
+                    checked={ $show_il_translit }
+                    data-target='show_il_translit'
                     on:change={ do_toggle } />
           </div>
         </Label>
 
-        <Label>
-          <div class='flex flex-row items-center py-2'>
-            <div class='w-[20ch] shrink-0'>
-              Show Original Language
-            </div>
+        <Label class='{ Css.label.join(' ') }'>
+          <div class='{ Css.label_text.join(' ') }'>
+            Show Original Language
+          </div>
+          <div class='{ Css.label_control.join(' ') }'>
             <Toggle color='blue'
-                    checked={ $show_interlin_wlc }
-                    data-target='show_interlin_wlc'
+                    checked={ $show_il_wlc }
+                    data-target='show_il_wlc'
                     on:change={ do_toggle } />
           </div>
         </Label>
 
 
-        <Label>
-          <div class='flex flex-row items-center py-2'>
-            <div class='w-[20ch] shrink-0'>
-              Show Strongs
-            </div>
+        <Label class='{ Css.label.join(' ') }'>
+          <div class='{ Css.label_text.join(' ') }'>
+            Show Strongs
+          </div>
+          <div class='{ Css.label_control.join(' ') }'>
             <Toggle color='blue'
-                    checked={ $show_interlin_strongs }
-                    data-target='show_interlin_strongs'
+                    checked={ $show_il_strongs }
+                    data-target='show_il_strongs'
                     on:change={ do_toggle } />
           </div>
         </Label>
 
-        <Label>
-          <div class='flex flex-row items-center py-2'>
-            <div class='w-[20ch] shrink-0'>
-              Show Type of Speech
-            </div>
+        <Label class='{ Css.label.join(' ') }'>
+          <div class='{ Css.label_text.join(' ') }'>
+            Show Type of Speech
+          </div>
+          <div class='{ Css.label_control.join(' ') }'>
             <Toggle color='blue'
-                    checked={ $show_interlin_tos }
-                    data-target='show_interlin_tos'
+                    checked={ $show_il_tos }
+                    data-target='show_il_tos'
                     on:change={ do_toggle } />
           </div>
         </Label>
@@ -361,24 +391,24 @@
             </TableBodyCell>
           </TableBodyRow>
           <TableBodyRow class='align-top'>
-            <TableBodyCell><b>show_interlin_english</b></TableBodyCell>
-            <TableBodyCell>{ $show_interlin_english }</TableBodyCell>
+            <TableBodyCell><b>show_il_english</b></TableBodyCell>
+            <TableBodyCell>{ $show_il_english }</TableBodyCell>
           </TableBodyRow>
           <TableBodyRow class='align-top'>
-            <TableBodyCell><b>show_interlin_wlc</b></TableBodyCell>
-            <TableBodyCell>{ $show_interlin_wlc }</TableBodyCell>
+            <TableBodyCell><b>show_il_wlc</b></TableBodyCell>
+            <TableBodyCell>{ $show_il_wlc }</TableBodyCell>
           </TableBodyRow>
           <TableBodyRow class='align-top'>
-            <TableBodyCell><b>show_interlin_translit</b></TableBodyCell>
-            <TableBodyCell>{ $show_interlin_translit }</TableBodyCell>
+            <TableBodyCell><b>show_il_translit</b></TableBodyCell>
+            <TableBodyCell>{ $show_il_translit }</TableBodyCell>
           </TableBodyRow>
           <TableBodyRow class='align-top'>
-            <TableBodyCell><b>show_interlin_tos</b></TableBodyCell>
-            <TableBodyCell>{ $show_interlin_tos }</TableBodyCell>
+            <TableBodyCell><b>show_il_tos</b></TableBodyCell>
+            <TableBodyCell>{ $show_il_tos }</TableBodyCell>
           </TableBodyRow>
           <TableBodyRow class='align-top'>
-            <TableBodyCell><b>show_interlin_strongs</b></TableBodyCell>
-            <TableBodyCell>{ $show_interlin_strongs }</TableBodyCell>
+            <TableBodyCell><b>show_il_strongs</b></TableBodyCell>
+            <TableBodyCell>{ $show_il_strongs }</TableBodyCell>
           </TableBodyRow>
         </TableBody>
       </Table>

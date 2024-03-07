@@ -1,11 +1,11 @@
 <script>
 
   import {
-    show_interlin_english,
-    show_interlin_translit,
-    show_interlin_wlc,
-    show_interlin_strongs,
-    show_interlin_tos,
+    show_il_english,
+    show_il_translit,
+    show_il_wlc,
+    show_il_strongs,
+    show_il_tos,
     show_xrefs
   } from '$lib/stores';
   
@@ -23,7 +23,7 @@
 
  
 <div class="pl-[1em] pr-[1em] pt-[1em] inline-flex flex-col">
-  {#if $show_interlin_english }
+  {#if $show_il_english }
   <div>
     <p id='en_{word_ref}' class="inline text-yellow-300 text-[1.125em]">{word.text}</p>
     {#if $show_xrefs && word.xref != null}
@@ -38,25 +38,25 @@
   {/if}
 
 
-  {#if $show_interlin_wlc }
+  {#if $show_il_wlc }
     <p id='wlc_{word_ref}'>{word.wlc}
-      {#if $show_interlin_strongs }
+      {#if $show_il_strongs }
         <sup>{word.strongs}</sup>
       {/if}
     </p>
 
-    {#if !$show_interlin_translit }
+    {#if !$show_il_translit }
       <Popover triggeredBy='#wlc_{word_ref}' placement='bottom' class='note-content z-20'>
         {word.translit}
       </Popover>
     {/if}
   {/if}
 
-  {#if $show_interlin_translit }
+  {#if $show_il_translit }
     <p class="text-[.75em]">({word.translit})</p>
   {/if}
 
-  {#if $show_interlin_tos }
+  {#if $show_il_tos }
   <p id='tos_{word_ref}' class="text-[.875em]">
     {word.tos}
   </p>

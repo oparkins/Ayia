@@ -1,14 +1,22 @@
 /**
  *  Available stores:
- *    theme           {String};
- *    user            {Object};
- *    show_footnotes  {Boolean};
- *    show_xrefs      {Boolean};
- *    show_redletters {Boolean};
+ *    user              {Object};
+ *    versions          {Array};
+ *    verse             {Object}  -- { book, chapter, verse, ui_ref, api_ref };
+ *    version           {Object}  -- { primary, column1, column2 };
  *
- *    errors          {Object}  -- arrays keyed by type (e.g. auth_password);
+ *    theme             {String};
+ *    content_font_size {Number};
+ *    show_footnotes    {Boolean};
+ *    show_xrefs        {Boolean};
+ *    show_redletters   {Boolean};
+ *    show_il_english   {Boolean};
+ *    show_il_translit  {Boolean};
+ *    show_il_wlc       {Boolean};
+ *    show_il_strongs   {Boolean};
+ *    show_il_tos       {Boolean};
  *
- *    drawer_open     {Boolean};
+ *    errors            {Object}  -- arrays keyed by type (e.g. auth_password);
  */
 
 // Only include on the client side {
@@ -20,30 +28,29 @@ import { get, writable }  from 'svelte/store';
 import Agent              from '$lib/agent';
 
 // Create shared stores
-export const  theme             = _writable_ls(      'color-theme', 'dark' );
 export const  user              = _writable_json_ls( 'user', null );
-export const  content_font_size = _writable_int_ls(  'content_font_size', 16 );
-export const  show_footnotes    = _writable_bool_ls( 'show_footnotes',  true );
-export const  show_xrefs        = _writable_bool_ls( 'show_xrefs',      true );
-export const  show_redletters   = _writable_bool_ls( 'show_redletters', true );
-//      Stores for specific interlinear component (xrefs options will be respected)
-export const  show_interlin_english   = _writable_bool_ls( 'show_interlin_english',   true );
-export const  show_interlin_translit  = _writable_bool_ls( 'show_interlin_translit',  false );
-export const  show_interlin_wlc       = _writable_bool_ls( 'show_interlin_wlc',       true );
-export const  show_interlin_strongs   = _writable_bool_ls( 'show_interlin_strongs',   true );
-export const  show_interlin_tos       = _writable_bool_ls( 'show_interlin_tos',       true );
-
-
-export const  verse             = _writable_json_ls( 'verse', null );
-
-export const  errors            = writable( [] );
 export const  versions          = writable( null );
-
+export const  verse             = _writable_json_ls( 'verse', null );
 export const  version = {
   primary:  _writable_json_ls( 'version_primary', null ),
   column1:  writable( null ),
   column2:  writable( null ),
 };
+
+// User preferences
+export const  theme             = _writable_ls(      'color-theme', 'dark' );
+export const  content_font_size = _writable_int_ls(  'content_font_size', 16 );
+export const  show_footnotes    = _writable_bool_ls( 'show_footnotes',  true );
+export const  show_xrefs        = _writable_bool_ls( 'show_xrefs',      true );
+export const  show_redletters   = _writable_bool_ls( 'show_redletters', true );
+
+export const  show_il_english   = _writable_bool_ls( 'show_il_english', true );
+export const  show_il_translit  = _writable_bool_ls( 'show_il_translit',false);
+export const  show_il_wlc       = _writable_bool_ls( 'show_il_wlc',     true );
+export const  show_il_strongs   = _writable_bool_ls( 'show_il_strongs', true );
+export const  show_il_tos       = _writable_bool_ls( 'show_il_tos',     true );
+
+export const  errors            = writable( [] );
 
 /*
 export const  drawer_open = _writable_ls( 'drawer_open', false,
