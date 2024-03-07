@@ -1,7 +1,5 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
-
-  import { get, derived } from 'svelte/store';
+  import { get } from 'svelte/store';
 
   import {
     BottomNav,
@@ -24,33 +22,57 @@
 
 
   import {
-    version   as version_store,
+    version   as version_stores,
     verse     as verse_store,
   }  from '$lib/stores';
 
   import Agent  from '$lib/agent';
 
-  /* The column this selector is for:
+  /* The column containing this component:
    *  - primary : primary column
    *  - column# : secondary column (by number)    :TODO:
    *
    * This determines which store value is used for the version selection and
    * whether a verse selector is included.
    */
-  export let column = 'primary';
+  export let column   = 'primary';
+  export let version  = null;   // The target version
+  export let verse    = null;   // The target verse
+  export let content  = null;   // Verse-related content
 
   /*************************************************************************/
-  /* Alias for this component:
-   *    primary : primary column
-   *    column# : secondary column (by number)
-   */
-  const version = version_store[ column ];
-
-  if (version == null) {
+  const version_store = version_stores[ column ];
+  if (version_store == null) {
     throw new Error(`Invalid column [ ${column} ]`);
   }
 
-  let content         = null;
+  if (version) {
+    console.log('Version.version: passed-in ...');
+
+    // Ensure our store is in-sync
+    version_store.set( version );
+
+  } else {
+    /* Alias for this component:
+     *    primary : primary column
+     *    column# : secondary column (by number)
+     */
+    console.log('Version.version: from-store ...');
+  }
+
+  if (verse) {
+    console.log('Version.verse: passed-in ...');
+
+    // Ensure our store is in-sync
+    verse_store.set( verse );
+
+  } else {
+    console.log('Version.verse: from-store ...');
+
+  }
+
+  /*************************************************************************/
+  let need_load       = (content == null);
   let content_loading = false;
   let verse_el        = VerseText;
   let book            = null;
@@ -58,9 +80,6 @@
   let max_verse       = 0;
   let prev_disabled   = false;
   let next_disabled   = false;
-
-  // When either `version` or `verse_store` change, update content
-  $: fetch_content( $version, $verse_store );
 
   // Styling for various components
   const Css = {
@@ -142,24 +161,19 @@
   };
 
   /**
-   *  Fetch content based upon the current `vers_abbr` and parsed `verse`.
+   *  Update dependants once version and verse are available.
    *
-   *  @method fetch_content
-   *  @param  version   The selected version {Object};
-   *                      { abbreviation, local_abbreviation, ... }
-   *  @param  verse     The verse reference {Objecct};
-   *                      { book, chapter, verse, ui_ref, api_ref }
+   *  @method update_dependants
+   *  @param  version   Information about the target version {Object};
+   *  @param  verse     Information about the target verse {Object};
    *
-   *  This sets the `contoent_loading` flag and, upon completion, the `content`
-   *  value.
-   *
-   *  @return void;
+   *  Updates:
+   *      prev_disabled
+   *      next_disabled
+   *      verse_el
+   *      book
    */
-  function fetch_content( version, verse ) {
-    if (version == null || verse == null) { return }
-
-    const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
-
+  function update_dependants( version, verse ) {
     /* Determine immediately if we should disable the previous chapter button.
      *  :XXX: Wait until AFTER the fetch for the next chapter button since
      *        the versions information may not be available yet.
@@ -180,21 +194,69 @@
         break;
     }
 
+    // Check if we have `versions` meta-data to enable bounds checking by book.
+    book = find_book( verse.book );
+    console.log('update_dependants(): book[ %s ]:', verse.book, book);
+    if (book) {
+      // Determine if we should disable the next chapter button
+      max_chapter = book.verses.length - 1;
+      max_verse   = book.verses[ verse.chapter ];
+
+      next_disabled = (verse.chapter >= max_chapter);
+
+    } else {
+      next_disabled = false;
+    }
+  }
+
+  /**
+   *  Fetch content based upon the current `vers_abbr` and parsed `verse`.
+   *
+   *  @method fetch_content
+   *  @param  version   The selected version {Object};
+   *                      { abbreviation, local_abbreviation, ... }
+   *  @param  verse     The verse reference {Objecct};
+   *                      { book, chapter, verse, ui_ref, api_ref }
+   *
+   *  This sets the `contoent_loading` flag and, upon completion, the `content`
+   *  value.
+   *
+   *  @return void;
+   */
+  function fetch_content( version, verse ) {
+    if (version == null || verse == null) { return }
+
+    if (! need_load) {
+      console.log('Version.fetch_content(): ! need_load');
+
+      update_dependants( version, verse );
+
+      need_load = true;
+      return;
+    }
+
+    const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
+
+    console.log('Version.fetch_content(): path:', path);
+
+    /* Determine immediately if we should disable the previous chapter button.
+     *  :XXX: Wait until AFTER the fetch for the next chapter button since
+     *        the versions information may not be available yet.
+     */
+    update_dependants( version, verse );
+
     content_loading = true;
     Agent.get( path )
       .then( res => {
+        /*
         console.log('fetch_content():', res);
+        // */
 
-        /* Once this fetch completes, versions meta-data should be available,
-         * allowing the use of `find_book()` to retrieve book information.
-         */
-        book = find_book( verse.book );
-        if (book) {
-          // Determine if we should disable the next chapter button
-          max_chapter = book.verses.length - 1;
-          max_verse   = book.verses[ verse.chapter ];
-
-          next_disabled = (verse.chapter >= max_chapter);
+        if (book == null) {
+          /* Once this fetch completes, versions meta-data should be available,
+           * allowing the use of `find_book()` to retrieve book information.
+           */
+          update_dependants( version, verse );
         }
 
         content = res;
@@ -228,6 +290,8 @@
       new_ref = `${new_ref}:${verse.verse}`;
     }
     set_verse( new_ref );
+
+    fetch_content( $version_store, $verse_store );
   }
 
   /**
@@ -252,7 +316,12 @@
     }
 
     set_verse( new_ref );
+
+    fetch_content( $version_store, $verse_store );
   }
+
+  // When either `version_store` or `verse_store` change, update content
+  $: fetch_content( $version_store, $verse_store );
 </script>
 
 <div class={ Css.container.join(' ') }>
