@@ -1,4 +1,34 @@
 <script>
+  /**
+   *  Present version-related content based upon the selected version and
+   *  verse.
+   *
+   *  @element  Version
+   *  @prop     [version = null]      The current version {Version};
+   *  @prop     [verse = null]        The target verse {Object};
+   *  @prop     [content = null]      Content for the current `version` and
+   *                                  `verse` {Object};
+   *  @prop     [column = 'primary']  The column this selector is for
+   *                                  (primary | column#) {String};
+   *                                  For the 'primary' column, style with no
+   *                                  end-side rounded border to allow snugging
+   *                                  up against a companion SelectVerse
+   *                                  element.
+   *
+   *  External properties {
+   */
+  export let column   = 'primary';
+  export let version  = null;   // The target version
+  export let verse    = null;   // The target verse
+  export let content  = null;   // Verse-related content
+
+  /*  External properties }
+   *************************************************************************
+   *  Imports {
+   *
+   */
+  import { isRedirect, redirect } from '@sveltejs/kit';
+
   import { get } from 'svelte/store';
 
   import {
@@ -11,14 +41,15 @@
     CaretRightSolid,
   } from 'flowbite-svelte-icons';
 
-  import { find_book, set_verse }  from '$lib/verse_ref';
+  import { goto }                 from  '$app/navigation';
+  import { find_book, set_verse } from '$lib/verse_ref';
 
-  import SelectVersion  from '$lib/SelectVersion.svelte';
-  import SelectVerse    from '$lib/SelectVerse.svelte';
+  import SelectVersion    from '$lib/SelectVersion.svelte';
+  import SelectVerse      from '$lib/SelectVerse.svelte';
 
-  import VerseText      from '$lib/VerseText.svelte';
-  import VerseYvers     from '$lib/VerseYvers.svelte';
-  import VerseInterlinear     from '$lib/VerseInterlinear.svelte';
+  import VerseText        from '$lib/VerseText.svelte';
+  import VerseYvers       from '$lib/VerseYvers.svelte';
+  import VerseInterlinear from '$lib/VerseInterlinear.svelte';
 
 
   import {
@@ -28,19 +59,16 @@
 
   import Agent  from '$lib/agent';
 
-  /* The column containing this component:
-   *  - primary : primary column
-   *  - column# : secondary column (by number)    :TODO:
+  /*  Imports }
+   *************************************************************************
+   *  Synchronization {
    *
-   * This determines which store value is used for the version selection and
-   * whether a verse selector is included.
+   *  Establish context from properties and/or stores.
    */
-  export let column   = 'primary';
-  export let version  = null;   // The target version
-  export let verse    = null;   // The target verse
-  export let content  = null;   // Verse-related content
+  const cur_location  = (typeof(location) !== 'undefined'
+                          ? location
+                          : {pathname:null});
 
-  /*************************************************************************/
   const version_store = version_stores[ column ];
   if (version_store == null) {
     throw new Error(`Invalid column [ ${column} ]`);
@@ -71,7 +99,10 @@
 
   }
 
-  /*************************************************************************/
+  /*  Synchronization }
+   *************************************************************************
+   *  Local state {
+   */
   let need_load       = (content == null);
   let content_loading = false;
   let verse_el        = VerseText;
@@ -81,7 +112,250 @@
   let prev_disabled   = false;
   let next_disabled   = false;
 
-  // Styling for various components
+  /*  Local state }
+   *************************************************************************
+   *  Methods {
+   */
+
+  /**
+   *  Update dependants once version and verse are available.
+   *
+   *  @method update_dependants
+   *  @param  version   Information about the target version {Object};
+   *  @param  verse     Information about the target verse {Object};
+   *
+   *  Updates:
+   *      prev_disabled
+   *      next_disabled
+   *      verse_el
+   *      book
+   */
+  function update_dependants( version, verse ) {
+    /* Determine immediately if we should disable the previous chapter button.
+     *  :XXX: Wait until AFTER the fetch for the next chapter button since
+     *        the versions information may not be available yet.
+     */
+    prev_disabled = (verse.chapter < 2);
+
+    switch( version.type ) {
+      case 'yvers':
+        verse_el = VerseYvers;
+        break;
+
+      case 'interlinear':
+        verse_el = VerseInterlinear;
+        break;
+
+      default:
+        verse_el = VerseText;
+        break;
+    }
+
+    // Check if we have `versions` meta-data to enable bounds checking by book.
+    book = find_book( verse.book );
+    console.log('update_dependants(): book[ %s ]:', verse.book, book);
+    if (book) {
+      // Determine if we should disable the next chapter button
+      max_chapter = book.verses.length - 1;
+      max_verse   = book.verses[ verse.chapter ];
+
+      next_disabled = (verse.chapter >= max_chapter);
+
+    } else {
+      next_disabled = false;
+    }
+  }
+
+  /**
+   *  React to a location update.
+   *
+   *  @method update_location
+   *  @param  version   The selected version {Object};
+   *                      { abbreviation, local_abbreviation, ... }
+   *  @param  verse     The verse reference {Objecct};
+   *                      { book, chapter, verse, ui_ref, api_ref }
+   *
+   *  This sets the `contoent_loading` flag and, upon completion, the `content`
+   *  value.
+   *
+   *  @return void;
+   */
+  async function update_location( version, verse ) {
+    if (version == null || verse == null) { return }
+
+    const path  = `/${version.abbreviation}/${verse.api_ref}`;
+
+    if (cur_location.pathname !== path) {
+      console.log('update_location(): Need to redirect [ %s ] => [ %s ]',
+                  cur_location.pathname, path);
+      //redirect( 303, path );
+      //cur_location.pathmame = path;
+      //await goto( path );
+      //return;
+    }
+
+    fetch_content( version, verse );
+  }
+
+  /**
+   *  Fetch content based upon the current `vers_abbr` and parsed `verse`.
+   *
+   *  @method fetch_content
+   *  @param  version   The selected version {Object};
+   *                      { abbreviation, local_abbreviation, ... }
+   *  @param  verse     The verse reference {Objecct};
+   *                      { book, chapter, verse, ui_ref, api_ref }
+   *
+   *  This sets the `contoent_loading` flag and, upon completion, the `content`
+   *  value.
+   *
+   *  @return void;
+   */
+  function fetch_content( version, verse ) {
+    if (version == null || verse == null) { return }
+
+    if (! need_load) {
+      console.log('Version.fetch_content(): ! need_load');
+
+      update_dependants( version, verse );
+
+      need_load = true;
+      return;
+    }
+
+    const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
+
+    console.log('Version.fetch_content(): path:', path);
+
+    /* Determine immediately if we should disable the previous chapter button.
+     *  :XXX: Wait until AFTER the fetch for the next chapter button since
+     *        the versions information may not be available yet.
+     */
+    update_dependants( version, verse );
+
+    content_loading = true;
+    Agent.get( path )
+      .then( res => {
+        /*
+        console.log('fetch_content():', res);
+        // */
+
+        if (book == null) {
+          /* Once this fetch completes, versions meta-data should be available,
+           * allowing the use of `find_book()` to retrieve book information.
+           */
+          update_dependants( version, verse );
+        }
+
+        content = res;
+      })
+      .catch( err => {
+        console.error('fetch_content():', err);
+      })
+      .finally( () => {
+        content_loading = false;
+      });
+  }
+
+  /**
+   *  Handle a 'versionchanged' event from SelectVersion
+   *
+   *  @method version_changed
+   *  @param  event         The triggering event {CustomEvent};
+   *  @param  event.type    The event type (selected) {String};
+   *  @param  event.detail  The selected version {Version};
+   *
+   *  @return void
+   */
+  function version_changed( event ) {
+    const version = event.detail;
+
+    // assert( event.type === 'versionchanged' );
+    // assert( version != null && typeof(version) === 'object' );
+    console.log('Version: SelectVersion.%s:', event.type, version);
+
+    version_store.set( version );
+  }
+
+  /**
+   *  Handle a 'versechanged' event from SelectVerse
+   *
+   *  @method verse_changed
+   *  @param  event         The triggering event {CustomEvent};
+   *  @param  event.type    The event type (selected) {String};
+   *  @param  event.detail  The selected version {Version};
+   *
+   *  @return void
+   */
+  function verse_changed( event ) {
+    const verse = event.detail;
+
+    // assert( event.type === 'versechanged' );
+    // assert( verse != null && typeof(verse) === 'object' );
+    console.log('Version: SelectVerse.%s:', event.type, verse);
+
+    verse_store.set( verse );
+  }
+
+  /**
+   *  Handle a click on a previous chapter button.
+   *
+   *  @method chapter_prev
+   *  @param  event     The triggering event {Event};
+   *
+   *  @return void
+   */
+  function chapter_prev( event ) {
+    const verse = get( verse_store );
+
+    /*
+    console.log('Version.chapter_prev():', verse);
+    // */
+
+    const ch_num          = parseInt( verse.chapter ) - 1;
+    let   new_ref         = `${verse.book}.${ch_num}`;
+    if (verse.verse && verse.verse !== '') {
+      new_ref = `${new_ref}:${verse.verse}`;
+    }
+
+    set_verse( new_ref );
+
+    update_location( $version_store, $verse_store );
+  }
+
+  /**
+   *  Handle a click on a next chapter button.
+   *
+   *  @method chapter_next
+   *  @param  event     The triggering event {Event};
+   *
+   *  @return void
+   */
+  function chapter_next( event ) {
+    const verse = get( verse_store );
+
+    /*
+    console.log('Version.chapter_next():', verse);
+    // */
+
+    const ch_num          = parseInt( verse.chapter ) + 1;
+    let   new_ref         = `${verse.book}.${ch_num}`;
+    if (verse.verse && verse.verse !== '') {
+      new_ref = `${new_ref}:${verse.verse}`;
+    }
+
+    set_verse( new_ref );
+
+    update_location( $version_store, $verse_store );
+  }
+
+  // When either `version_store` or `verse_store` change, update content
+  $: update_location( $version_store, $verse_store );
+
+  /*  Methods }
+   *************************************************************************
+   *  Styling {
+   */
   const Css = {
     container: [
       'flex',
@@ -160,177 +434,24 @@
     ],
   };
 
-  /**
-   *  Update dependants once version and verse are available.
-   *
-   *  @method update_dependants
-   *  @param  version   Information about the target version {Object};
-   *  @param  verse     Information about the target verse {Object};
-   *
-   *  Updates:
-   *      prev_disabled
-   *      next_disabled
-   *      verse_el
-   *      book
-   */
-  function update_dependants( version, verse ) {
-    /* Determine immediately if we should disable the previous chapter button.
-     *  :XXX: Wait until AFTER the fetch for the next chapter button since
-     *        the versions information may not be available yet.
-     */
-    prev_disabled = (verse.chapter < 2);
-
-    switch( version.type ) {
-      case 'yvers':
-        verse_el = VerseYvers;
-        break;
-
-      case 'interlinear':
-        verse_el = VerseInterlinear;
-        break;
-
-      default:
-        verse_el = VerseText;
-        break;
-    }
-
-    // Check if we have `versions` meta-data to enable bounds checking by book.
-    book = find_book( verse.book );
-    console.log('update_dependants(): book[ %s ]:', verse.book, book);
-    if (book) {
-      // Determine if we should disable the next chapter button
-      max_chapter = book.verses.length - 1;
-      max_verse   = book.verses[ verse.chapter ];
-
-      next_disabled = (verse.chapter >= max_chapter);
-
-    } else {
-      next_disabled = false;
-    }
-  }
-
-  /**
-   *  Fetch content based upon the current `vers_abbr` and parsed `verse`.
-   *
-   *  @method fetch_content
-   *  @param  version   The selected version {Object};
-   *                      { abbreviation, local_abbreviation, ... }
-   *  @param  verse     The verse reference {Objecct};
-   *                      { book, chapter, verse, ui_ref, api_ref }
-   *
-   *  This sets the `contoent_loading` flag and, upon completion, the `content`
-   *  value.
-   *
-   *  @return void;
-   */
-  function fetch_content( version, verse ) {
-    if (version == null || verse == null) { return }
-
-    if (! need_load) {
-      console.log('Version.fetch_content(): ! need_load');
-
-      update_dependants( version, verse );
-
-      need_load = true;
-      return;
-    }
-
-    const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
-
-    console.log('Version.fetch_content(): path:', path);
-
-    /* Determine immediately if we should disable the previous chapter button.
-     *  :XXX: Wait until AFTER the fetch for the next chapter button since
-     *        the versions information may not be available yet.
-     */
-    update_dependants( version, verse );
-
-    content_loading = true;
-    Agent.get( path )
-      .then( res => {
-        /*
-        console.log('fetch_content():', res);
-        // */
-
-        if (book == null) {
-          /* Once this fetch completes, versions meta-data should be available,
-           * allowing the use of `find_book()` to retrieve book information.
-           */
-          update_dependants( version, verse );
-        }
-
-        content = res;
-      })
-      .catch( err => {
-        console.error('fetch_content():', err);
-      })
-      .finally( () => {
-        content_loading = false;
-      });
-  }
-
-  /**
-   *  Handle a click on a previous chapter button.
-   *
-   *  @method chapter_prev
-   *  @param  event     The triggering event {Event};
-   *
-   *  @return void
-   */
-  function chapter_prev( event ) {
-    const verse = get( verse_store );
-
-    /*
-    console.log('Version.chapter_prev():', verse);
-    // */
-
-    const ch_num          = parseInt( verse.chapter ) - 1;
-    let   new_ref         = `${verse.book}.${ch_num}`;
-    if (verse.verse && verse.verse !== '') {
-      new_ref = `${new_ref}:${verse.verse}`;
-    }
-    set_verse( new_ref );
-
-    fetch_content( $version_store, $verse_store );
-  }
-
-  /**
-   *  Handle a click on a next chapter button.
-   *
-   *  @method chapter_next
-   *  @param  event     The triggering event {Event};
-   *
-   *  @return void
-   */
-  function chapter_next( event ) {
-    const verse = get( verse_store );
-
-    /*
-    console.log('Version.chapter_next():', verse);
-    // */
-
-    const ch_num          = parseInt( verse.chapter ) + 1;
-    let   new_ref         = `${verse.book}.${ch_num}`;
-    if (verse.verse && verse.verse !== '') {
-      new_ref = `${new_ref}:${verse.verse}`;
-    }
-
-    set_verse( new_ref );
-
-    fetch_content( $version_store, $verse_store );
-  }
-
-  // When either `version_store` or `verse_store` change, update content
-  $: fetch_content( $version_store, $verse_store );
+  /*  Styling }
+   *************************************************************************/
 </script>
 
 <div class={ Css.container.join(' ') }>
   <Card size='md' class={ Css.card.join(' ') }>
     <div class={ Css.controls.join(' ') }>
-      <SelectVersion column={ column } />
+      <SelectVersion
+          column={ column }
+          version={ $version_store }
+          on:versionchanged={ version_changed }
+      />
 
      {#if column === 'primary'}
-      <SelectVerse />
+      <SelectVerse
+          verse={ $verse_store }
+          on:versechanged={ verse_changed }
+      />
      {/if}
     </div>
 

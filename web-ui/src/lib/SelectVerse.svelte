@@ -1,13 +1,80 @@
 <script>
-  import { derived }  from 'svelte/store';
+  /**
+   *  Provide a verse selector.
+   *
+   *  @element  SelectVerse
+   *  @prop     [verse]               The current verse {Object};
+   *
+   *  Dispatches event:
+   *    'versechanged'  { detail: {Verse} }
+   *
+   *  External properties {
+   */
+  export let  verse = null;
+
+  /*  External properties }
+   *************************************************************************
+   *  Imports {
+   *
+   */
+  import { createEventDispatcher }  from 'svelte';
+  import { get, writable }          from 'svelte/store';
 
   import { Input }    from 'flowbite-svelte';
 
   import { verse as verse_store } from '$lib/stores';
-  import { set_verse }            from '$lib/verse_ref';
+  import { parse_verse }          from '$lib/verse_ref';
 
-  // CSS Class values for elements
-  const CssClass = {
+  /*  Imports }
+   *************************************************************************
+   *  Local state {
+   */
+	const dispatch  = createEventDispatcher();
+  const verse_ref = writable( (verse        && verse.ui_ref) ||
+                              ($verse_store && $verse_store.ui_ref) ||
+                              '' );
+
+  // Keep `verse_ref` in-sync with any external changes to `verse_store`
+  verse_store.subscribe( (val) => {
+    const ref = (val && val.ui_ref) || '';
+
+    verse_ref.set( ref );
+  });
+
+  /*  Local state }
+   *************************************************************************
+   *  Methods {
+   */
+
+  /**
+   *  Handle a change to the verse input.
+   *
+   *  @method verse_change
+   *  @param  event   The triggering event {Event};
+   *
+   *  @return void
+   */
+  function verse_change( event ) {
+    const verse_ref_ro  = get( verse_ref );
+    const new_verse     = parse_verse( verse_ref_ro );
+
+    // assert( event.target.value === verse_ref_ro );
+    console.log('SelectVerse.verse_change(): value[ %s / %s ], new_verse:',
+                event.target.value, verse_ref_ro, new_verse);
+
+    if (new_verse) {
+      const new_ref = new_verse.ui_ref;
+
+      verse_ref.set( new_ref );
+      dispatch( 'versechanged', new_verse );
+    }
+  }
+
+  /*  Methods }
+   *************************************************************************
+   *  Styling {
+   */
+  const Css = {
     container: [
       'flex-grow',
 
@@ -38,49 +105,17 @@
     ],
   };
 
-  let verse_input = ($verse_ref && $verse_ref.ui_ref || '');
-
-  // Derive local state from store
-  const verse_ref = derived( verse_store, ($verse_store) => {
-    verse_input = ( $verse_store && $verse_store.ui_ref );
-    return verse_input;
-  });
-
-  /**
-   *  Handle a change to the verse input.
-   *
-   *  @method verse_change
-   *  @param  event   The triggering event {Event};
-   *
-   *  Invokes `verse_ref:set_verse()` with the new input value.
-   *
-   *  @return void
-   */
-  function verse_change( event ) {
-    const target    = event.target;
-    const new_verse = target.value;
-
-    /*
-    const verse_ro  = get( verse );
-    const cur_verse = (verse_ro
-                          ? `${verse_ro.book} `
-                              + `${verse_ro.chapter}:${verse_ro.verse}`
-                          : 'unset');
-    console.log('verse_change(): %s => %s', cur_verse, new_verse);
-    // */
-
-    set_verse( new_verse );
-  }
-
+  /*  Styling }
+   *************************************************************************/
 </script>
 
-<div class={ CssClass.container.join(' ') }>
+<div class={ Css.container.join(' ') }>
   <Input
     id='verse'
     type='text'
     placeholder='Verse'
-    class={ CssClass.input.join(' ') }
-    bind:value={ verse_input }
+    class={ Css.input.join(' ') }
+    bind:value={ $verse_ref }
     on:change={  verse_change }
     required
   />

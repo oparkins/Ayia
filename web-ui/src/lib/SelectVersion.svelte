@@ -1,30 +1,171 @@
 <script>
-  import { get, derived } from 'svelte/store';
+  /**
+   *  Provide a version selector from the full set of available versions.
+   *
+   *  @element  SelectVersion
+   *  @prop     version               The currently selected version {Version};
+   *  @prop     [column = 'primary']  The column this selector is for
+   *                                  (primary | column#) {String};
+   *                                  For the 'primary' column, style with no
+   *                                  end-side rounded border to allow snugging
+   *                                  up against a companion SelectVerse
+   *                                  element.
+   *
+   *  Dispatches event:
+   *    'versionchanged'  { detail: {Version} }
+   *
+   *  External properties {
+   */
+  export let  version = null;
+  export let  column  = 'primary';
+
+  /*  External properties }
+   *************************************************************************
+   *  Imports {
+   *
+   */
+  import { createEventDispatcher }  from 'svelte';
+  import { get, writable, derived } from 'svelte/store';
 
   import {
-    Card,
     Dropdown,
     DropdownItem,
-    Label,
-    Input,
   } from 'flowbite-svelte';
   import { ChevronDownSolid } from 'flowbite-svelte-icons';
 
   import {
     versions  as versions_store,
-    version   as version_store,
+    version   as version_stores,
   }  from '$lib/stores';
 
-  /* The column this selector is for:
-   *  - primary : primary column
-   *  - column# : secondary column (by number)    :TODO:
-   *
-   * This determines which store value is used for the selection
+  /*  Imports }
+   *************************************************************************
+   *  Local state {
    */
-  export let column = 'primary';
+	const dispatch      = createEventDispatcher();
+  let   dropdown_open = false;
+  let   container_el  = null;
+  const version_store = version_stores[ column ];
+  const vers_abbr     = writable( (version &&
+                                   version.local_abbreviation) ||
+                                  ($version_store &&
+                                   $version_store.local_abbreviation) );
 
-  // CSS Class values for elements
-  const CssClass = {
+  // Derive a sorted set of versions
+  const versions_sorted = derived( versions_store, ($versions_store) => {
+    const versions  = ($versions_store ? $versions_store.versions : []);
+
+    /*
+    console.log('SelectVersion(): Sort %d versions ...', versions.length);
+    // */
+
+    return versions.sort( (a,b) => {
+      return a.title.localeCompare( b.title );
+    });
+  });
+
+  /*  Local state }
+   *************************************************************************
+   *  Methods {
+   */
+
+  /**
+   *  Handle a show event from the drop-down.
+   *
+   *  @method dropdown_show
+   *  @param  event         The triggering event {Event};
+   *  @param  event.detail  True/showing, False/hidden {Boolean};
+   *
+   *  IF there is an active item, scroll it into view.
+   *
+   *  @return void
+   */
+  function dropdown_show( event ) {
+    const isOpen  = (event.detail);
+
+    if (! isOpen) { return }
+
+    // Wait a tick for the dropdown to be rendered
+    setTimeout( () => {
+      // Locate the currently active element
+      const active_el = (container_el
+                          ? container_el.querySelector('[active="true"]')
+                          : null);
+
+      if (active_el) {
+        // Scroll the active element into view
+        if (active_el.scrollIntoViewIfNeeded) {
+          // A+ class browsers
+          active_el.scrollIntoViewIfNeeded();
+        } else {
+          // Firefox
+          active_el.scrollIntoView({block:'center'});
+        }
+      }
+    }, 0);
+  }
+
+  /**
+   *  Handle a select event within the drop-down.
+   *
+   *  @method dropdown_select
+   *  @param  event   The triggering event {PointerEvent};
+   *
+   *  Updates:
+   *    - version
+   *    - dropdown_open = false
+   *
+   *  @return void
+   */
+  function dropdown_select( event ) {
+    const versions_ro = get( versions_sorted );
+    const target      = event.target;
+    const value       = target.value;
+    const new_version = versions_ro[ value ];
+
+    console.log('SelectVersion.dropdown_select(): value[ %s ], new_version:',
+                value, new_version);
+
+    if (new_version) {
+      const new_abbr  = new_version.local_abbreviation;
+
+      vers_abbr.set( new_abbr );
+      dispatch( 'versionchanged', new_version );
+    }
+
+    if (dropdown_open) { dropdown_open = false }
+  }
+
+  /**
+   *  Return the CSS classes for a drop-down item based upon whether the item
+   *  value is the currently selected value.
+   *
+   *  @method item_classes
+   *  @param  item      The current item {Object};
+   *  @param  selected  The currently selected item {String};
+   *
+   *  @return The set of CSS classes {String};
+   */
+  function item_classes( item, selected ) {
+    const classes = Css.item.slice();
+
+    /*
+    console.log('item_classes(): item.abbreviation[ %s / %s ], selected[ %s ]',
+                item.local_abbreviation, item.abbreviation, selected);
+    // */
+
+    if (item.local_abbreviation === selected) {
+      classes.push( ...Css.item_active );
+    }
+
+    return classes.join(' ');
+  }
+
+  /*  Methods }
+   *************************************************************************
+   *  Styling {
+   */
+  const Css = {
     container: [
       'flex',
       'flex-row',
@@ -85,135 +226,22 @@
    */
   if ( column === 'primary' ) {
     // No grow, no rounded border on the end side of the button
-    CssClass.button.push( 'flex-shrink-0', 'rounded-s-lg' );
+    Css.button.push( 'flex-shrink-0', 'rounded-s-lg' );
 
   } else {
     // Grow, Rounded border all around
-    CssClass.button.push( 'flex-grow', 'rounded-lg' );
+    Css.button.push( 'flex-grow', 'rounded-lg' );
 
   }
-
-  /*************************************************************************/
-  const version       = version_store[ column ];
-  let   dropdown_open = false;
-  let   container_el  = null;
-
-  if (version == null) {
-    throw new Error(`Invalid column [ ${column} ]`);
-  }
-
-  // Derive local state from store
-  const versions_sorted = derived( versions_store, ($versions_store) => {
-    const versions  = ($versions_store ? $versions_store.versions : []);
-
-    /*
-    console.log('SelectVersion(): Sort %d versions ...', versions.length);
-    // */
-
-    return versions.sort( (a,b) => {
-      return a.title.localeCompare( b.title );
-    });
-  });
-
-  const vers_abbr = derived( version, ($version) => {
-    return ( $version && $version.local_abbreviation );
-  });
-
-  /**
-   *  Handle a show event from the drop-down.
-   *
-   *  @method dropdown_show
-   *  @param  event         The triggering event {Event};
-   *  @param  event.detail  True/showing, False/hidden {Boolean};
-   *
-   *  IF there is an active item, scroll it into view.
-   *
-   *  @return void
-   */
-  function dropdown_show( event ) {
-    const isOpen  = (event.detail);
-
-    if (! isOpen) { return }
-
-    // Wait a tick for the dropdown to be rendered
-    setTimeout( () => {
-      // Locate the currently active element
-      const active_el = (container_el
-                          ? container_el.querySelector('[active="true"]')
-                          : null);
-
-      if (active_el) {
-        // Scroll the active element into view
-        if (active_el.scrollIntoViewIfNeeded) {
-          // A+ class browsers
-          active_el.scrollIntoViewIfNeeded();
-        } else {
-          // Firefox
-          active_el.scrollIntoView({block:'center'});
-        }
-      }
-    }, 0);
-  }
-
-  /**
-   *  Handle a select event within the drop-down.
-   *
-   *  @method dropdown_select
-   *  @param  event   The triggering event {PointerEvent};
-   *
-   *  Updates:
-   *    - version
-   *    - dropdown_open = false
-   *
-   *  @return void
-   */
-  function dropdown_select( event ) {
-    const versions_ro = get( versions_sorted );
-    const target      = event.target;
-    const value       = target.value;
-    const new_version = versions_ro[ value ];
-
-    console.log('dropdown_select(): value[ %s ], new_version:',
-                value, new_version);
-
-    if (new_version) {
-      version.set( new_version );
-    }
-
-    if (dropdown_open) { dropdown_open = false }
-  }
-
-  /**
-   *  Return the CSS classes for a drop-down item based upon whether the item
-   *  value is the currently selected value.
-   *
-   *  @method item_classes
-   *  @param  item      The current item {Object};
-   *  @param  selected  The currently selected item {String};
-   *
-   *  @return The set of CSS classes {String};
-   */
-  function item_classes( item, selected ) {
-    const classes = CssClass.item.slice();
-
-    /*
-    console.log('item_classes(): item.abbreviation[ %s / %s ], selected[ %s ]',
-                item.local_abbreviation, item.abbreviation, selected);
-    // */
-
-    if (item.local_abbreviation === selected) {
-      classes.push( ...CssClass.item_active );
-    }
-
-    return classes.join(' ');
-  }
+  /*  Styling }
+   *************************************************************************/
 </script>
 
-<div class={ CssClass.container.join(' ') }>
+<div class={ Css.container.join(' ') }>
   <button
     id='versions-button'
     type='button'
-    class={ CssClass.button.join(' ') }
+    class={ Css.button.join(' ') }
   >
     { $vers_abbr }<ChevronDownSolid class='w-4 h-4 ms-2' />
   </button>
