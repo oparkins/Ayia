@@ -80,7 +80,7 @@ export function parse_verse( verse_ref, apply_bounds = true ) {
   const ch_str  = (ch_num ? String(ch_num) : '');
   const vs_str  = (vs_num ? String(vs_num) : '');
 
-  let ui_ref  = `${bk.trim()} ${ch_str.trim()}`;
+  let ui_ref  = `${book.name} ${ch_str.trim()}`;
   if (vs_num) {
     ui_ref += `:${vs_str.trim()}`;
   }
