@@ -19,7 +19,7 @@ const Book_RE = /^([123] ?)?([^0-9.]+)(?:[. ]*[0-9]+|$)/;
  *                                  {Boolean};
  *
  *  @return The validated reference or undefined {Object};
- *            { book, chapter, verse, ui_ref, api_ref }
+ *            { book, chapter, verse, full_book, ui_ref, api_ref }
  */
 export function set_verse( verse_ref, apply_bounds = true ) {
   const versions_ro = get( versions );
@@ -98,9 +98,11 @@ export function set_verse( verse_ref, apply_bounds = true ) {
               verse_ref, bk, ch, vs, ui_ref, api_ref);
 
   const data  = {
-    book    : bk,
-    chapter : (ch_num || ''),
-    verse   : (vs_num || ''),
+    book      : bk,
+    chapter   : (ch_num || ''),
+    verse     : (vs_num || ''),
+
+    full_book : book,
     ui_ref,
     api_ref,
   };
