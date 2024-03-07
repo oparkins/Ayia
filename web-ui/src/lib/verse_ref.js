@@ -9,9 +9,9 @@ const Ref_RE  = /^((?:[123] ?)?[^0-9.]+)[. ]*(?:([0-9]+)(?:[.:]([0-9]+))?)?$/;
 const Book_RE = /^([123] ?)?([^0-9.]+)(?:[. ]*[0-9]+|$)/;
 
 /**
- *  Validating set for `verse`
+ *  Parse a verse string into an object.
  *
- *  @method set_verse
+ *  @method parse_verse
  *  @param  verse_ref               The incoming verse reference {String};
  *  @param  [apply_bounds = true]   If truthy and the chapter or verse are
  *                                  out-of-bounds, update them to be within
@@ -19,19 +19,15 @@ const Book_RE = /^([123] ?)?([^0-9.]+)(?:[. ]*[0-9]+|$)/;
  *                                  {Boolean};
  *
  *  @return The validated reference or undefined {Object};
- *            { book, chapter, verse, ui_ref, api_ref }
+ *            { book, chapter, verse, full_book, ui_ref, api_ref }
  */
-export function set_verse( verse_ref, apply_bounds = true ) {
-  const versions_ro = get( versions );
-
+export function parse_verse( verse_ref, apply_bounds = true ) {
   if (verse_ref == null || verse_ref.length < 3) {
-    verse.set( null );
     return;
   }
 
   const match   = verse_ref.match( Ref_RE );
   if (! match) {
-    verse.set( null );
     return;
   }
 
@@ -45,13 +41,15 @@ export function set_verse( verse_ref, apply_bounds = true ) {
   const book  = find_book( bk );
 
   if (book == null) {
-    console.log('set_verse( %s ): Unknown book[ %s ] ...',
-                verse_ref, bk);
+    console.error('parse_verse( %s ): Unknown book[ %s ] ...',
+                  verse_ref, bk);
     return;
   }
 
-  console.log('set_verse( %s ): book[ %s ] =>',
+  /*
+  console.log('parse_verse( %s ): book[ %s ] =>',
               verse_ref, bk, book);
+  // */
 
   // Validate bounds
   let   ch_num    = parseInt( ch );
@@ -82,9 +80,9 @@ export function set_verse( verse_ref, apply_bounds = true ) {
   const ch_str  = (ch_num ? String(ch_num) : '');
   const vs_str  = (vs_num ? String(vs_num) : '');
 
-  let ui_ref  = `${bk} ${ch_str}`;
+  let ui_ref  = `${book.name} ${ch_str.trim()}`;
   if (vs_num) {
-    ui_ref += `:${vs_str}`;
+    ui_ref += `:${vs_str.trim()}`;
   }
 
   let api_ref = `${book.abbr}.${ref_num(ch_num)}`;
@@ -92,16 +90,41 @@ export function set_verse( verse_ref, apply_bounds = true ) {
     api_ref += `.${ref_num(vs_num)}`;
   }
 
-  console.log('set_verse( %s ): [ %s, %s, %s ] => %s [ %s ]',
+  console.log('parse_verse( %s ): [ %s, %s, %s ] => ui[ %s ], api[ %s ]',
               verse_ref, bk, ch, vs, ui_ref, api_ref);
 
-  verse.set( {
-    book    : bk,
-    chapter : (ch_num || ''),
-    verse   : (vs_num || ''),
+  const data  = {
+    book      : bk,
+    chapter   : (ch_num || ''),
+    verse     : (vs_num || ''),
+
+    full_book : book,
     ui_ref,
     api_ref,
-  } );
+  };
+
+  return data;
+}
+
+/**
+ *  Validating set for `verse`
+ *
+ *  @method set_verse
+ *  @param  verse_ref               The incoming verse reference {String};
+ *  @param  [apply_bounds = true]   If truthy and the chapter or verse are
+ *                                  out-of-bounds, update them to be within
+ *                                  bounds. Otherwise, the reference is invalid
+ *                                  {Boolean};
+ *
+ *  @return The validated reference or undefined {Object};
+ *            { book, chapter, verse, full_book, ui_ref, api_ref }
+ */
+export function set_verse( verse_ref, apply_bounds = true ) {
+  const data  = parse_verse( verse_ref, apply_bounds );
+
+  verse.set( data );
+
+  return data;
 }
 
 /**
@@ -120,9 +143,10 @@ export function find_version( name ) {
     return;
   }
 
+  // Ensure `versions` is available
   const versions_ro = get( versions );
   if (versions_ro == null || !Array.isArray(versions_ro.versions)) {
-    // We don't yet have access to `versions`
+    // We don't yet have access to `$versions`
     return;
   }
 
@@ -155,6 +179,7 @@ export function find_book( name ) {
     return;
   }
 
+  // Ensure `versions.books` is available
   const versions_ro = get( versions );
   const books       = (versions_ro && versions_ro.books);
   if (! Array.isArray(books)) {
@@ -229,5 +254,5 @@ export function ref_num( num ) {
   }
   // */
 
-  return String(num).padStart(3, '0');
+  return String(num).trim().padStart(3, '0');
 }

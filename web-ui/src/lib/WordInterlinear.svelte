@@ -1,11 +1,11 @@
 <script>
 
   import {
-    show_interlin_english,
-    show_interlin_translit,
-    show_interlin_wlc,
-    show_interlin_strongs,
-    show_interlin_tos,
+    show_il_english,
+    show_il_translit,
+    show_il_wlc,
+    show_il_strongs,
+    show_il_tos,
     show_xrefs
   } from '$lib/stores';
   
@@ -22,7 +22,7 @@
 </script>
 
 <div class='text-center leading-none'>
-  {#if $show_interlin_english }
+  {#if $show_il_english }
     <div>
       <p id='en_{word_ref}' class='inline'>{word.text}</p>
       {#if $show_xrefs && word.xref != null}
@@ -44,10 +44,10 @@
     </div>
   {/if}
 
-  {#if $show_interlin_wlc }
+  {#if $show_il_wlc }
     <p id='wlc_{word_ref}' class='text-blue-400 text-[.9em]'>{word.wlc}</p>
 
-    {#if !$show_interlin_translit }
+    {#if !$show_il_translit }
       <Popover
           class='note-content z-20'
           triggeredBy='#wlc_{word_ref}'
@@ -58,7 +58,7 @@
     {/if}
   {/if}
 
-  {#if $show_interlin_translit }
+  {#if $show_il_translit }
     <p class='text-gray-400 text-[.9em]'>{word.translit}</p>
   {/if}
 </div>
