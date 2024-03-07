@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { get }   from "svelte/store";
 
-import { set_verse } from '$lib/verse_ref';
+import { set_verse, ref_num } from '$lib/verse_ref';
 
 import Agent  from '$lib/agent';
 
@@ -39,13 +39,13 @@ export async function load( {params, fetch, parent} ) {
   // */
 
   if (verse_ref) {
-    const verse  = set_verse( verse_ref );
-    /*
-    console.log('[version]/[verse]/+layout.js: verse_ref[ %s ], verse:',
-                verse_ref, verse);
-    // */
+    const verse = set_verse( verse_ref );
 
-    const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
+    /* :XXX: Don't use `verse.api_ref` directly since we really want to
+     *       ensure we fetch an entire chapter.
+     */
+    const api_ref = `${verse.full_book.abbr}.${ref_num(verse.chapter)}`;
+    const path    = `/versions/${version.abbreviation}/${api_ref}`;
 
     console.log('[version]/[verse]/+layout.js: get( %s ) ...', path);
 
