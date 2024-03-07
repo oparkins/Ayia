@@ -75,27 +75,21 @@
   }
 
   if (version) {
+    /*
     console.log('Version.version: passed-in ...');
+    // */
 
     // Ensure our store is in-sync
     version_store.set( version );
-
-  } else {
-    /* Alias for this component:
-     *    primary : primary column
-     *    column# : secondary column (by number)
-     */
-    console.log('Version.version: from-store ...');
   }
 
   if (verse) {
+    /*
     console.log('Version.verse: passed-in ...');
+    // */
 
     // Ensure our store is in-sync
     verse_store.set( verse );
-
-  } else {
-    console.log('Version.verse: from-store ...');
 
   }
 
@@ -153,7 +147,6 @@
 
     // Check if we have `versions` meta-data to enable bounds checking by book.
     book = find_book( verse.book );
-    console.log('update_dependants(): book[ %s ]:', verse.book, book);
     if (book) {
       // Determine if we should disable the next chapter button
       max_chapter = book.verses.length - 1;
@@ -215,7 +208,9 @@
     if (version == null || verse == null) { return }
 
     if (! need_load) {
+      /*
       console.log('Version.fetch_content(): ! need_load');
+      // */
 
       update_dependants( version, verse );
 
@@ -225,7 +220,9 @@
 
     const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
 
+    /*
     console.log('Version.fetch_content(): path:', path);
+    // */
 
     /* Determine immediately if we should disable the previous chapter button.
      *  :XXX: Wait until AFTER the fetch for the next chapter button since

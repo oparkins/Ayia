@@ -47,7 +47,9 @@ export async function load( {params, fetch, parent} ) {
     const api_ref = `${verse.full_book.abbr}.${ref_num(verse.chapter)}`;
     const path    = `/versions/${version.abbreviation}/${api_ref}`;
 
+    /*
     console.log('[version]/[verse]/+layout.js: get( %s ) ...', path);
+    // */
 
     const content = Agent.get( path, {fetch} );
     return {

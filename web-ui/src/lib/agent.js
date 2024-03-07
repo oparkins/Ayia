@@ -158,7 +158,10 @@ async function _send( method, path, config=null) {
    */
   if (_fetch === fetch) {
     const contentType = response.headers.get('content-type');
+
+    /*
     console.log('>>> Agent._send(): response.content-type:', contentType);
+    // */
 
     if (contentType == null || contentType.slice(0,16) !== 'application/json') {
       // Unsupported content type

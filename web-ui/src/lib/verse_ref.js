@@ -90,8 +90,10 @@ export function parse_verse( verse_ref, apply_bounds = true ) {
     api_ref += `.${ref_num(vs_num)}`;
   }
 
+  /*
   console.log('parse_verse( %s ): [ %s, %s, %s ] => ui[ %s ], api[ %s ]',
               verse_ref, bk, ch, vs, ui_ref, api_ref);
+  // */
 
   const data  = {
     book      : bk,

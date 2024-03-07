@@ -59,8 +59,11 @@
     const new_verse     = parse_verse( verse_ref_ro );
 
     // assert( event.target.value === verse_ref_ro );
+
+    /*
     console.log('SelectVerse.verse_change(): value[ %s / %s ], new_verse:',
                 event.target.value, verse_ref_ro, new_verse);
+    // */
 
     if (new_verse) {
       const new_ref = new_verse.ui_ref;

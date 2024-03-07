@@ -123,8 +123,10 @@
     const value       = target.value;
     const new_version = versions_ro[ value ];
 
+    /*
     console.log('SelectVersion.dropdown_select(): value[ %s ], new_version:',
                 value, new_version);
+    // */
 
     if (new_version) {
       const new_abbr  = new_version.local_abbreviation;

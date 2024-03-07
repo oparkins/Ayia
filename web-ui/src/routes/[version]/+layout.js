@@ -37,7 +37,9 @@ export async function load({ params, fetch, parent }) {
   if (vers_name) {
     const path    = `/versions/${vers_name}`;
 
+    /*
     console.log('[version]/+layout.js: get( %s ) ...', path);
+    // */
 
     const version = Agent.get( path, {fetch} );
     version.then( res => {
