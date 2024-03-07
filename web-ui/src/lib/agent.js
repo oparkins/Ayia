@@ -19,64 +19,72 @@ export const Agent  = {
    *  Perform an authentication-aware GET request to an API endpoint.
    *
    *  @method get
-   *  @param  path    The API endpoint path {String};
-   *  @param  [data]  If populated, additional data to encode in the request
-   *                  {Object};
+   *  @param  path            The API endpoint path {String};
+   *  @param  [config]        Additinoal configuration and data {Object};
+   *  @param  [config.fetch]  The fetch method {Function};
+   *  @param  [config.data]   Additional data to encode in the request
+   *                          {Object};
    *
    *  @return A promise for results {Promise};
    *          - on success, resolved with the decoded response data {Object};
    *          - on failure, rejected with an error {Error};
    */
-  get( path, data=null) {
-    return _send( 'GET', path, data );
+  get( path, config=null) {
+    return _send( 'GET', path, config );
   },
 
   /**
    *  Perform an authentication-aware PUT request to an API endpoint.
    *
    *  @method put
-   *  @param  path    The API endpoint path {String};
-   *  @param  [data]  If populated, additional data to encode in the request
-   *                  {Object};
+   *  @param  path            The API endpoint path {String};
+   *  @param  [config]        Additinoal configuration and data {Object};
+   *  @param  [config.fetch]  The fetch method {Function};
+   *  @param  [config.data]   Additional data to encode in the request
+   *                          {Object};
    *
    *  @return A promise for results {Promise};
    *          - on success, resolved with the decoded response data {Object};
    *          - on failure, rejected with an error {Error};
    */
-  put( path, data=null) {
-    return _send( 'PUT', path, data );
+  put( path, config=null) {
+    return _send( 'PUT', path, config );
   },
 
   /**
    *  Perform an authentication-aware POST request to an API endpoint.
    *
    *  @method post
-   *  @param  path    The API endpoint path {String};
-   *  @param  [data]  If populated, additional data to encode in the request
-   *                  {Object};
+   *  @param  path            The API endpoint path {String};
+   *  @param  [config]        Additinoal configuration and data {Object};
+   *  @param  [config.fetch]  The fetch method {Function};
+   *  @param  [config.data]   Additional data to encode in the request
+   *                          {Object};
    *
    *  @return A promise for results {Promise};
    *          - on success, resolved with the decoded response data {Object};
    *          - on failure, rejected with an error {Error};
    */
-  post( path, data=null) {
-    return _send( 'POST', path, data );
+  post( path, config=null) {
+    return _send( 'POST', path, config );
   },
 
   /**
    *  Perform an authentication-aware DELETE request to an API endpoint.
    *
    *  @method del
-   *  @param  path    The API endpoint path {String};
-   *  @param  [data]  If populated, additional data to encode in the request
-   *                  {Object};
+   *  @param  path            The API endpoint path {String};
+   *  @param  [config]        Additinoal configuration and data {Object};
+   *  @param  [config.fetch]  The fetch method {Function};
+   *  @param  [config.data]   Additional data to encode in the request
+   *                          {Object};
    *
    *  @return A promise for results {Promise};
    *          - on success, resolved with the decoded response data {Object};
    *          - on failure, rejected with an error {Error};
    */
-  del( path, data=null) {
-    return _send( 'DELETE', path, data );
+  del( path, config=null) {
+    return _send( 'DELETE', path, config );
   },
 };
 
@@ -91,16 +99,21 @@ export default Agent;
  *  Perform an authentication-aware GET request to an API endpoint.
  *
  *  @method get
- *  @param  method  The HTTP method (e.g. GET POST, PUT) {String};
- *  @param  path    The API endpoint path {String};
- *  @param  [data]  If populated, additional data to encode in the request
- *                  {Object};
+ *  @param  method          The HTTP method (e.g. GET POST, PUT) {String};
+ *  @param  path            The API endpoint path {String};
+ *  @param  [config]        Additinoal configuration and data {Object};
+ *  @param  [config.fetch]  The fetch method {Function};
+ *  @param  [config.data]   Additional data to encode in the request
+ *                          {Object};
+ *
  *
  *  @return A promise for results {Promise};
  *          - on success, resolved with the decoded response data {Object};
  *          - on failure, rejected with an error {Error};
  */
-async function _send( method, path, data=null) {
+async function _send( method, path, config=null) {
+  const _fetch  = (config && config.fetch || fetch);
+  const data    = (config && config.data);
   const headers = [];
   const opts    = { method, headers };
   const user_ro = get( user );  // Don't want to subscribe
@@ -127,8 +140,7 @@ async function _send( method, path, data=null) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response  = await fetch( url, opts );
-
+  const response  = await _fetch( url, opts );
   if (response.status === 401) {
     /*
     const cur_url = location.pathname + location.hash + location.search;
@@ -141,21 +153,28 @@ async function _send( method, path, data=null) {
     return;
   }
 
-  const contentType = response.headers.get('content-type');
-  if (contentType == null || contentType.slice(0,16) !== 'application/json') {
-    // Unsupported content type
-    const text  = await response.text();
+  /* If _fetch was NOT provided by svelte (i.e. is window.fetch), validate the
+   * content-type.
+   */
+  if (_fetch === fetch) {
+    const contentType = response.headers.get('content-type');
+    console.log('>>> Agent._send(): response.content-type:', contentType);
 
-    throw new Error('Unexpected content type in server response', {
-      cause: {
-        url,
-          contentType,
+    if (contentType == null || contentType.slice(0,16) !== 'application/json') {
+      // Unsupported content type
+      const text  = await response.text();
 
-          expected: 'application/json',
-          status  : response.status,
-          text    : text,
-      },
-    });
+      throw new Error('Unexpected content type in server response', {
+        cause: {
+          url,
+            contentType,
+
+            expected: 'application/json',
+            status  : response.status,
+            text    : text,
+        },
+      });
+    }
   }
 
   // Decode the JSON
