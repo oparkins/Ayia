@@ -45,13 +45,15 @@ export function set_verse( verse_ref, apply_bounds = true ) {
   const book  = find_book( bk );
 
   if (book == null) {
-    console.log('set_verse( %s ): Unknown book[ %s ] ...',
-                verse_ref, bk);
+    console.error('set_verse( %s ): Unknown book[ %s ] ...',
+                  verse_ref, bk);
     return;
   }
 
+  /*
   console.log('set_verse( %s ): book[ %s ] =>',
               verse_ref, bk, book);
+  // */
 
   // Validate bounds
   let   ch_num    = parseInt( ch );
@@ -92,16 +94,20 @@ export function set_verse( verse_ref, apply_bounds = true ) {
     api_ref += `.${ref_num(vs_num)}`;
   }
 
-  console.log('set_verse( %s ): [ %s, %s, %s ] => %s [ %s ]',
+  console.log('set_verse( %s ): [ %s, %s, %s ] => ui[ %s ], api[ %s ]',
               verse_ref, bk, ch, vs, ui_ref, api_ref);
 
-  verse.set( {
+  const data  = {
     book    : bk,
     chapter : (ch_num || ''),
     verse   : (vs_num || ''),
     ui_ref,
     api_ref,
-  } );
+  };
+
+  verse.set( data );
+
+  return data;
 }
 
 /**
