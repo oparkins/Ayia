@@ -1,0 +1,60 @@
+import { error } from '@sveltejs/kit';
+import { get }   from "svelte/store";
+
+import { set_verse } from '$lib/verse_ref';
+
+import Agent  from '$lib/agent';
+
+/**
+ *  Perform an asynchronous load based upon incoming parameters.
+ *
+ *  @method load
+ *  @param  config          Configuratino data {Object};
+ *
+ *  `config`:
+ *    { url       : {URL};
+ *      params    : {Object};
+ *      data      : {Object};
+ *      route     : {Object};   {id: {String}}
+ *      fetch     : {Function};
+ *      setHeaders: {Function};
+ *      depends   : {Function};
+ *      parent    : {Function};
+ *      untracek  : {Function};
+ *    }
+ *
+ *  @return A promise for results {Promise};
+ *          - on success, the loaded data {Object};
+ *                          { verse, content }
+ *          - on failure, an error {Error};
+ */
+export async function load( {params, fetch, parent} ) {
+  const data      = await parent();
+  const verse_ref = params.verse;
+  const version   = data.version;
+
+  /*
+  console.log('[version]/[verse]/+layout.js: verse_ref[ %s ], version:',
+              verse_ref, version);
+  // */
+
+  if (verse_ref) {
+    const verse  = set_verse( verse_ref );
+    /*
+    console.log('[version]/[verse]/+layout.js: verse_ref[ %s ], verse:',
+                verse_ref, verse);
+    // */
+
+    const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
+
+    console.log('[version]/[verse]/+layout.js: get( %s ) ...', path);
+
+    const content = Agent.get( path, {fetch} );
+    return {
+      verse   : verse,
+      content : await content,
+    };
+  }
+
+  error(404, 'Not found');
+}
