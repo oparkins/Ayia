@@ -27,8 +27,6 @@
    *  Imports {
    *
    */
-  import { isRedirect, redirect } from '@sveltejs/kit';
-
   import { get } from 'svelte/store';
 
   import {
@@ -36,13 +34,8 @@
     Card,
   } from 'flowbite-svelte';
 
-  import {
-    CaretLeftSolid,
-    CaretRightSolid,
-  } from 'flowbite-svelte-icons';
-
-  import { goto }                 from  '$app/navigation';
-  import { find_book, set_verse } from '$lib/verse_ref';
+  import { goto }                   from  '$app/navigation';
+  import { find_book, parse_verse } from '$lib/verse_ref';
 
   import SelectVersion    from '$lib/SelectVersion.svelte';
   import SelectVerse      from '$lib/SelectVerse.svelte';
@@ -65,15 +58,12 @@
    *
    *  Establish context from properties and/or stores.
    */
-  const cur_location  = (typeof(location) !== 'undefined'
-                          ? location
-                          : {pathname:null});
-
   const version_store = version_stores[ column ];
   if (version_store == null) {
     throw new Error(`Invalid column [ ${column} ]`);
   }
 
+  // Synchronize our store with any incoming parameters
   if (version) {
     /*
     console.log('Version.version: passed-in ...');
@@ -160,37 +150,6 @@
   }
 
   /**
-   *  React to a location update.
-   *
-   *  @method update_location
-   *  @param  version   The selected version {Object};
-   *                      { abbreviation, local_abbreviation, ... }
-   *  @param  verse     The verse reference {Objecct};
-   *                      { book, chapter, verse, ui_ref, api_ref }
-   *
-   *  This sets the `contoent_loading` flag and, upon completion, the `content`
-   *  value.
-   *
-   *  @return void;
-   */
-  async function update_location( version, verse ) {
-    if (version == null || verse == null) { return }
-
-    const path  = `/${version.abbreviation}/${verse.api_ref}`;
-
-    if (cur_location.pathname !== path) {
-      console.log('update_location(): Need to redirect [ %s ] => [ %s ]',
-                  cur_location.pathname, path);
-      //redirect( 303, path );
-      //cur_location.pathmame = path;
-      //await goto( path );
-      //return;
-    }
-
-    fetch_content( version, verse );
-  }
-
-  /**
    *  Fetch content based upon the current `vers_abbr` and parsed `verse`.
    *
    *  @method fetch_content
@@ -206,6 +165,7 @@
    */
   function fetch_content( version, verse ) {
     if (version == null || verse == null) { return }
+    const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
 
     if (! need_load) {
       /*
@@ -217,8 +177,6 @@
       need_load = true;
       return;
     }
-
-    const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
 
     /*
     console.log('Version.fetch_content(): path:', path);
@@ -269,9 +227,15 @@
 
     // assert( event.type === 'versionchanged' );
     // assert( version != null && typeof(version) === 'object' );
-    console.log('Version: SelectVersion.%s:', event.type, version);
 
-    version_store.set( version );
+    const verse = get( verse_store );
+    // assert( version != null );
+    // assert( verse   != null );
+
+    if (verse) {
+      const path  = `/${ version.abbreviation}/${verse.api_ref}`;
+      goto( path );
+    }
   }
 
   /**
@@ -289,9 +253,15 @@
 
     // assert( event.type === 'versechanged' );
     // assert( verse != null && typeof(verse) === 'object' );
-    console.log('Version: SelectVerse.%s:', event.type, verse);
 
-    verse_store.set( verse );
+    const version = get( version_store );
+    // assert( version != null );
+    // assert( verse   != null );
+
+    if (version) {
+      const path  = `/${ version.abbreviation}/${verse.api_ref}`;
+      goto( path );
+    }
   }
 
   /**
@@ -303,21 +273,25 @@
    *  @return void
    */
   function chapter_prev( event ) {
-    const verse = get( verse_store );
+    const version = get( version_store );
+    const verse   = get( verse_store );
+
+    // assert( version != null );
+    // assert( verse   != null );
+
+    const ch_cur    = parseInt( verse.chapter );
+    const new_ref   = `${verse.book}.${ch_cur - 1}`;
+    const new_verse = parse_verse( new_ref );
 
     /*
-    console.log('Version.chapter_prev():', verse);
+    console.log('Version.chapter_prev(): %s => %s:',
+                verse.api_ref, new_ref, new_verse);
     // */
 
-    const ch_num          = parseInt( verse.chapter ) - 1;
-    let   new_ref         = `${verse.book}.${ch_num}`;
-    if (verse.verse && verse.verse !== '') {
-      new_ref = `${new_ref}:${verse.verse}`;
+    if (new_verse) {
+      const path  = `/${ version.abbreviation}/${new_verse.api_ref}`;
+      goto( path );
     }
-
-    set_verse( new_ref );
-
-    update_location( $version_store, $verse_store );
   }
 
   /**
@@ -329,25 +303,29 @@
    *  @return void
    */
   function chapter_next( event ) {
-    const verse = get( verse_store );
+    const version = get( version_store );
+    const verse   = get( verse_store );
+
+    // assert( version != null );
+    // assert( verse   != null );
+
+    const ch_cur    = parseInt( verse.chapter );
+    const new_ref   = `${verse.book}.${ch_cur + 1}`;
+    const new_verse = parse_verse( new_ref );
 
     /*
-    console.log('Version.chapter_next():', verse);
+    console.log('Version.chapter_next(): %s => %s:',
+                verse.api_ref, new_ref, new_verse);
     // */
 
-    const ch_num          = parseInt( verse.chapter ) + 1;
-    let   new_ref         = `${verse.book}.${ch_num}`;
-    if (verse.verse && verse.verse !== '') {
-      new_ref = `${new_ref}:${verse.verse}`;
+    if (new_verse) {
+      const path  = `/${ version.abbreviation}/${new_verse.api_ref}`;
+      goto( path );
     }
-
-    set_verse( new_ref );
-
-    update_location( $version_store, $verse_store );
   }
 
   // When either `version_store` or `verse_store` change, update content
-  $: update_location( $version_store, $verse_store );
+  $: fetch_content( $version_store, $verse_store );
 
   /*  Methods }
    *************************************************************************
