@@ -25,7 +25,6 @@ export const ssr = false;
 // Only include on the client side }
 
 import { get, writable }  from 'svelte/store';
-import Agent              from '$lib/agent';
 
 // Create shared stores
 export const  user              = _writable_json_ls( 'user', null );
@@ -52,25 +51,6 @@ export const  show_il_tos       = _writable_bool_ls( 'show_il_tos',     true );
 
 export const  errors            = writable( [] );
 
-/*
-export const  drawer_open = _writable_ls( 'drawer_open', false,
-                                          (val) => (val ? 'true' : 'false'),
-                                          (str) => (str === 'true') );
-// */
-
-Agent.get('versions')
-  .then( res => {
-    console.log('%s versions:', res.total);
-    versions.set( res );
-
-    if (Array.isArray( res.versions ) && get(verse) == null) {
-      // Initialize 'version.primary' to the first
-      version.primary.set( res.versions[0] );
-    }
-  })
-  .catch( err => {
-    console.error('Cannot get versions:', err);
-  });
 
 /****************************************************************************
  * Private methods {
