@@ -123,6 +123,8 @@ export function set_verse( verse_ref, apply_bounds = true ) {
   const data  = parse_verse( verse_ref, apply_bounds );
 
   verse.set( data );
+
+  return data;
 }
 
 /**
