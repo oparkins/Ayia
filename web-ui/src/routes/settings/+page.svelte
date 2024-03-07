@@ -369,7 +369,7 @@
           <TableBodyRow class='align-top'>
             <TableBodyCell><b>versions</b></TableBodyCell>
             <TableBodyCell>
-						{ $versions ? $versions.total : -1 }
+              { $versions ? $versions.total : -1 }
             </TableBodyCell>
           </TableBodyRow>
           <TableBodyRow class='align-top'>
