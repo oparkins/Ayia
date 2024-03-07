@@ -106,7 +106,10 @@
   const versions_sorted = derived( versions_store, ($versions_store) => {
     const versions  = ($versions_store ? $versions_store.versions : []);
 
+    /*
     console.log('SelectVersion(): Sort %d versions ...', versions.length);
+    // */
+
     return versions.sort( (a,b) => {
       return a.title.localeCompare( b.title );
     });
