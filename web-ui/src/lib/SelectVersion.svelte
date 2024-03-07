@@ -26,6 +26,7 @@
    */
   import { createEventDispatcher }  from 'svelte';
   import { get, writable, derived } from 'svelte/store';
+  import { afterNavigate }          from '$app/navigation';
 
   import {
     Dropdown,
@@ -62,6 +63,50 @@
     return versions.sort( (a,b) => {
       return a.title.localeCompare( b.title );
     });
+  });
+
+  afterNavigate( (nav) => {
+    /*  nav {
+     *    type      : The type of navigation {String};
+     *      enter   : The app has hydrated
+     *      form    : The user submitted a <form>
+     *      link    : Navigation was triggered by a link click
+     *      goto    : Navigation was triggered by a goto(...) call or a redirect
+     *      popstate: Navigation was triggered by back/forward navigation
+     *
+     *    from      : The previous location (null if none) {Object};
+     *    to        : { The new location {Object};
+     *      params  : Incoming parameters {Object};
+     *      route   : { Route data {Object};
+     *        id    : The id of the route {String};
+     *      }
+     *      url     : The full URL to the route {String};
+     *    }
+     *    willUnload: Will the page be unloaded {Boolean};
+     *    complete  : A promise for completion {Promise};
+     *  }
+     */
+
+    /*
+    console.log('SelectVersion:afterNavigate:', nav);
+    // */
+
+    if (nav.type === 'popstate') {
+      // Verify that the `vers_abbr` matches the new location
+      const vers_abbr_ro  = get( vers_abbr );
+      const to_vers       = nav.to.params.version;
+
+      /*
+      console.log('SelectVersion:afterNavigate: popstate: '
+                  +         'vers[ %s ] => [ %s ]',
+                  vers_abbr_ro, to_vers);
+      // */
+
+      if ( vers_abbr_ro !== to_vers ) {
+        // Update our `vers_abbr` to match the new location
+        vers_abbr.set( to_vers );
+      }
+    }
   });
 
   /*  Local state }
