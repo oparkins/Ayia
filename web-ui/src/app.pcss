@@ -33,6 +33,26 @@
 
 
 @layer components {
+  @media (max-width: 768px) {
+    .brand {
+      @apply  gap-2;
+    }
+
+    .brand img {
+      @apply  w-12 h-12 rounded-full;
+    }
+  }
+
+  @media (min-width: 769px) {
+    .brand {
+      @apply  pl-24 relative;
+    }
+
+    .brand img {
+      @apply  w-24 h-24 rounded-full;
+      @apply  absolute top-[-1rem] left-[-.75rem];
+    }
+  }
 
   /* Allow font to be customized per user for the presentation of content.
    */
