@@ -34,8 +34,9 @@
     Card,
   } from 'flowbite-svelte';
 
-  import { goto }                   from  '$app/navigation';
-  import { find_book, parse_verse } from '$lib/verse_ref';
+  import { goto } from  '$app/navigation';
+
+  import { find_book, parse_verse, ref_num } from '$lib/verse_ref';
 
   import SelectVersion    from '$lib/SelectVersion.svelte';
   import SelectVerse      from '$lib/SelectVerse.svelte';
@@ -146,7 +147,13 @@
    */
   function fetch_content( version, verse ) {
     if (version == null || verse == null) { return }
-    const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
+    //const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
+
+    /* :XXX: Don't use `verse.api_ref` directly since we really want to
+     *       ensure we fetch an entire chapter.
+     */
+    const api_ref = `${verse.full_book.abbr}.${ref_num(verse.chapter)}`;
+    const path    = `/versions/${version.abbreviation}/${api_ref}`;
 
     if (! need_load) {
       /*
