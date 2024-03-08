@@ -40,10 +40,7 @@
   import SelectVersion    from '$lib/SelectVersion.svelte';
   import SelectVerse      from '$lib/SelectVerse.svelte';
 
-  import VerseText        from '$lib/VerseText.svelte';
-  import VerseYvers       from '$lib/VerseYvers.svelte';
-  import VerseInterlinear from '$lib/VerseInterlinear.svelte';
-
+  import Chapter          from '$lib/Chapter.svelte';
 
   import {
     version   as version_stores,
@@ -89,7 +86,6 @@
    */
   let need_load       = (content == null);
   let content_loading = false;
-  let verse_el        = VerseText;
   let book            = null;
   let max_chapter     = 0;
   let max_verse       = 0;
@@ -104,36 +100,21 @@
   /**
    *  Update dependants once version and verse are available.
    *
-   *  @method update_dependants
+   *  @method update_dependents
    *  @param  version   Information about the target version {Object};
    *  @param  verse     Information about the target verse {Object};
    *
    *  Updates:
    *      prev_disabled
    *      next_disabled
-   *      verse_el
    *      book
    */
-  function update_dependants( version, verse ) {
+  function update_dependents( version, verse ) {
     /* Determine immediately if we should disable the previous chapter button.
      *  :XXX: Wait until AFTER the fetch for the next chapter button since
      *        the versions information may not be available yet.
      */
     prev_disabled = (verse.chapter < 2);
-
-    switch( version.type ) {
-      case 'yvers':
-        verse_el = VerseYvers;
-        break;
-
-      case 'interlinear':
-        verse_el = VerseInterlinear;
-        break;
-
-      default:
-        verse_el = VerseText;
-        break;
-    }
 
     // Check if we have `versions` meta-data to enable bounds checking by book.
     book = find_book( verse.book );
@@ -172,7 +153,7 @@
       console.log('Version.fetch_content(): ! need_load');
       // */
 
-      update_dependants( version, verse );
+      update_dependents( version, verse );
 
       need_load = true;
       return;
@@ -186,7 +167,7 @@
      *  :XXX: Wait until AFTER the fetch for the next chapter button since
      *        the versions information may not be available yet.
      */
-    update_dependants( version, verse );
+    update_dependents( version, verse );
 
     content_loading = true;
     Agent.get( path )
@@ -199,7 +180,7 @@
           /* Once this fetch completes, versions meta-data should be available,
            * allowing the use of `find_book()` to retrieve book information.
            */
-          update_dependants( version, verse );
+          update_dependents( version, verse );
         }
 
         content = res;
@@ -356,21 +337,6 @@
       'mb-4',
     ],
 
-    body: [
-      'w-full',
-      'h-full',
-      'pb-4',
-
-      'overflow-y-auto',
-
-      'text-gray-800',
-      'dark:text-gray-200',
-
-      'border-b',
-      'border-gray-200',
-      'dark:border-gray-600',
-    ],
-
     nav_outer: [
       'h-10',
       'bottom-3',
@@ -430,30 +396,13 @@
      {/if}
     </div>
 
-    <div class='content { Css.body.join(' ') }'>
-      {#if content_loading}
-        Loading { $verse_store.ui_ref } ...
-      {:else if content}
-        {#if (book && $verse_store) }
-          <div class='chapter header'>
-            <span class='chapter name'>{ book.name }</span>
-            <span class='chapter number'>{ $verse_store.chapter }</span>
-          </div>
-        {/if}
-
-        {#each Object.entries(content.verses) as [verse_ref, verse]}
-          <svelte:component
-              this={      verse_el }
-              verse_ref={ verse_ref }
-              verse={     verse }
-          />
-        {/each}
-      {:else if $verse_store}
-        { $verse_store.ui_ref } [ { $verse_store.api_ref } ]
-      {:else}
-        Select the desired verse above
-      {/if}
-    </div>
+    <Chapter
+        is_loading={  content_loading }
+        version={     $version_store }
+        book={        book }
+        verse={       $verse_store }
+        content={     content }
+    />
 
    {#if column === 'primary'}
     <BottomNav
