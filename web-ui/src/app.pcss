@@ -42,6 +42,11 @@
     @apply  text-pretty leading-snug pl-2 pr-4;
   }
 
+  /**************************************************************************
+   * Navigation / Meta-data {
+   *
+   */
+
   .content .chapter.header {
     @apply  flex flex-row justify-between pb-[.5em];
   }
@@ -54,54 +59,6 @@
     font-size:  2em;
   }
 
-  .content .s,
-  .content .s1,
-  .content .s2,
-  .content .s3,
-  .content .s4 {
-    text-align:     left;
-    padding-top:    1em;
-    padding-bottom: .75em;
-
-    font-size:      1em;
-    line-height:    1.5;
-
-    font-weight:    bold;
-    font-style:     italic;
-  }
-
-  .content .q,
-  .content .q1,
-  .content .q2,
-  .content .q3,
-  .content .q4 {
-  }
-
-  .content .sc {
-    @apply  uppercase text-[.76em];
-  }
-
-  .content .r {
-    position:       relative;
-    top:            -.5em;
-
-    text-align:     center;
-    padding-bottom: .5em;
-
-    font-size:    .9em;
-    line-height:  1;
-
-    font-style:   italic;
-  }
-
-  .content .break {
-    padding-bottom: 1em;
-  }
-  .content .s + .break,
-  .content .r + .break {
-    padding-bottom: 0;
-  }
-
   .content .verse.label {
     @apply  inline-block px-[.25em] text-yellow-700;
   }
@@ -110,17 +67,261 @@
     @apply  text-yellow-400;
   }
 
-  .content .verse .wj {
-    @apply  text-red-400;
+  .content .break,
+  .content .br {
+    @apply  block pb-[1em];
+  }
+  .content .s + .break,
+  .content .r + .break,
+  .content .s + .br,
+  .content .r + .br {
+    @apply  pb-0;
   }
 
+  .content .break + .br,
+  .content .br    + .br {
+    @apply  inline;
+  }
+
+  /* Navigation / Meta-data }
+   **************************************************************************
+   * Title / Heading {
+   *    https://ubsicap.github.io/usx/parastyles.html#titles-and-headings
+   */
+
+  /* Section heading */
+  .content .s,
+  .content .s1,
+  .content .s2,
+  .content .s3,
+  .content .s4 {
+    @apply  block pt-[1em] pb-[.75em];
+    @apply  text-[1em] leading-normal font-bold italic;
+  }
+
+  .content .s1:first-of-type { @apply pl-[1em]; }
+  .content .s2:first-of-type { @apply pl-[2em]; }
+  .content .s3:first-of-type { @apply pl-[3em]; }
+  .content .s4:first-of-type { @apply pl-[4em]; }
+
+  /* Parallel Passage Reference */
+  .content .r {
+    @apply  block relative top-[-.5em] pb-[.5em];
+    @apply  text-[.9em] leading-none italic;
+  }
+
+  /* Title / Heading }
+   **************************************************************************
+   * Paragraph {
+   *    https://ubsicap.github.io/usx/parastyles.html#paragraphs
+   */
+
+  /* Normal paragraph */
+  .content .p {
+    @apply  inline;
+  }
+
+  /* Right-aligned paragraph */
+  .content .pr {
+    @apply  block text-right;
+  }
+
+  /* Centered paragraph */
+  .content .pc {
+    @apply  block text-center;
+  }
+
+  /* Margin paragraph */
+  .content .m {
+  }
+
+  /* Indented flush left paragraph */
+  .content .mi {
+  }
+
+  /* Opening of an epistle / letter */
+  .content .po {
+  }
+
+
+  /* Closure of an epistle / letter */
+  .content .cls {
+  }
+
+  /* Embedded text opening */
+  .content .pmo {
+  }
+
+  /* Embedded text paragraph */
+  .content .pm {
+  }
+
+  /* Embedded text closing */
+  .content .pmc {
+  }
+
+  /* Embedded text refrain */
+  .content .pmr {
+  }
+
+  /* Indented paragraph */
+  .content .pi,
+  .content .pi1:first-of-type { @apply pl-[1em]; }
+  .content .pi2:first-of-type { @apply pl-[2em]; }
+  .content .pi3:first-of-type { @apply pl-[3em]; }
+  .content .pi4:first-of-type { @apply pl-[4em]; }
+
+  /* Indented paragraph with hanging indent */
+  .content .ph  {}
+  .content .ph1:first-of-type { @apply pl-[1em]; }
+  .content .ph2:first-of-type { @apply pl-[2em]; }
+  .content .ph3:first-of-type { @apply pl-[3em]; }
+  .content .ph4:first-of-type { @apply pl-[4em]; }
+
+  /* Paragraph }
+   **************************************************************************
+   * Poetry {
+   *    https://ubsicap.github.io/usx/parastyles.html#poetry
+   */
+
+  /* Poetic Line */
+  .content .q  {}
+  .content .q1:first-of-type { @apply pl-[1em]; }
+  .content .q2:first-of-type { @apply pl-[2em]; }
+  .content .q3:first-of-type { @apply pl-[3em]; }
+  .content .q4:first-of-type { @apply pl-[4em]; }
+
+  /* Embedded text poetic line */
+  .content .qm  {}
+  .content .qm1:first-of-type { @apply pl-[1em]; }
+  .content .qm2:first-of-type { @apply pl-[2em]; }
+  .content .qm3:first-of-type { @apply pl-[3em]; }
+  .content .qm4:first-of-type { @apply pl-[4em]; }
+
+  /* Right-aligned */
+  .content .qr {
+    @apply  block text-right;
+  }
+
+  /* Centered */
+  .content .qc {
+    @apply  block text-center;
+  }
+
+  /* Acrostic Heading */
+  .content .qa {
+    @apply  block text-center italic text-[.8em];
+  }
+
+  /* Blank Line */
+  .content .b {
+    @apply  block;
+  }
+
+  /* Poetry }
+   **************************************************************************
+   * Lists {
+   *    https://ubsicap.github.io/usx/parastyles.html#lists
+   */
+
+  /* List header */
+  .content .lh {
+    @apply  block;
+  }
+
+  /* List entry */
+  .content .li,
+  .content .li1,
+  .content .li2,
+  .content .li3,
+  .content .li4 {
+  }
+
+  /* Embedded list entry */
+  .content .lim,
+  .content .lim1,
+  .content .lim2,
+  .content .lim3,
+  .content .lim4 {
+  }
+
+  /* List footer */
+  .content .lf {
+    @apply  block;
+  }
+
+  /* Lists }
+   **************************************************************************
+   * Character Styling {
+   *  https://ubsicap.github.io/usx/charstyles.html
+   */
+
+  /* Emphasis text */
+  .content .em {
+    @apply  inline italic;
+  }
+
+  /* Bold text */
+  .content .bd {
+    @apply  inline font-bold;
+  }
+
+  /* Bold + Italic text */
+  .content .bdit {
+    @apply  inline font-bold italic;
+  }
+
+  /* Italic text */
+  .content .it {
+    @apply  inline italic;
+  }
+
+  /* Normal text */
+  .content .no {
+    @apply  inline;
+  }
+
+  /* Superscript text. Typically for use in critical edition footnotes */
+  .content .sup {
+    @apply  inline-block align-super;
+  }
+
+  /* Small-Caps */
+  .content .sc {
+    @apply  inline-block align-middle uppercase text-[.76em];
+  }
+
+  /* Name of God (name of deity) */
+  .content .nd {
+    @apply  inline-block align-middle uppercase text-[.9em];
+  }
+
+  /* Words of Jesus */
+  .content .verse .wj {
+    @apply  inline text-red-400;
+  }
+
+  /* List entry total */
+  .content .litl {
+    @apply  inline;
+  }
+
+  /* Used for the expression “Selah” commonly found in Psalms and Habakkuk */
+  .content .qs {
+    @apply  block text-right italic text-[.8em];
+  }
+
+  /* Character Styling }
+   **************************************************************************
+   * Notes and cross-references {
+   *
+   */
+
   .content .verse .note {
-    @apply  inline-block;
-    margin-left:  .025em;
-    margin-right: .25em;
+    @apply  inline-block ml-[.025em] mr-[.25em];
   }
   .content .verse .note+.note {
-    margin-left:  -.275em;
+    @apply  ml-[-.275em];
   }
 
   .content .note-label {
@@ -128,7 +329,8 @@
   }
 
   .content .note-content {
-    @apply  z-[60] p-0 m-0 max-w-[50ch] text-[.85em] text-start text-gray-800 leading-normal;
+    @apply  z-[60] p-0 m-0 max-w-[50ch];
+    @apply  text-[.85em] text-start text-gray-800 leading-normal;
   }
 
   :is(.dark) .content .note-content {
@@ -139,7 +341,8 @@
     @apply  text-sm pr-[.5em] opacity-70;
   }
 
-  /**************************************************************************
+  /* Notes and cross-references }
+   **************************************************************************
    * Single version display
    */
   .content .verse {
