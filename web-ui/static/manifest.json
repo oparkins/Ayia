@@ -1,0 +1,18 @@
+{
+  "name": "Ayia Bible App",
+  "short_name": "Ayia",
+  "description": "Ayia is a Bible study app",
+  "display": "standalone",
+  "display_override": ["minimal-ui"],
+  "start_url": "/",
+  "background_color": "#1F2937",
+  "theme_color": "#1E429F",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "Ayia.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
