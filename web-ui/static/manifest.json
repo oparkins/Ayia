@@ -3,7 +3,7 @@
   "short_name": "Ayia",
   "description": "Ayia is a Bible study app",
   "display": "standalone",
-  "display_override": ["window-controls-overlay"],
+  "display_override": ["standalone"],
   "start_url": "/",
   "background_color": "#1F2937",
   "theme_color": "#1E429F",
