@@ -36,6 +36,8 @@
   let verse_el  = VerseText;
 
   function update_el( version ) {
+    if (version == null)  { return }
+
     switch( version.type ) {
       case 'yvers':
         verse_el = VerseYvers;
