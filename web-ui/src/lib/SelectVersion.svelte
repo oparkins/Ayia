@@ -290,7 +290,7 @@
     type='button'
     class={ Css.button.join(' ') }
   >
-    { $vers_abbr }<ChevronDownSolid class='w-4 h-4 ms-2' />
+    { $vers_abbr || 'Version' }<ChevronDownSolid class='w-4 h-4 ms-2' />
   </button>
   <Dropdown
       bind:open={ dropdown_open }
