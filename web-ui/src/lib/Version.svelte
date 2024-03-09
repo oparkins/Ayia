@@ -146,7 +146,9 @@
    *  @return void;
    */
   function fetch_content( version, verse ) {
-    if (version == null || verse == null) { return }
+    if (version == null || verse == null || verse.full_book == null) {
+      return;
+    }
     //const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
 
     /* :XXX: Don't use `verse.api_ref` directly since we really want to
@@ -220,10 +222,13 @@
     // assert( version != null );
     // assert( verse   != null );
 
+    let path  = `/${ version.abbreviation}`;
     if (verse) {
-      const path  = `/${ version.abbreviation}/${verse.api_ref}`;
-      goto( path );
+      // Redirect to the full version/verse
+      path  += `/${verse.api_ref}`;
     }
+
+    goto( path );
   }
 
   /**
