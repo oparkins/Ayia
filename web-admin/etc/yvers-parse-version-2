@@ -6,6 +6,7 @@ const Cheerio = require('cheerio');
 const sprintf = require('sprintf-js').sprintf;
 const Usage   = require('../lib/usage');
 const Inspect = require('../lib/inspect').inspect;
+const Refs    = require('../lib/refs');
 const yargs	  = Yargs
 	.usage('Parse the extracted <vers> data into a human readable form '
           +     'optionally limited to a <ref>')
@@ -117,7 +118,7 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
   // */
 
   // Process all chapters for this book
-  const book_obj  = {};
+  const book_map  = {};
   Object.entries( chapters ).forEach( ([chp, lines]) => {
     if (only_ch && only_ch != chp) { return }
 
@@ -129,9 +130,14 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
        * Process this as an introduction with no verses
        *
        */
-      const usfm  = _getAttr( $intro[0], 'data-usfm' );
+      const usfm          = _getAttr( $intro[0], 'data-usfm' );
+      const [bk, ch, vs]  = usfm.split('.');
+      const ref           = Refs.sortable( bk, ch, vs );
+      const intro         = _parseIntro( $, $intro );
 
-      book_obj[ chp ] = _parseIntro( $, $intro );
+      intro.text = intro.text.join(' ');
+
+      book_map[ ref ] = intro;
       return;
     }
 
@@ -145,10 +151,10 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
     const state = {
       $       : $,
       book    : abbrev,
-      label   : null,       // The chapter label
+      label   : null,                     // The chapter label
       verses  : new Map(),
-      verse   : [],         // Current accumulating verse
-      block   : null,       // Current block
+      verse   : { markup: [], text: [] }, // Current accumulating verse
+      block   : null,                     // Current block
       key     : null,
       sub_key : null,
       usfm    : `${usfm}.1`,
@@ -165,42 +171,79 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
     });
 
     // Convert the verses map into a simple object
-    const ch_obj  = {};
     for ( let [key,verse] of state.verses ) {
-      ch_obj[ key ] = verse.slice();
+      const [bk, ch, vs]  = key.split('.');
+      const ref           = Refs.sortable( bk, ch, vs );
+
+      if (key !== `${bk}.${ch}.${vs}`) {
+        // Augment this verse with a multi-verse indicator
+        verse._multi = key;
+      }
+
+      if (Array.isArray(verse.text)) {
+        verse.text = verse.text.join(' ');
+      }
+
+      book_map[ ref ] = verse;
 
       //console.log('%s: %s', key, Inspect( verse ));
     }
+  });
 
-    book_obj[ chp ] = ch_obj;
+  /* Finalize the book object by sorting keys and filling in any multi-verse
+   * references.
+   */
+  const book_json = {};
+  const refs      = Object.keys( book_map ).sort();
+  refs.forEach( ref => {
+    const verse = book_map[ ref ];
+
+    if (book_json.hasOwnProperty( ref )) {
+      /* Multi-verse collision. Typically a verse that has been split into
+       * parts, e.g. MSG John 3:27-29a ; 3:29b-30
+       *
+       * Over-write the reference with verse content.
+       */
+      console.warn('=== Verse overlap at %s:', ref, book_json[ref]);
+    }
+
+    book_json[ ref ] = verse;
+
+    if (verse._multi) {
+      _addMultiverseRefs( ref, verse._multi, book_json );
+      delete verse._multi;
+    }
   });
   
-  console.log('%s: %s', abbrev, Inspect( book_obj, 8, !'colors' ));
+  console.log('%s', Inspect( book_json, 8, !'colors' ));
 }
 
 /**
  *  Parse an introduction.
  *
  *  @method _parseIntro
- *  @param  $                       The top-level Cheerio instance {Cheerio};
- *  @param  $intro                  The intro element(s) {Cheerio};
+ *  @param  $         The top-level Cheerio instance {Cheerio};
+ *  @param  $intro    The intro element(s) {Cheerio};
  *
  *  @return A simple object representing the intro {Object};
  *  @private
  */
 function _parseIntro( $, $intro ) {
   const introJson = {
-    content : [],
+    markup  : [],
+    text    : [],
   };
 
   $intro.children().each( (jdex, el) => {
     const json  = _jsonElement( $, el );
+    const text  = $(el).text().trim();
 
     /*
     console.log('-- intro %s: %d:', chp, jdex, json);
     // */
 
-    introJson.content.push( json );
+    introJson.markup.push( json );
+    introJson.text.push( text );
   });
 
   return introJson;
@@ -240,6 +283,7 @@ function _parseBlock( state, el ) {
       state.label = $el.text().trim();
 
       /*
+      console.log('=====================================================');
       console.log('=== Chapter label[ %s ]', state.label);
       // */
 
@@ -251,27 +295,27 @@ function _parseBlock( state, el ) {
     return;
   }
 
-
   // New block
   state.block = block;
   state.key   = `#${state.block}`;
 
   const $children = $el.children();
 
-  if ($children.length < 1) {
-    //console.log('_parseBlock(): %s -- NO children', classes.join('.'));
-    state.verse.push( { [state.key]: null } );
-
-  } else if (block === 'table') {
+  if (block === 'table') {
     _parseTable( state, el );
 
-    return;
-  }
+  } else if ($children.length < 1) {
+    // Empty block element
 
-  // Parse all block children
-  $children.each( (jdex, ch) => {
-    _parseEl( state, ch );
-  });
+    //console.log('_parseBlock(): %s -- NO children', classes.join('.'));
+    state.verse.markup.push( { [state.key]: null } );
+
+  } else {
+    // Parse all block children
+    $children.each( (jdex, ch) => {
+      _parseEl( state, ch );
+    });
+  }
 }
 
 /**
@@ -325,7 +369,7 @@ function _parseTable( state, el ) {
 
       if (children.length < 1) {
         // Empty cell
-        state.verse.push( { [state.key]: null } );
+        state.verse.markup.push( { [state.key]: null } );
 
       } else {
         // Parse all block children
@@ -372,24 +416,36 @@ function _parseEl( state, el, depth=1 ) {
   const usfm  = _getAttr( el, 'data-usfm' );
   if (usfm) {
     // This element has a 'data-usfm' attribute and so is related to a verse.
+    // assert( cls0 === 'verse' );
+    state.usfm = usfm;
+
     if (! state.verses.has( usfm )) {
       /*
-      console.log('=====================================================');
-      console.log('==== %s verse[ %s ]', state.key, usfm);
+      console.log('-----------------------------------------------------');
+      console.log('=== Verse [ %s.%s.%s ], depth[ %d ], usfm[ %s ] ...',
+                  state.block, state.key, cls0, depth, usfm);
       // */
 
-      state.verse = [];
+      state.verse = {
+        markup: [],
+        text  : [],
+      };
       state.verses.set( usfm, state.verse );
 
     } else {
       state.verse = state.verses.get( usfm );
+
+      /*
+      console.log('+++ Verse [ %s.%s.%s ], depth[ %d ], usfm[ %s ] ...',
+                  state.block, state.key, cls0, depth, usfm);
+      // */
 
     }
   }
 
   /* Do we need to process this element directly?
    *  - if this is explicitly a 'note' element, since we want the ENTIRE
-   *    sub-element as the note; ;
+   *    sub-element as the note;
    *  - we have already traversed to a sub-key;
    *  - the sub-key is NOT 'verse', since we need to traverse on down to the
    *    label to properly adjust `state.key`;
@@ -403,7 +459,7 @@ function _parseEl( state, el, depth=1 ) {
     const json  = _jsonElement( $, el );
 
     /*
-    console.log('_parseEl(): block[ %s.%s.%s : %s ], depth[ %d ], json:',
+    console.log('_parseEl(): block [ %s.%s.%s : %s ], depth[ %d ], json:',
                 state.block, state.key, state.sub_key, cls0, depth,
                 Inspect( json, 5, !'color' ));
     // */
@@ -411,10 +467,10 @@ function _parseEl( state, el, depth=1 ) {
     if (typeof(json) === 'string') {
       const obj = { [state.sub_key]: json };
 
-      state.verse.push( { [state.key]: obj } );
+      state.verse.markup.push( { [state.key]: obj } );
 
     } else {
-      state.verse.push( { [state.key]: json } );
+      state.verse.markup.push( { [state.key]: json } );
     }
 
     /* Update the primary key to indicate a block continuation and
@@ -425,13 +481,15 @@ function _parseEl( state, el, depth=1 ) {
     return;
   }
 
-  /*
-  console.log('_parseEl(): block[ %s.%s.%s ], depth[ %d ], %d children...',
-              state.block, state.key, state.sub_key, depth, children.length);
-  // */
-
   // Recursively parse all children
   state.sub_key = cls0;
+
+  /*
+  console.log('+++ block [ %s.%s.%s ], depth[ %d ]:',
+              state.block, state.key, state.sub_key, depth,
+              $(el).html());
+  // */
+
   children.forEach( (ch, jdex) => {
     _parseEl( state, ch, depth+1 );
   });
@@ -463,14 +521,14 @@ function _parseLeaf( state, el, depth ) {
   const text  = $el.text().trim();
 
   /*
-  console.log('_parseLeaf(): block[ %s.%s.%s ], depth[ %d ], text[ %s ]',
+  console.log('_parseLeaf(): block [ %s.%s.%s ], depth[ %d ], text[ %s ]',
               state.block, state.key, state.sub_key, depth, text);
   // */
 
   if (text.length < 1) {
     // No text -- Allow for tags that are MAY be empty, otherwise, skip.
     if (state.key === 'b' || state.key === 'nb') {
-      state.verse.push( { [state.key]: null } );
+      state.verse.markup.push( { [state.key]: null } );
 
     }
     return;
@@ -481,11 +539,21 @@ function _parseLeaf( state, el, depth ) {
     const key = `${state.key}.v`;
 
     //console.log('===== push: { %s: %s }', key, text );
-    state.verse.push( { [key]: text } );
+    state.verse.markup.push( { [key]: text } );
 
   } else {
-    //console.log('===== push: { %s: %s }', state.key, text );
-    state.verse.push( { [state.key]: text } );
+    state.verse.markup.push( { [state.key]: text } );
+
+    if (state.sub_key === 'content') {
+      // Include this content in the full text
+      state.verse.text.push( text );
+
+      /*
+    } else {
+      console.log('===== block[ %s.%s.%s], Exclude text[ %s ]',
+                  state.block, state.key, state.sub_key, text );
+      // */
+    }
   }
 
   /* Update the primary key to indicate a block continuation and
@@ -495,6 +563,36 @@ function _parseLeaf( state, el, depth ) {
   state.sub_key = null;
 
   return;
+}
+
+/**
+ *  Fill in back-references for multi-verse entries.
+ *
+ *  @method _addMultiverseRefs
+ *  @param  ref             The reference for the multi-verse fills {String};
+ *  @param  multi           The multi-verse reference {String};
+ *  @param  book_json       The accumulating book object into which references
+ *                          should be added {Object};
+ *
+ *  @return void
+ *  @private
+ */
+function _addMultiverseRefs( ref, multi, book_json ) {
+  const usfms = multi.split('+');
+
+  usfms.forEach( (usfm) => {
+    const [ bk, ch, vs ]  = usfm.split('.');
+    const thisRef         = Refs.sortable( bk, ch, vs );
+    if (thisRef === ref) { return }
+
+    // Generate a back-reference to the full verse
+    const backRef = { _ref: ref };
+
+    console.warn('=== Multi-verse[ %s ]: add ref @ %s:',
+                  multi, thisRef, backRef);
+
+    book_json[ thisRef ] = backRef;
+  });
 }
 
 /**
