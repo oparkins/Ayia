@@ -1,3 +1,7 @@
+For version 2 of the `yvers` parsing, we will encode paragraphy information
+within the markup for each verse.
+
+---
 A `yvers` chapter uses HTML markup and identifies chapter, title, paragraph,
 and character markup using CSS `class`:
 ```
@@ -11,10 +15,11 @@ and character markup using CSS `class`:
      ...
 ```
 
-A verse identification at the beginning of a new block that contains no content
-indicates a closure of the final block in the identified / previous verse.
+Each block may contain one or more verses. So, a single `li1` markup block may
+contain *many* verses, all expected to be indented to the same level.
 
-Generated verse:
+---
+Version 2 verse markup:
 - Markup keys beginning with #+/ indicate blocks, any others are character
   markup;
   ```
@@ -47,7 +52,7 @@ Generated verse:
   ...
   ```
 
-Generate verse data:
+Generated verse data:
 ```
 BOK.001.001: {
   markup: [
