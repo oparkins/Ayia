@@ -20,7 +20,7 @@ export const Agent  = {
    *
    *  @method get
    *  @param  path            The API endpoint path {String};
-   *  @param  [config]        Additinoal configuration and data {Object};
+   *  @param  [config]        Additional configuration and data {Object};
    *  @param  [config.fetch]  The fetch method {Function};
    *  @param  [config.data]   Additional data to encode in the request
    *                          {Object};
@@ -38,7 +38,7 @@ export const Agent  = {
    *
    *  @method put
    *  @param  path            The API endpoint path {String};
-   *  @param  [config]        Additinoal configuration and data {Object};
+   *  @param  [config]        Additional configuration and data {Object};
    *  @param  [config.fetch]  The fetch method {Function};
    *  @param  [config.data]   Additional data to encode in the request
    *                          {Object};
@@ -56,7 +56,7 @@ export const Agent  = {
    *
    *  @method post
    *  @param  path            The API endpoint path {String};
-   *  @param  [config]        Additinoal configuration and data {Object};
+   *  @param  [config]        Additional configuration and data {Object};
    *  @param  [config.fetch]  The fetch method {Function};
    *  @param  [config.data]   Additional data to encode in the request
    *                          {Object};
@@ -74,7 +74,7 @@ export const Agent  = {
    *
    *  @method del
    *  @param  path            The API endpoint path {String};
-   *  @param  [config]        Additinoal configuration and data {Object};
+   *  @param  [config]        Additional configuration and data {Object};
    *  @param  [config.fetch]  The fetch method {Function};
    *  @param  [config.data]   Additional data to encode in the request
    *                          {Object};
@@ -101,7 +101,7 @@ export default Agent;
  *  @method get
  *  @param  method          The HTTP method (e.g. GET POST, PUT) {String};
  *  @param  path            The API endpoint path {String};
- *  @param  [config]        Additinoal configuration and data {Object};
+ *  @param  [config]        Additional configuration and data {Object};
  *  @param  [config.fetch]  The fetch method {Function};
  *  @param  [config.data]   Additional data to encode in the request
  *                          {Object};
