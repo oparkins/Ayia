@@ -1,7 +1,9 @@
-import { error } from '@sveltejs/kit';
-import { get }   from "svelte/store";
+import { browser }  from '$app/environment';
+import { error }    from '@sveltejs/kit';
+import { get }      from "svelte/store";
 
 import {
+  config    as config_store,
   versions  as versions_store,
 }  from '$lib/stores';
 
@@ -20,6 +22,24 @@ import Agent  from '$lib/agent';
  *          - on failure, an error {Error};
  */
 export async function load({ fetch, params }) {
+  let   config  = get( config_store );
+
+  if (browser) {
+    /* Browser-side: SHOULD have access to `config` pushed by the server into
+     * the config store.
+     */
+    console.log('+layout.js: browser, config_store:', config);
+
+  } else if (typeof(global) === 'object' && global.config) {
+    /* Server-side with 'global.config' : push the config into a store to
+     * provide client-side access.
+     */
+    console.log('+layout.js: server, global.config:', global.config);
+
+    config = global.config;
+    config_store.set( config );
+  }
+
   const path  = '/versions';
 
   const versions  = Agent.get( path, {fetch} );
@@ -31,6 +51,7 @@ export async function load({ fetch, params }) {
   });
 
   return {
+    config  : config,
     versions: await versions,
   };
 
