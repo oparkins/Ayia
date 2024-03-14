@@ -110,7 +110,11 @@ function _writable_int_ls( key, def_val ) {
  */
 function _writable_json_ls( key, def_val ) {
   const serialize   = (val) => JSON.stringify(val);
-  const deserialize = (str) => JSON.parse(str);
+  const deserialize = (str) => {
+    if (str === 'undefined')      { return }
+    if (typeof(str) === 'string') { return JSON.parse(str) }
+    return str;
+  };
 
   return _writable_ls( key, def_val, serialize, deserialize );
 }
