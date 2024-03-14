@@ -11,6 +11,12 @@ export const ssr = false;
 import { get }            from "svelte/store";
 import { user, errors }   from '$lib/stores';
 
+// dev {
+const BASE_API_URL  = 'http://localhost:4000/api/v2';
+/* } prod {
+const BASE_API_URL  = 'https://api.ayia.nibious.com/api/v1';
+// prod } */
+
 /**
  *  The Agent (singleton)
  */
@@ -243,7 +249,7 @@ function _encode_params( data ) {
  *  @private
  */
 function _get_api_url( path ) {
-  return `https://api.ayia.nibious.com/api/v1/${path}`;
+  return `${BASE_API_URL}/${path}`;
 }
 
 /* Private helpers }
