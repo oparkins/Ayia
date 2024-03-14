@@ -1,5 +1,6 @@
 /**
  *  Available stores:
+ *    config            {Object};
  *    user              {Object};
  *    versions          {Array};
  *    verse             {Object}  -- { book, chapter, verse, ui_ref, api_ref };
@@ -27,6 +28,7 @@ export const ssr = false;
 import { get, writable }  from 'svelte/store';
 
 // Create shared stores
+export const  config            = _writable_json_ls( 'config', null );
 export const  user              = _writable_json_ls( 'user', null );
 export const  versions          = writable( null );
 export const  verse             = _writable_json_ls( 'verse', null );
