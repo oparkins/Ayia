@@ -11,11 +11,17 @@ export const ssr = false;
 import { get }            from "svelte/store";
 import { user, errors }   from '$lib/stores';
 
-// dev {
-const BASE_API_URL  = 'http://localhost:4000/api/v2';
-/* } prod {
-const BASE_API_URL  = 'https://api.ayia.nibious.com/api/v1';
-// prod } */
+import {
+  config    as config_store,
+}  from '$lib/stores';
+
+/* Fall-back for _get_api_url() when a server-provided `config` is not
+ * available.
+ *
+ * :XXX: The server-provided `config` SHOULD be pushed to `config_store` via
+ *       server-side rendering of the top-level +layout.js.
+ */
+const DEFAULT_BASE_API_URL  = 'https://api.ayia.nibious.com/api/v1';
 
 /**
  *  The Agent (singleton)
@@ -125,6 +131,10 @@ async function _send( method, path, config=null) {
   const user_ro = get( user );  // Don't want to subscribe
   const token   = (user_ro && user_ro.token);
   let   url     = _get_api_url( path );
+
+  if (typeof(global) === 'object') {
+    console.log('Agent._send(): global.config:', global.config);
+  }
 
   // Require a JSON response
   headers['Accept'] = 'application/json';
@@ -249,7 +259,57 @@ function _encode_params( data ) {
  *  @private
  */
 function _get_api_url( path ) {
-  return `${BASE_API_URL}/${path}`;
+  //return `${DEFAULT_BASE_API_URL}/${path}`;
+
+  const config      = get( config_store );
+  const api_map     = (config && config.web_ui && config.web_ui.api_map);
+  let   baseUrl     = DEFAULT_BASE_API_URL;
+  const pathParts   = path.split('/');
+
+  if (pathParts[0] == '') { pathParts.shift() }
+
+  if (api_map && typeof(api_map) === 'object') {
+    // See if `path` appears in the configured API map
+    if (api_map.hasOwnProperty( pathParts[0] )) {
+      // Fast-path: match
+      const key = pathParts[0];
+
+      baseUrl = api_map[ key ];
+      pathParts.shift();
+
+      /*
+      console.log('_get_api_url(): fast-match[ %s ], parts[ %s ] => '
+                  +                                 'baseUrl[ %s ] ...',
+                  key, pathParts.join(', '), baseUrl);
+      // */
+
+    } else {
+      /* Slow-path: Iterate over all keys to see if any *start-with* the
+       *            target.
+       */
+      for (let key in api_map) {
+        if (key && key.startsWith( pathParts[0] )) {
+          baseUrl = api_map[ key ];
+          pathParts.shift();
+
+          /*
+          console.log('_get_api_url(): slow-match[ %s ], parts[ %s ] => '
+                      +                                 'baseUrl[ %s ] ...',
+                      key, pathParts.join(', '), baseUrl);
+          // */
+          break;
+        }
+      }
+    }
+  }
+
+  const url = `${baseUrl}/${pathParts.join('/')}`;
+
+  /*
+  console.log('_get_api_url( %s ): final url[ %s ]', path, url );
+  // */
+
+  return url;
 }
 
 /* Private helpers }
