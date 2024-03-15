@@ -122,7 +122,7 @@ async function _versions_get( config, req, res ) {
      */
     count
       .then( total => {
-        console.log('_versions_get(): total[ %s ], returning[ %s ]',
+        console.log('v2/_versions_get(): total[ %s ], returning[ %s ]',
                     total, json.versions.length);
 
         json.total = total;
@@ -168,7 +168,7 @@ async function _version_get( config, req, res ) {
   const id        = (req.params.id || req.query.id);
   const version   = await _fetch_version( id, $versions );
 
-  console.log('_version_get( %s ): %s ...',
+  console.log('v2/_version_get( %s ): %s ...',
               id, (version ? version.abbreviation : null) );
 
   if (version) {
@@ -204,7 +204,7 @@ async function _verses_get( config, req, res ) {
   const id        = ( req.params.id  || req.query.id );
   const refStr    = ( req.params.ref || req.query.ref );
 
-  console.log('_verses_get(): id[ %s ], ref[ %s ] ...', id, refStr);
+  console.log('v2/_verses_get(): id[ %s ], ref[ %s ] ...', id, refStr);
 
   // Attempt to find the target version
   const version = await _fetch_version( id, $versions );
@@ -253,7 +253,7 @@ async function _verses_get( config, req, res ) {
   };
 
   /*
-  console.log('_verses_get( %s ):', refStr, _inspect(json));
+  console.log('v2/_verses_get( %s ):', refStr, _inspect(json));
   // */
 
   res.status( 200 )
@@ -275,7 +275,7 @@ async function _fetch_version( id, col=null ) {
   if (col == null)  { col = config.mongodb.collections.versions }
 
   /*
-  console.log('_fetch_version(): id[ %s ]', id);
+  console.log('v2/_fetch_version(): id[ %s ]', id);
   // */
 
   const query = {
@@ -290,7 +290,7 @@ async function _fetch_version( id, col=null ) {
   const doc   = await col.findOne( query );
 
   /*
-  console.log('_fetch_version(): id[ %s ], doc:', id, doc);
+  console.log('v2/_fetch_version(): id[ %s ], doc:', id, doc);
   // */
 
   return doc;
