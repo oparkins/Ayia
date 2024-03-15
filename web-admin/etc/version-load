@@ -105,14 +105,20 @@ async function main() {
   const mongo = await mongo_connect( config.mongodb );
 
   // Access the collection for this version
-  const abbrev  = args.version.abbreviation;
+  const abbrev    = args.version.abbreviation;
+  const col_name  = (args.version.type === 'yvers'
+                      ? `${abbrev}_v2`
+                      : abbrev);
+
+  console.log('>>> Store version: %s %s to collection %s ...',
+              abbrev,
+              (config.ref_filter ? `[ ${config.ref_filter} ]` : ''),
+              col_name);
 
   // Access/create the collection for this version
   args.col = {
     versions: mongo.collections.versions,
-    version : (args.version.type === 'yvers'
-                ? mongo.db.collection( `${abbrev}_v2` )
-                : mongo.db.collection( abbrev )),
+    version : mongo.db.collection( colName ),
   };
 
   _store_version( args )
