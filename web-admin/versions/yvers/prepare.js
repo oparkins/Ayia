@@ -394,7 +394,7 @@ function _parseBlock( state, el ) {
   } else {
     // Parse all block children
     $children.each( (jdex, ch) => {
-      _parseEl( state, ch );
+      _parseChar( state, ch );
     });
   }
 
@@ -461,7 +461,7 @@ function _parseTable( state, el ) {
       } else {
         // Parse all block children
         children.forEach( (ch) => {
-          _parseEl( state, ch );
+          _parseChar( state, ch );
         });
       }
     });
@@ -471,9 +471,9 @@ function _parseTable( state, el ) {
 }
 
 /**
- *  Parse a child of a block element.
+ *  Parse a character element.
  *
- *  @method _parseEl
+ *  @method _parseChar
  *  @param  state           Chapter processing state {Object};
  *  @param  state.verbosity Verbosity level {Number};
  *  @param  state.$         The top-level Cheerio instance {Cheerio};
@@ -491,7 +491,7 @@ function _parseTable( state, el ) {
  *  @return The updated `state` {Object};
  *  @private
  */
-function _parseEl( state, el, depth=1 ) {
+function _parseChar( state, el, depth=1 ) {
   const $         = state.$;
   const classes   = _getClasses( el );
   const cls0      = (classes.length > 0 && classes[0]);
@@ -534,35 +534,34 @@ function _parseEl( state, el, depth=1 ) {
     }
   }
 
-  /* Do we need to process this element directly?
-   *  - if this is explicitly a 'note' element, since we want the ENTIRE
-   *    sub-element as the note;
-   *  - we have already traversed to a sub-key;
-   *  - the sub-key is NOT 'verse', since we need to traverse on down to the
-   *    label to properly adjust `state.key`;
+  /* IF this is a `verse` element, gather the ENTIRE element tree for direct
+   * inclusion.
    */
-  const hasSubkey = (state.sub_key !== null);
-  const isNote    = (cls0 === 'note');
-  const isVerse   = (state.sub_key === 'verse');
+  const isVerse = (cls0 === 'verse');
 
-  if (isNote || (hasSubkey && !isVerse)) {
-    // Parse this as a JSON object for directly inclusion
-    const json  = _jsonElement( $, el );
+  if (isVerse) {
+    /* The full JSON will be { verse.v#: [ ... ] }
+     *
+     * We only need the first value (array) associated with our current `key`
+     */
+    const fullJson  = _jsonElement( $, el );
+    const firstVal  = Object.values( fullJson )[0];
 
-    /*
-    console.log('_parseEl(): block [ %s.%s.%s : %s ], depth[ %d ], json:',
-                state.block, state.key, state.sub_key, cls0, depth,
-                Inspect( json, 5, !'color' ));
-    // */
+    // assert( Array.isArray( firstVal ) );
 
-    if (typeof(json) === 'string') {
-      const obj = { [state.sub_key]: json };
+    if (firstVal.length < 1) {
+      /* Skip this empty block to postpone the conversion of any block element
+       * from first to continued. Let that occur with the next non-empty block.
+       */
+      return;
 
-      state.verse.markup.push( { [state.key]: obj } );
-
-    } else {
-      state.verse.markup.push( { [state.key]: json } );
     }
+
+    // Include the full sub-tree directly under the current key
+    state.verse.markup.push( { [state.key]: firstVal } );
+
+    // Gather the text of all children that are NOT 'label' or 'note'
+    _gatherText( state, el );
 
     /* Update the primary key to indicate a block continuation and
      * remove this (consumed) sub_key
@@ -572,7 +571,10 @@ function _parseEl( state, el, depth=1 ) {
     return state;
   }
 
-  // Recursively parse all children
+  /*************************************************************
+   * For non-verse blocks, recursively parse all children,
+   * placing them within the current key.
+   */
   state.sub_key = cls0;
 
   /*
@@ -582,7 +584,7 @@ function _parseEl( state, el, depth=1 ) {
   // */
 
   children.forEach( (ch, jdex) => {
-    _parseEl( state, ch, depth+1 );
+    _parseChar( state, ch, depth+1 );
   });
 
   return state;
@@ -657,6 +659,39 @@ function _parseLeaf( state, el, depth ) {
   state.sub_key = null;
 
   return state;
+}
+
+/**
+ *  Gather text from this element from all children that are not 'label' or
+ *  'note' character blocks.
+ *
+ *  @method _gatherText
+ *  @param  state         Chapter processing state {Object};
+ *  @param  state.$       The top-level Cheerio instance {Cheerio};
+ *  @param  state.verse   The current accumulating verse {Array};
+ *  @param  el            The target HTML element {Object};
+ *
+ *  @return void
+ *  @private
+ */
+function _gatherText( state, el ) {
+  const $     = state.$;
+  const $el   = $(el);
+
+  el.children.forEach( child => {
+    const classes = _getClasses( child );
+    const cls0    = (classes.length > 0 && classes.shift());
+
+    // Skip 'label', 'header', and 'note' children
+    if (cls0 === 'label' || cls0 === 'header' || cls0 === 'note') { return }
+
+    const text  = $(child).text().trim();
+    if (text.length < 1) { return }
+
+    state.verse.text.push( text );
+  });
+
+  return;
 }
 
 /**
