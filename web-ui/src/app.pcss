@@ -87,20 +87,9 @@
     @apply  text-yellow-400;
   }
 
-  .content .break,
-  .content .br {
-    @apply  block pb-[1em];
-  }
-  .content .s + .break,
-  .content .r + .break,
-  .content .s + .br,
-  .content .r + .br {
-    @apply  pb-0;
-  }
-
-  .content .break + .br,
-  .content .br    + .br {
-    @apply  inline;
+  .content .s + .block-new,
+  .content .r + .block-new {
+    @apply  !pt-0;
   }
 
   /* Navigation / Meta-data }
@@ -119,10 +108,11 @@
     @apply  text-[1em] leading-normal font-bold italic;
   }
 
-  .content .s1:first-of-type { @apply pl-[1em]; }
-  .content .s2:first-of-type { @apply pl-[2em]; }
-  .content .s3:first-of-type { @apply pl-[3em]; }
-  .content .s4:first-of-type { @apply pl-[4em]; }
+  .content .s.block-new,
+  .content .s1.block-new  { @apply pl-[1em]; }
+  .content .s2.block-new  { @apply pl-[2em]; }
+  .content .s3.block-new  { @apply pl-[3em]; }
+  .content .s4.block-new  { @apply pl-[4em]; }
 
   /* Parallel Passage Reference */
   .content .r {
@@ -136,26 +126,37 @@
    *    https://ubsicap.github.io/usx/parastyles.html#paragraphs
    */
 
-  /* Normal paragraph */
-  .content .p {
+  .content .block-new {
+    @apply  block;
+  }
+
+  .content .block-cont {
     @apply  inline;
   }
 
+  /* Normal paragraph */
+  .content .p.block-new { @apply  pt-[1em]; }
+  .content .p { }
+
   /* Right-aligned paragraph */
+  .content .pr.block-new { @apply  pt-[1em]; }
   .content .pr {
-    @apply  block text-right;
+    @apply  text-right;
   }
 
   /* Centered paragraph */
+  .content .pc.block-new { @apply  pt-[1em]; }
   .content .pc {
-    @apply  block text-center;
+    @apply  text-center;
   }
 
   /* Margin paragraph */
+  .content .m.block-new { @apply  pt-[1em]; }
   .content .m {
   }
 
   /* Indented flush left paragraph */
+  .content .mi.block-new { @apply  pt-[1em]; }
   .content .mi {
   }
 
@@ -173,6 +174,7 @@
   }
 
   /* Embedded text paragraph */
+  .content .pm.block-new { @apply  pt-[1em]; }
   .content .pm {
   }
 
@@ -185,18 +187,22 @@
   }
 
   /* Indented paragraph */
-  .content .pi,
-  .content .pi1:first-of-type { @apply pl-[1em]; }
-  .content .pi2:first-of-type { @apply pl-[2em]; }
-  .content .pi3:first-of-type { @apply pl-[3em]; }
-  .content .pi4:first-of-type { @apply pl-[4em]; }
+  .content .pi.block-new { @apply  pt-[1em]; }
+
+  .content .pi.block-new,
+  .content .pi1.block-new   { @apply pl-[1em]; }
+  .content .pi2.block-new   { @apply pl-[2em]; }
+  .content .pi3.block-new   { @apply pl-[3em]; }
+  .content .pi4.block-new   { @apply pl-[4em]; }
 
   /* Indented paragraph with hanging indent */
-  .content .ph  {}
-  .content .ph1:first-of-type { @apply pl-[1em]; }
-  .content .ph2:first-of-type { @apply pl-[2em]; }
-  .content .ph3:first-of-type { @apply pl-[3em]; }
-  .content .ph4:first-of-type { @apply pl-[4em]; }
+  .content .ph.block-new { @apply  pt-[1em]; }
+
+  .content .ph.block-new,
+  .content .ph1.block-new   { @apply pl-[1em]; }
+  .content .ph2.block-new   { @apply pl-[2em]; }
+  .content .ph3.block-new   { @apply pl-[3em]; }
+  .content .ph4.block-new   { @apply pl-[4em]; }
 
   /* Paragraph }
    **************************************************************************
@@ -205,32 +211,32 @@
    */
 
   /* Poetic Line */
-  .content .q  {}
-  .content .q1:first-of-type { @apply pl-[1em]; }
-  .content .q2:first-of-type { @apply pl-[2em]; }
-  .content .q3:first-of-type { @apply pl-[3em]; }
-  .content .q4:first-of-type { @apply pl-[4em]; }
+  .content .q.block-new,
+  .content .q1.block-new  { @apply pl-[1em]; }
+  .content .q2.block-new  { @apply pl-[2em]; }
+  .content .q3.block-new  { @apply pl-[3em]; }
+  .content .q4.block-new  { @apply pl-[4em]; }
 
   /* Embedded text poetic line */
-  .content .qm  {}
-  .content .qm1:first-of-type { @apply pl-[1em]; }
-  .content .qm2:first-of-type { @apply pl-[2em]; }
-  .content .qm3:first-of-type { @apply pl-[3em]; }
-  .content .qm4:first-of-type { @apply pl-[4em]; }
+  .content .qm.block-new,
+  .content .qm1.block-new   { @apply pl-[1em]; }
+  .content .qm2.block-new   { @apply pl-[2em]; }
+  .content .qm3.block-new   { @apply pl-[3em]; }
+  .content .qm4.block-new   { @apply pl-[4em]; }
 
   /* Right-aligned */
   .content .qr {
-    @apply  block text-right;
+    @apply  text-right;
   }
 
   /* Centered */
   .content .qc {
-    @apply  block text-center;
+    @apply  text-center;
   }
 
   /* Acrostic Heading */
   .content .qa {
-    @apply  block text-center italic text-[.8em];
+    @apply  text-center italic text-[.8em];
   }
 
   /* Blank Line */
@@ -250,20 +256,18 @@
   }
 
   /* List entry */
-  .content .li,
-  .content .li1,
-  .content .li2,
-  .content .li3,
-  .content .li4 {
-  }
+  .content .li.block-new,
+  .content .li1.block-new   { @apply  pl-[1em]; }
+  .content .li2.block-new   { @apply  pl-[2em]; }
+  .content .li3.block-new   { @apply  pl-[3em]; }
+  .content .li4.block-new   { @apply  pl-[4em]; }
 
   /* Embedded list entry */
-  .content .lim,
-  .content .lim1,
-  .content .lim2,
-  .content .lim3,
-  .content .lim4 {
-  }
+  .content .lim.block-new,
+  .content .lim1.block-new  { @apply  pl-[1em]; }
+  .content .lim2.block-new  { @apply  pl-[2em]; }
+  .content .lim3.block-new  { @apply  pl-[3em]; }
+  .content .lim4.block-new  { @apply  pl-[4em]; }
 
   /* List footer */
   .content .lf {
@@ -345,16 +349,23 @@
   }
 
   .content .note-label {
-    @apply  shrink-0 w-[1em] h-[1em] text-gray-400;
+    @apply  inline shrink-0 w-[1em] h-[1em] stroke-gray-400;
+  }
+
+  :is(.dark) .content .note-label {
+    @apply  stroke-gray-200;
   }
 
   .content .note-content {
-    @apply  z-[60] p-0 m-0 max-w-[50ch];
+    @apply  z-[60] p-0 m-0 max-w-[50ch] rounded-lg shadow-sm border;
+    @apply  absolute inline-block transition-opacity;
     @apply  text-[.85em] text-start text-gray-800 leading-normal;
+    @apply  bg-white border-gray-200;
   }
 
   :is(.dark) .content .note-content {
     @apply  text-gray-200;
+    @apply  bg-gray-800 border-gray-600;
   }
 
   .content .note-content .fr {
