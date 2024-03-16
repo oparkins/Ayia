@@ -118,7 +118,7 @@ async function main() {
   // Access/create the collection for this version
   args.col = {
     versions: mongo.collections.versions,
-    version : mongo.db.collection( colName ),
+    version : mongo.db.collection( col_name ),
   };
 
   _store_version( args )
