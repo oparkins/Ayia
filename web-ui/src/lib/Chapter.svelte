@@ -25,6 +25,10 @@
    *  Imports {
    *
    */
+	import { beforeUpdate, afterUpdate, tick } from 'svelte';
+
+  import { activate  as activate_notes } from '$lib/verse_note';
+
   import VerseText        from '$lib/VerseText.svelte';
   import VerseYvers       from '$lib/VerseYvers.svelte';
   import VerseInterlinear from '$lib/VerseInterlinear.svelte';
@@ -33,8 +37,17 @@
    *************************************************************************
    *  Local state/methods {
    */
-  let verse_el  = VerseText;
+  let container_el  = null;
+  let verse_el      = VerseText;
 
+  /**
+   *  Update the component based upon `version.type`
+   *
+   *  @method update_el
+   *  @param  version     The new version {Version};
+   *
+   *  @return void
+   */
   function update_el( version ) {
     if (version == null)  { return }
 
@@ -53,8 +66,32 @@
     }
   }
 
+  /**
+   *  After an update has completed, activate any new popovers
+   *
+   *  @method activate_popovers
+   *
+   *  @return void
+   */
+  function activate_popovers() {
+    console.log('Chapter.activate_popovers(): container_el:', container_el);
+
+    activate_notes( container_el );
+  }
+
   // When `version` changes, update the verse element
   $: update_el( version );
+
+  // As soon as this component has been updated, activate all popovers
+	beforeUpdate(async () => {
+    console.log('Chapter: beforeUpdate ...');
+		await tick();
+    console.log('Chapter: just updated ...');
+    activate_popovers();
+	});
+	afterUpdate(() => {
+    console.log('Chapter: afterUpdate ...');
+  });
 
   /*  Local state/Methods }
    *************************************************************************
@@ -81,7 +118,7 @@
    *************************************************************************/
 </script>
 
-<div class='content { Css.content.join(' ') }'>
+<div class='content { Css.content.join(' ') }' bind:this={container_el} >
   {#if is_loading}
     Loading { verse.ui_ref } ...
   {:else if content}
