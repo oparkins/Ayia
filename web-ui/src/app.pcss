@@ -170,19 +170,22 @@
   }
 
   /* Embedded text opening */
+  .content .pmo.block-new { @apply  pt-[.5em] pl-[1em]; }
   .content .pmo {
   }
 
   /* Embedded text paragraph */
-  .content .pm.block-new { @apply  pt-[1em]; }
+  .content .pm.block-new { @apply  pt-[1em] pl-[1em]; }
   .content .pm {
   }
 
   /* Embedded text closing */
+  .content .pmc.block-new { @apply  pt-[.5em] pl-[1em]; }
   .content .pmc {
   }
 
   /* Embedded text refrain */
+  .content .pmr.block-new { @apply  pt-[.5em] pl-[1em] pr-[1em] text-right; }
   .content .pmr {
   }
 
@@ -321,7 +324,7 @@
   }
 
   /* Words of Jesus */
-  .content .verse .wj {
+  .content .wj {
     @apply  inline text-red-400;
   }
 
@@ -341,10 +344,10 @@
    *
    */
 
-  .content .verse .note {
+  .content .note {
     @apply  inline-block ml-[.025em] mr-[.25em];
   }
-  .content .verse .note+.note {
+  .content .note+.note {
     @apply  ml-[-.275em];
   }
 
