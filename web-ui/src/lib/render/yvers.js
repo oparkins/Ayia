@@ -26,8 +26,10 @@ import {
  *  @return The HTML for this chapter {String};
  */
 export function html_chapter( content, show ) {
+  /*
   console.log('yvers.html_chapter(): content:', content);
   console.log('yvers.html_chapter(): show   :', show);
+  // */
 
   if (content == null || content.verses == null) { return null }
 
@@ -39,12 +41,16 @@ export function html_chapter( content, show ) {
     note_idex : 0,
   };
 
+  /*
   console.log('yvers.html_chapter(): state:', state);
+  // */
 
   const html  = [];
   const last_ref  = (Object.keys(content.verses).pop());
 
+  /*
   console.log('yvers.html_chapter(): last_ref:', last_ref);
+  // */
 
   for (let verse_ref in content.verses) {
     const [ _bk, _ch, vs ]  = verse_ref.split('.');
@@ -57,8 +63,10 @@ export function html_chapter( content, show ) {
 
     const is_last_verse = (verse_ref === last_ref);
 
+    /*
     console.log('yvers.html_chapter(): verse_ref[ %s ], is_last[ %s ], verse:',
                 verse_ref, String(is_last_verse), verse);
+    // */
 
     verse.markup.forEach( (markup, m_dex) => {
       state.max    = (is_last_verse ? markup.length : 999);
@@ -128,9 +136,11 @@ export function html_continuous_block( state ) {
   let   tag       = 'span';
   const css       = key_parts;
 
+  /*
   console.log('html_continuous_block(): cur_block[ %s ], key_type[ %s ], '
               +       'key_parts:', 
               state.block, key_type, key_parts);
+  // */
 
   /* Convert the primary key to a CSS-safe value:
    *    #p  => p block-new
@@ -251,7 +261,9 @@ export function html_block( state ) {
   const markup    = state.markup;
   const show      = state.show;
 
+  /*
   console.log('html_block(): state:', state);
+  // */
 
   const m_key     = Object.keys(markup)[0];
   const m_val     = markup[m_key];
@@ -349,7 +361,9 @@ export function html_char( state, item ) {
   const markup    = state.markup;
   const show      = state.show;
 
+  /*
   console.log('yvers.render.html_char(): item:', item);
+  // */
 
   if (typeof(item) === 'string') {
     // Simple string
@@ -374,8 +388,10 @@ export function html_char( state, item ) {
   const type  = Object.keys(item)[0];
   const val   = Object.values(item)[0];
 
+  /*
   console.log('yvers.render.html_char(): type[ %s ], val[ %s ]:',
               type, typeof(val), val);
+  // */
 
   // assert( typeof(val) === 'string' || Array.isArray(val) );
 
