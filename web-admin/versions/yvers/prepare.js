@@ -571,6 +571,22 @@ function _parseChar( state, el, depth=1 ) {
     return state;
   }
 
+  if (cls0 === 'note') {
+    /* Include notes directly -- this is likely a note within a non-verse
+     * element (e.g. chapter heading).
+     */
+    const note  = _jsonElement( $, el );
+
+    /*
+    console.log('=== block [ %s.%s.%s ], depth[ %d ]: note:',
+                state.block, state.key, state.sub_key, depth,
+                Inspect( note ));
+    // */
+
+    state.verse.markup.push( { [state.key]: note } );
+    return;
+  }
+
   /*************************************************************
    * For non-verse blocks, recursively parse all children,
    * placing them within the current key.
@@ -756,13 +772,15 @@ function _jsonElement( $, el, depth=1 ) {
   if (label === 'content') {
     return $el.text().trim();
   }
+ /* A heading MAY contain a note, e.g. NIV.PSA.003
   if (label === 'heading') {
     return $el.text().trim();
   }
+  // */
 
   if (children.length < 1) {
     // NO children
-    if (label === 'text') {
+    if (label === 'text' || label === 'heading') {
       // JUST a text node so no need for a 'text' label
       json = $el.text().trim();
 
