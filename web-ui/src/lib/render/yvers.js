@@ -36,6 +36,7 @@ export function html_chapter( content, show ) {
     block     : null,
     max       : -1,
     show      : show,
+    note_idex : 0,
   };
 
   console.log('yvers.html_chapter(): state:', state);
@@ -76,15 +77,16 @@ export function html_chapter( content, show ) {
  *  of the given block-level markup.
  *
  *  @method html_continuous_block
- *  @param  state
- *
- *  @param  verse_ref       The verse reference {String};
- *  @param  m_dex           The index of this markup element {Number};
- *  @param  markup          The target markup element {Object};
- *  @param  show            Show configuration (from state) {Object};
- *  @param  show.footnotes  Show footnotes {State};
- *  @param  show.xrefs      Show cross-references {State};
- *  @param  show.redletters Show red-letters {State};
+ *  @param  state                 Render state {Object};
+ *  @param  state.verse_ref       The verse reference {String};
+ *  @param  state.m_dex           The index of this markup element {Number};
+ *  @param  state.note_idex       A note counter to enable generation of unique
+ *                                note identifiers{Number};
+ *  @param  state.markup          The target markup element {Object};
+ *  @param  state.show            Show configuration (from state) {Object};
+ *  @param  state.show.footnotes  Show footnotes {State};
+ *  @param  state.show.xrefs      Show cross-references {State};
+ *  @param  state.show.redletters Show red-letters {State};
  *
  *  The incoming `markup` represents a top-level block and has the form:
  *    { '%type%%key%: %value% }
@@ -186,11 +188,11 @@ export function html_continuous_block( state ) {
 
   if (Array.isArray(m_val)) {
     m_val.forEach( item => {
-      html.push( html_char( verse_ref, m_dex, item, show ) );
+      html.push( html_char( state, item ) );
     });
 
   } else if (m_val) {
-    html.push( html_char( verse_ref, m_dex, m_val, show ) );
+    html.push( html_char( state, m_val ) );
 
   }
 
@@ -211,15 +213,16 @@ export function html_continuous_block( state ) {
  *  version of the given block-level markup.
  *
  *  @method html_block
- *  @param  state
- *
- *  @param  verse_ref       The verse reference {String};
- *  @param  m_dex           The index of this markup element {Number};
- *  @param  markup          The target markup element {Object};
- *  @param  show            Show configuration (from state) {Object};
- *  @param  show.footnotes  Show footnotes {State};
- *  @param  show.xrefs      Show cross-references {State};
- *  @param  show.redletters Show red-letters {State};
+ *  @param  state                 Render state {Object};
+ *  @param  state.verse_ref       The verse reference {String};
+ *  @param  state.m_dex           The index of this markup element {Number};
+ *  @param  state.note_idex       A note counter to enable generation of unique
+ *                                note identifiers{Number};
+ *  @param  state.markup          The target markup element {Object};
+ *  @param  state.show            Show configuration (from state) {Object};
+ *  @param  state.show.footnotes  Show footnotes {State};
+ *  @param  state.show.xrefs      Show cross-references {State};
+ *  @param  state.show.redletters Show red-letters {State};
  *
  *  The incoming `markup` represents a top-level block and has the form:
  *    { '%type%%key%: %value% }
@@ -295,11 +298,11 @@ export function html_block( state ) {
 
   if (Array.isArray(m_val)) {
     m_val.forEach( item => {
-      html.push( html_char( verse_ref, m_dex, item, show ) );
+      html.push( html_char( state, item ) );
     });
 
   } else if (m_val) {
-    html.push( html_char( verse_ref, m_dex, m_val, show ) );
+    html.push( html_char( state, m_val ) );
 
   }
 
@@ -315,13 +318,16 @@ export function html_block( state ) {
  *  character-level markup.
  *
  *  @method html_char
- *  @param  verse_ref       The verse reference {String};
- *  @param  m_dex           The index of the parent element {Number};
- *  @param  item            The markup item {String | Object};
- *  @param  show            Show configuration (from state) {Object};
- *  @param  show.footnotes  Show footnotes {State};
- *  @param  show.xrefs      Show cross-references {State};
- *  @param  show.redletters Show red-letters {State};
+ *  @param  state                 Render state {Object};
+ *  @param  state.verse_ref       The verse reference {String};
+ *  @param  state.m_dex           The index of this markup element {Number};
+ *  @param  state.note_idex       A note counter to enable generation of unique
+ *                                note identifiers{Number};
+ *  @param  state.markup          The target markup element {Object};
+ *  @param  state.show            Show configuration (from state) {Object};
+ *  @param  state.show.footnotes  Show footnotes {State};
+ *  @param  state.show.xrefs      Show cross-references {State};
+ *  @param  state.show.redletters Show red-letters {State};
  *
  *  Examples:
  *    item: { label: '1' }            // Verse label
@@ -336,7 +342,13 @@ export function html_block( state ) {
  *
  *  @return The rendered HTML {String};
  */
-export function html_char( verse_ref, m_dex, item, show ) {
+export function html_char( state, item ) {
+  const verse_ref = state.verse_ref;
+  const verse_num = state.verse_num;
+  const m_dex     = state.index;
+  const markup    = state.markup;
+  const show      = state.show;
+
   console.log('yvers.render.html_char(): item:', item);
 
   if (typeof(item) === 'string') {
@@ -347,7 +359,7 @@ export function html_char( verse_ref, m_dex, item, show ) {
   if (Array.isArray(item)) {
     // Flatten this array
     const html  = item.map( entry => {
-      return html_char( verse_ref, m_dex, entry, show );
+      return html_char( state, entry );
     });
 
     return html.join(' ');
@@ -398,12 +410,14 @@ export function html_char( verse_ref, m_dex, item, show ) {
         return;
       }
 
-      return html_char( verse_ref, m_dex, n_item, show );
+      return html_char( state, n_item );
     })
     .filter( el => el != null )
     .join('');
 
-    const id  = `${verse_ref.replaceAll('.','-')}-${m_dex}`;
+    const id  = `${verse_ref.replaceAll('.','-')}-${state.note_idex}`;
+    state.note_idex++;
+
     return generate_note( id, type, label, content );
   }
 
@@ -412,7 +426,7 @@ export function html_char( verse_ref, m_dex, item, show ) {
    *
    */
   const html    = [];
-  const content = html_char( verse_ref, m_dex, val, show );
+  const content = html_char( state, val );
 
   if (type === 'fq' || type === 'fqa') {
     // fq : Quotation from current scripture
