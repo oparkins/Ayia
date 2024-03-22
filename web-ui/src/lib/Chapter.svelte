@@ -25,10 +25,6 @@
    *  Imports {
    *
    */
-	import { beforeUpdate, afterUpdate, tick } from 'svelte';
-
-  import { activate  as activate_notes } from '$lib/verse_note';
-
   import VerseText        from '$lib/VerseText.svelte';
   import VerseYvers       from '$lib/VerseYvers.svelte';
   import VerseInterlinear from '$lib/VerseInterlinear.svelte';
@@ -66,32 +62,8 @@
     }
   }
 
-  /**
-   *  After an update has completed, activate any new popovers
-   *
-   *  @method activate_popovers
-   *
-   *  @return void
-   */
-  function activate_popovers() {
-    console.log('Chapter.activate_popovers(): container_el:', container_el);
-
-    activate_notes( container_el );
-  }
-
   // When `version` changes, update the verse element
   $: update_el( version );
-
-  // As soon as this component has been updated, activate all popovers
-	beforeUpdate(async () => {
-    console.log('Chapter: beforeUpdate ...');
-		await tick();
-    console.log('Chapter: just updated ...');
-    activate_popovers();
-	});
-	afterUpdate(() => {
-    console.log('Chapter: afterUpdate ...');
-  });
 
   /*  Local state/Methods }
    *************************************************************************
