@@ -94,7 +94,7 @@
 
   /* Navigation / Meta-data }
    **************************************************************************
-   * Title / Heading {
+   * Title / Heading / Label {
    *    https://ubsicap.github.io/usx/parastyles.html#titles-and-headings
    */
 
@@ -144,7 +144,13 @@
     @apply  text-center text-[.9em];
   }
 
-  /* Title / Heading }
+  /* Speaker identification */
+  .content .sp.block-new {
+    @apply  block pt-[.5em] capitalize;
+
+  }
+
+  /* Title / Heading / Label }
    **************************************************************************
    * Paragraph {
    *    https://ubsicap.github.io/usx/parastyles.html#paragraphs
@@ -252,18 +258,18 @@
   .content .qm4.block-new   { @apply pl-[4em]; }
 
   /* Right-aligned */
-  .content .qr {
+  .content .qr.block-new {
     @apply  text-right;
   }
 
   /* Centered */
-  .content .qc {
+  .content .qc.block-new {
     @apply  text-center;
   }
 
   /* Acrostic Heading */
-  .content .qa {
-    @apply  text-center italic text-[.8em];
+  .content .qa.block-new {
+    @apply  text-center italic pt-[.5em];
   }
 
   /* Blank Line */
@@ -278,7 +284,7 @@
    */
 
   /* List header */
-  .content .lh {
+  .content .lh.block-new {
     @apply  block;
   }
 
