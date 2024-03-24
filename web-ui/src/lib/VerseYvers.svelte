@@ -25,10 +25,9 @@
    */
   const state = {
     verse_ref : verse_ref,
-    block     : null,
-    max       : (Array.isArray( verse.markup )
-                  ? verse.markup.length
-                  : -1),
+    index     : 0,
+    note_idex : 0,
+    markup    : null,
     show      : {
       footnotes : $show_footnotes,
       xrefs     : $show_xrefs,
