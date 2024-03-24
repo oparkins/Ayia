@@ -26,7 +26,7 @@
    *  Imports {
    *
    */
-	import { beforeUpdate, afterUpdate, tick } from 'svelte';
+	import { beforeUpdate, tick } from 'svelte';
 
   import {
     show_footnotes,
@@ -51,23 +51,19 @@
    *  @return void
    */
   function activate_popovers() {
+    /*
     console.log('ChapterYvers.activate_popovers(): container_el:',
                 container_el);
+    // */
 
     activate_notes( container_el );
   }
 
   // As soon as this component has been updated, activate all popovers
 	beforeUpdate(async () => {
-    console.log('ChapterYvers: beforeUpdate: version:', version);
-    console.log('ChapterYvers: beforeUpdate: content:', content);
 		await tick();
-    console.log('ChapterYvers: just updated ...');
     activate_popovers();
 	});
-	afterUpdate(() => {
-    console.log('ChapterYvers: afterUpdate ...');
-  });
 
   /*  Local state/Methods }
    *************************************************************************
