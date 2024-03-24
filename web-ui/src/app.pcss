@@ -114,19 +114,6 @@
   .content .s3.block-new  { @apply pl-[3em]; }
   .content .s4.block-new  { @apply pl-[4em]; }
 
-  .content:not(.yvers) .s,
-  .content:not(.yvers) .s1,
-  .content:not(.yvers) .s2,
-  .content:not(.yvers) .s3,
-  .content:not(.yvers) .s4 {
-    @apply  block pt-[1em] pb-[.75em];
-    @apply  text-[1em] leading-normal font-bold italic;
-  }
-  .content:not(.yvers) .s1:first-of-type { @apply pl-[1em]; }
-  .content:not(.yvers) .s2:first-of-type { @apply pl-[2em]; }
-  .content:not(.yvers) .s3:first-of-type { @apply pl-[3em]; }
-  .content:not(.yvers) .s4:first-of-type { @apply pl-[4em]; }
-
   /* Parallel Passage Reference */
   .content .r {
     @apply  block relative top-[-.5em] pb-[.5em];
@@ -180,7 +167,6 @@
   /* Normal paragraph */
   .content .p.block-new { @apply  pt-[1em]; }
   .content .p { }
-  .content:not(.yvers) .p { @apply  inline; }
 
   /* Right-aligned paragraph */
   .content .pr.block-new { @apply  pt-[1em]; }
@@ -242,12 +228,6 @@
   .content .pi3.block-new   { @apply pl-[3em]; }
   .content .pi4.block-new   { @apply pl-[4em]; }
 
-  .content:not(.yvers) .pi,
-  .content:not(.yvers) .pi1:first-of-type { @apply pl-[1em]; }
-  .content:not(.yvers) .pi2:first-of-type { @apply pl-[2em]; }
-  .content:not(.yvers) .pi3:first-of-type { @apply pl-[3em]; }
-  .content:not(.yvers) .pi4:first-of-type { @apply pl-[4em]; }
-
   /* Indented paragraph with hanging indent */
   .content .ph.block-new { @apply  pt-[1em]; }
 
@@ -256,11 +236,6 @@
   .content .ph2.block-new   { @apply pl-[2em]; }
   .content .ph3.block-new   { @apply pl-[3em]; }
   .content .ph4.block-new   { @apply pl-[4em]; }
-
-  .content:not(.yvers) .ph1:first-of-type { @apply pl-[1em]; }
-  .content:not(.yvers) .ph2:first-of-type { @apply pl-[2em]; }
-  .content:not(.yvers) .ph3:first-of-type { @apply pl-[3em]; }
-  .content:not(.yvers) .ph4:first-of-type { @apply pl-[4em]; }
 
   /* Paragraph }
    **************************************************************************
@@ -275,11 +250,6 @@
   .content .q3.block-new  { @apply pl-[3em]; }
   .content .q4.block-new  { @apply pl-[4em]; }
 
-  .content:not(.yvers) .q1:first-of-type { @apply pl-[1em]; }
-  .content:not(.yvers) .q2:first-of-type { @apply pl-[2em]; }
-  .content:not(.yvers) .q3:first-of-type { @apply pl-[3em]; }
-  .content:not(.yvers) .q4:first-of-type { @apply pl-[4em]; }
-
   /* Embedded text poetic line */
   .content .qm.block-new,
   .content .qm1.block-new   { @apply pl-[1em]; }
@@ -287,24 +257,17 @@
   .content .qm3.block-new   { @apply pl-[3em]; }
   .content .qm4.block-new   { @apply pl-[4em]; }
 
-  .content:not(.yvers) .qm1:first-of-type { @apply pl-[1em]; }
-  .content:not(.yvers) .qm2:first-of-type { @apply pl-[2em]; }
-  .content:not(.yvers) .qm3:first-of-type { @apply pl-[3em]; }
-  .content:not(.yvers) .qm4:first-of-type { @apply pl-[4em]; }
-
   /* Right-aligned */
   .content .qr.block-new {
     @apply  text-right;
   }
 
   /* Centered */
-  .content:not(.yvers) .qc,
   .content .qc.block-new {
     @apply  text-center;
   }
 
   /* Acrostic Heading */
-  .content:not(.yvers) .qa,
   .content .qa.block-new {
     @apply  text-center italic pt-[.5em];
   }
@@ -321,7 +284,6 @@
    */
 
   /* List header */
-  .content:not(.yvers) .lh,
   .content .lh.block-new {
     @apply  block;
   }
