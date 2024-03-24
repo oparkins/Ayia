@@ -120,6 +120,7 @@ export function _activate_one( $trigger, $target ) {
     triggerType : 'hover',
     offset      : 10,
 
+    /*
     onHide: () => {
       console.log('popover %s: shown', id);
     },
@@ -129,6 +130,7 @@ export function _activate_one( $trigger, $target ) {
     onToggle: () => {
       console.log('popover %s: toggled', id);
     },
+    // */
   };
 
   // instance options object
