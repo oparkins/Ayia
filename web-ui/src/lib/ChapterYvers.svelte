@@ -94,7 +94,7 @@
    *************************************************************************/
 </script>
 
-<div class='content { Css.content.join(' ') }' bind:this={container_el} >
+<div class='content yvers { Css.content.join(' ') }' bind:this={container_el} >
   {#if is_loading}
     Loading { verse.ui_ref } ...
   {:else if content}
