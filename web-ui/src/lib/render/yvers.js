@@ -91,7 +91,7 @@ export function html_chapter( content, show ) {
  *  @method html_continuous_block
  *  @param  state                 Render state {Object};
  *  @param  state.verse_ref       The verse reference {String};
- *  @param  state.m_dex           The index of this markup element {Number};
+ *  @param  state.index           The index of this markup element {Number};
  *  @param  state.note_idex       A note counter to enable generation of unique
  *                                note identifiers{Number};
  *  @param  state.markup          The target markup element {Object};
@@ -229,7 +229,7 @@ export function html_continuous_block( state ) {
  *  @method html_block
  *  @param  state                 Render state {Object};
  *  @param  state.verse_ref       The verse reference {String};
- *  @param  state.m_dex           The index of this markup element {Number};
+ *  @param  state.index           The index of this markup element {Number};
  *  @param  state.note_idex       A note counter to enable generation of unique
  *                                note identifiers{Number};
  *  @param  state.markup          The target markup element {Object};
@@ -264,6 +264,8 @@ export function html_block( state ) {
   const m_dex     = state.index;
   const markup    = state.markup;
   const show      = state.show;
+
+  if (state.note_idex == null) { state.note_idex = 0 }
 
   /*
   console.log('html_block(): state:', state);
@@ -336,7 +338,7 @@ export function html_block( state ) {
  *  @method html_char
  *  @param  state                 Render state {Object};
  *  @param  state.verse_ref       The verse reference {String};
- *  @param  state.m_dex           The index of this markup element {Number};
+ *  @param  state.index           The index of this markup element {Number};
  *  @param  state.note_idex       A note counter to enable generation of unique
  *                                note identifiers{Number};
  *  @param  state.markup          The target markup element {Object};
