@@ -21,12 +21,14 @@
   export let verse      = null;   // The target verse
   export let content    = null;   // Chapter content
 
+  console.log('ChapterYvers(): version:', version);
+
   /*  External properties }
    *************************************************************************
    *  Imports {
    *
    */
-	import { beforeUpdate, tick } from 'svelte';
+  import { beforeUpdate, tick } from 'svelte';
 
   import {
     show_footnotes,
@@ -43,27 +45,11 @@
    */
   let container_el  = null;
 
-  /**
-   *  After an update has completed, activate any new popovers
-   *
-   *  @method activate_popovers
-   *
-   *  @return void
-   */
-  function activate_popovers() {
-    /*
-    console.log('ChapterYvers.activate_popovers(): container_el:',
-                container_el);
-    // */
-
-    activate_notes( container_el );
-  }
-
   // As soon as this component has been updated, activate all popovers
-	beforeUpdate(async () => {
-		await tick();
-    activate_popovers();
-	});
+  beforeUpdate(async () => {
+    await tick();
+    activate_notes( container_el );
+  });
 
   /*  Local state/Methods }
    *************************************************************************
