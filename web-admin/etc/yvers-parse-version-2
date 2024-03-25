@@ -216,7 +216,8 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
     }
   });
   
-  console.log('%s', Inspect( book_json, 10, !'colors' ));
+  const depth = 10;
+  console.log('%s', Inspect( book_json, depth, !'colors' ));
 }
 
 /**
@@ -466,7 +467,7 @@ function _parseChar( state, el, depth=1 ) {
 
     // assert( Array.isArray( firstVal ) );
 
-    // /*
+    /*
     console.log('_parseChar(): block [ %s.%s.%s : %s ], depth[ %d ], firstVal:',
                 state.block, state.key, state.sub_key, cls0, depth,
                 Inspect( firstVal, 5, !'color' ));
