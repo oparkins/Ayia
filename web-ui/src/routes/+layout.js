@@ -29,6 +29,16 @@ export async function load({ fetch, params }) {
      * the config store.
      */
     console.log('+layout.js: browser, config_store:', config);
+    if (config == null) {
+      const url = `${location.origin}/config`;
+      console.log('+layout.js: browser, fetch config:', url);
+
+      config = await Agent.get( url, {fetch} );
+
+      console.log('+layout.js: browser, config:', config);
+
+      config_store.set( config );
+    }
 
   } else if (typeof(global) === 'object' && global.config) {
     /* Server-side with 'global.config' : push the config into a store to
