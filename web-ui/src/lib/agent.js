@@ -132,10 +132,6 @@ async function _send( method, path, config=null) {
   const token   = (user_ro && user_ro.token);
   let   url     = _get_api_url( path );
 
-  if (typeof(global) === 'object') {
-    console.log('Agent._send(): global.config:', global.config);
-  }
-
   // Require a JSON response
   headers['Accept'] = 'application/json';
 
@@ -259,6 +255,10 @@ function _encode_params( data ) {
  *  @private
  */
 function _get_api_url( path ) {
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    // `path` is already an absolute URL
+    return path;
+  }
   //return `${DEFAULT_BASE_API_URL}/${path}`;
 
   const config      = get( config_store );
