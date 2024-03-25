@@ -86,7 +86,6 @@
    *************************************************************************
    *  Local state {
    */
-  let need_load       = (content == null);
   let content_loading = false;
   let chapter_el      = Chapter;
   let book            = null;
@@ -169,18 +168,7 @@
     const api_ref = `${verse.full_book.abbr}.${ref_num(verse.chapter)}`;
     const path    = `/versions/${version.abbreviation}/${api_ref}`;
 
-    if (! need_load) {
-      /*
-      console.log('Version.fetch_content(): ! need_load');
-      // */
-
-      update_dependents( version, verse );
-
-      need_load = true;
-      return;
-    }
-
-    /*
+    // /*
     console.log('Version.fetch_content(): path:', path);
     // */
 
