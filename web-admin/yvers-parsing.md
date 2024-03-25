@@ -8,7 +8,7 @@ and character markup using CSS `class`:
   chapter
     label (chapter label)
     block (e.g. s1, s2, p, li, m, ...)
-      character (e.g. heaing, label, wj, it, note, row)
+      character (e.g. heading, label, wj, it, note, row)
       ...
     ...
 ```
