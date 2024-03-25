@@ -6,6 +6,7 @@ web_ui: # {
   port: 5173
 
   api_map: #{
-    versions: http://localhost:4000/api/v2/versions
+    #versions: http://localhost:4000/api/v2/versions
+    versions: https://api.ayia.nibious.com/api/v2/versions
   #} web_services.api_map
 # } web_ui
