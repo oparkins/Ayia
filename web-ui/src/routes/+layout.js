@@ -52,17 +52,14 @@ export async function load({ fetch, params }) {
 
   const path  = '/versions';
 
-  const versions  = Agent.get( path, {fetch} );
-  versions.then( res => {
-    // Place the 'versions' data in our reactive store
-    versions_store.set( res );
+  const versions  = await Agent.get( path, {fetch} );
 
-    return res;
-  });
+  // Place the 'versions' data in our reactive store
+  versions_store.set( versions );
 
   return {
     config  : config,
-    versions: await versions,
+    versions: versions,
   };
 
   error(404, 'Not found');
