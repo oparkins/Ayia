@@ -156,6 +156,8 @@
    *  @return void;
    */
   function fetch_content( version, verse ) {
+    if (content_loading) { return }
+
     if (version == null || verse == null || verse.full_book == null) {
       return;
     }
