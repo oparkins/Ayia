@@ -122,6 +122,9 @@ export function html_chapter( content, show ) {
  *  @return The HTML for this block {String};
  */
 export function html_continuous_block( state ) {
+  // Keys for heading sections (which should not receive verse refs)
+  const heading_keys  = [ 'd', 'ms', 'mr', 'r', 's', 'sp', 'sr' ];
+
   const verse_ref = state.verse_ref;
   const verse_num = state.verse_num;
   const m_dex     = state.index;
@@ -183,20 +186,19 @@ export function html_continuous_block( state ) {
     // Start this new block
     html.push( `<${tag} class='${css.join(' ')}'>` );
 
-    // Setup for an inner span, forcing a verse number
+    // Setup for an inner span, forcing the inclusion of a verse ref
     tag = 'span';
     css.pop(); css.push( 'block-cont' );
-    state.last_num = null;  // Force a verse number on the inner span
   }
 
   if (key_type !== '/') {
-    if (verse_num !== state.last_num) {
-      // Include a verse ref since we've changed since the last block start
-      state.last_num = verse_num;
-      html.push( `<${tag} class='${css.join(' ')}' v='${verse_num}'>` );
+    if (heading_keys.includes( key )) {
+      // No verse ref for heading/title spans
+      html.push( `<${tag} class='${css.join(' ')}'>` );
 
     } else {
-      html.push( `<${tag} class='${css.join(' ')}'>` );
+      // Include a verse ref for each inner span
+      html.push( `<${tag} class='${css.join(' ')}' v='${verse_num}'>` );
     }
   }
 
