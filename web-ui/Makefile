@@ -45,7 +45,7 @@ build-dev:
 
 #? Build the dev svelte application, rebuilding on any change
 build-dev-watch:
-	@npm run build -- --mode=development --watch
+	@./etc/build-dev-watch
 
 #? Run a vite dev server
 dev:

@@ -1,69 +1,55 @@
 <script>
   /**
-   *  Present the content of a single chapter within a controller the provides
-   *  the target version, book, verse (ref), and chapter content.
+   *  Present the content of a single chapter from a YVERS source within a
+   *  controller the provides the target version, book, verse (ref), and
+   *  chapter content.
    *
-   *  @element  Chapter
+   *  @element  ChapterYvers
    *  @prop     is_loading    Indicates whether `content` is currently being
    *                          loaded {Boolean};
-   *  @prop     version       The current version {Version};
+   *  @prop     version       The current version ('yvers') {Version};
    *  @prop     book          The target book {Book};
    *  @prop     verse         The target verse {VerseRef};
-   *  @prop     content       Chapter content for the current `version`,
-   *                          `book`, and `verse` {Object};
+   *  @prop     content       Chapter content for the current `book` and
+   *                          `verse` {Object};
    *
    *  External properties {
    */
   export let is_loading = true;
-  export let version    = null;   // The target version
+  export let version    = null;   // The target version (yvers)
   export let book       = null;   // The target book
   export let verse      = null;   // The target verse
   export let content    = null;   // Chapter content
+
+  console.log('ChapterYvers(): version:', version);
 
   /*  External properties }
    *************************************************************************
    *  Imports {
    *
    */
-  import VerseText        from '$lib/VerseText.svelte';
-  import VerseYvers       from '$lib/VerseYvers.svelte';
-  import VerseInterlinear from '$lib/VerseInterlinear.svelte';
+  import { beforeUpdate, tick } from 'svelte';
+
+  import {
+    show_footnotes,
+    show_xrefs,
+    show_redletters,
+  }  from '$lib/stores';
+
+  import { html_chapter }                 from '$lib/render/yvers';
+  import { activate  as activate_notes }  from '$lib/verse_note';
 
   /*  Imports }
    *************************************************************************
    *  Local state/methods {
    */
   let container_el  = null;
-  let verse_el      = VerseText;
 
-  /**
-   *  Update the component based upon `version.type`
-   *
-   *  @method update_el
-   *  @param  version     The new version {Version};
-   *
-   *  @return void
-   */
-  function update_el( version ) {
-    if (version == null)  { return }
-
-    switch( version.type ) {
-      case 'yvers':
-        verse_el = VerseYvers;
-        break;
-
-      case 'interlinear':
-        verse_el = VerseInterlinear;
-        break;
-
-      default:
-        verse_el = VerseText;
-        break;
-    }
-  }
-
-  // When `version` changes, update the verse element
-  $: update_el( version );
+  // As soon as this component has been updated, activate all popovers
+  beforeUpdate(async () => {
+    await tick();
+    activate_notes( container_el );
+  });
 
   /*  Local state/Methods }
    *************************************************************************
@@ -90,7 +76,7 @@
    *************************************************************************/
 </script>
 
-<div class='content { Css.content.join(' ') }' bind:this={container_el} >
+<div class='content yvers { Css.content.join(' ') }' bind:this={container_el} >
   {#if is_loading}
     Loading { verse.ui_ref } ...
   {:else if content}
@@ -101,13 +87,10 @@
       </div>
     {/if}
 
-    {#each Object.entries(content.verses) as [verse_ref, verse]}
-      <svelte:component
-          this={      verse_el }
-          verse_ref={ verse_ref }
-          verse={     verse }
-      />
-    {/each}
+    {@html html_chapter( content, { footnotes : $show_footnotes,
+                                    xrefs     : $show_xrefs,
+                                    redletters: $show_redletters } ) }
+
   {:else if verse}
     { verse.ui_ref } [ { verse.api_ref } ]
   {:else}

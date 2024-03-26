@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# Move this here since the npm run keeps crashing.
+# Use this script to keep it going.
+#
+keep_running="yes"
+
+function on_sigint() {
+  echo "=== SIGINT"
+  keep_running="no"
+}
+
+trap 'on_sigint' INT
+
+while [ $keep_running=="yes" ]; do
+  npm run build -- --mode=development --watch
+
+  if [ $keep_running == 'yes' ]; then
+    echo "=== Restart npm build ..."
+  else
+    echo "=== STOP"
+    exit 1
+  fi
+done

@@ -51,10 +51,14 @@ export async function load( {params, fetch, parent} ) {
     console.log('[version]/[verse]/+layout.js: get( %s ) ...', path);
     // */
 
-    const content = Agent.get( path, {fetch} );
+    /* :XXX: If we attempt to pre-load the content, it will end up being loaded
+     *       a second time from Version.svelte...
+     */
+    //const content = await Agent.get( path, {fetch} );
     return {
+      ...data,
       verse   : verse,
-      content : await content,
+      //content : content,
     };
   }
 

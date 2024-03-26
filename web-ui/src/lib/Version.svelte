@@ -42,6 +42,7 @@
   import SelectVerse      from '$lib/SelectVerse.svelte';
 
   import Chapter          from '$lib/Chapter.svelte';
+  import ChapterYvers     from '$lib/ChapterYvers.svelte';
 
   import {
     version   as version_stores,
@@ -85,8 +86,8 @@
    *************************************************************************
    *  Local state {
    */
-  let need_load       = (content == null);
   let content_loading = false;
+  let chapter_el      = Chapter;
   let book            = null;
   let max_chapter     = 0;
   let max_verse       = 0;
@@ -111,6 +112,14 @@
    *      book
    */
   function update_dependents( version, verse ) {
+    // Determine which Chapter element we should use
+    if (version && version.type === 'yvers') {
+      chapter_el = ChapterYvers;
+
+    } else {
+      chapter_el = Chapter;
+    }
+
     /* Determine immediately if we should disable the previous chapter button.
      *  :XXX: Wait until AFTER the fetch for the next chapter button since
      *        the versions information may not be available yet.
@@ -146,6 +155,8 @@
    *  @return void;
    */
   function fetch_content( version, verse ) {
+    if (content_loading) { return }
+
     if (version == null || verse == null || verse.full_book == null) {
       return;
     }
@@ -157,18 +168,7 @@
     const api_ref = `${verse.full_book.abbr}.${ref_num(verse.chapter)}`;
     const path    = `/versions/${version.abbreviation}/${api_ref}`;
 
-    if (! need_load) {
-      /*
-      console.log('Version.fetch_content(): ! need_load');
-      // */
-
-      update_dependents( version, verse );
-
-      need_load = true;
-      return;
-    }
-
-    /*
+    // /*
     console.log('Version.fetch_content(): path:', path);
     // */
 
@@ -408,7 +408,8 @@
      {/if}
     </div>
 
-    <Chapter
+    <svelte:component
+        this={        chapter_el }
         is_loading={  content_loading }
         version={     $version_store }
         book={        book }

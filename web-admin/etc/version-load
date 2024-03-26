@@ -3,9 +3,11 @@
  *  Fetch a version, convert it to JSON format, and load into a mongodb
  *  database.
  *
- *  Two collections will be used:
+ *  Three collections will be used:
  *    versions                Store metadata about the specific version;
- *    %version.abbreviation%  Store book/chapter/verse data;
+ *    %yvers.abbreviation%_v2 Store book/chapter/verse data in YVERS v2 format;
+ *    %il.abbreviation%       Store book/chapter/verse data in interlinear
+ *                            format;
  *
  *    Each verse will be a single document of the form:
  *      { _id     : %book-abbreviation%.%chapter#%.%verse#%
@@ -103,12 +105,20 @@ async function main() {
   const mongo = await mongo_connect( config.mongodb );
 
   // Access the collection for this version
-  const abbrev  = args.version.abbreviation;
+  const abbrev    = args.version.abbreviation;
+  const col_name  = (args.version.type === 'yvers'
+                      ? `${abbrev}_v2`
+                      : abbrev);
+
+  console.log('>>> Store version: %s %s to collection %s ...',
+              abbrev,
+              (config.ref_filter ? `[ ${config.ref_filter} ]` : ''),
+              col_name);
 
   // Access/create the collection for this version
   args.col = {
     versions: mongo.collections.versions,
-    version : mongo.db.collection( abbrev ),
+    version : mongo.db.collection( col_name ),
   };
 
   _store_version( args )

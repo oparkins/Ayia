@@ -42,45 +42,41 @@
   const version_primary =version_store.primary;
 
   const example = {
-    ref:  'JHN.003.003',
-    verse: {
+		ref:	'JHN.003.003',
+		verse: {
       markup: [
-        { "label": "3" },
-        { "p": "Jesus answered him, " },
-        { "wj": "“Truly, truly, I say to you, unless one is " },
-        { "note.x": [
-            { "label": "#" },
-            "See ch. 1:13 "
-          ]
-        },
-        { "wj": "born " },
-        { "note.x": [
-            { "label": "#" },
-            "[2 Cor. 5:17; Gal. 6:15; 1 Pet. 1:3, 23] "
-          ]
-        },
-        { "wj": "again" },
-        { "note.f": [
-            { "label": "#" },
-            { "fr": "3:3 " },
-            { "ft": "Or " },
-            { "fq": "from above" },
-            { "ft": "; the Greek is purposely ambiguous and can mean both " },
-            { "fq": "again " },
-            { "ft": "and " },
-            { "fq": "from above" },
-            { "ft": "; also verse 7" }
-          ]
-        },
-        { "p": "  " },
-        { "wj": "he cannot " },
-        { "note.x": [
-            { "label": "#" },
+        {"+p":[
+          {"label":"3"},
+          "Jesus answered him,",
+          {"wj":"“Truly, truly, I say to you, unless one is"},
+          {"note.x":[
+            {"label":"#"},
+            "See ch. 1:13"
+          ]},
+          {"wj":"born"},
+          {"note.x":[
+            {"label":"#"},
+            "[2 Cor. 5:17; Gal. 6:15; 1 Pet. 1:3, 23]"
+          ]},
+          {"wj":"again"},
+          {"note.f":[
+            {"label":"#"},
+            {"fr":"3:3"},
+            {"ft":"Or"},
+            {"fq":"from above"},
+            {"ft":"; the Greek is purposely ambiguous and can mean both"},
+            {"fq":"again"},
+            {"ft":"and"},
+            {"fq":"from above"},
+            {"ft":"; also verse 7"}
+          ]},
+          {"wj":"he cannot"},
+          {"note.x":[
+            {"label":"#"},
             "ver. 36"
-          ]
-        },
-        { "wj": "see the kingdom of God.”" },
-        { "p": "  " }
+          ]},
+          {"wj":"see the kingdom of God.”"}
+        ]}
       ],
     },
   };
