@@ -407,6 +407,25 @@
 
   /* Notes and cross-references }
    **************************************************************************
+   * Verse selection (yvers) {
+   *    <div content>
+   *      <div block>
+   *        <span chars> ... </span>
+   *        ...
+   *      </div>
+   *      ...
+   *    </div>
+   */
+  .content.yvers.selecting > div span {
+    @apply  opacity-25;
+  }
+
+  .content.yvers.selecting > div .selected {
+    @apply  opacity-100;
+  }
+
+  /* Verse selection (yvers) }
+   **************************************************************************
    * Single version display
    */
   .content .verse {
