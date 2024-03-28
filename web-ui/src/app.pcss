@@ -411,11 +411,12 @@
    *      ...
    *    </div>
    */
-  .content.yvers.selecting > div span {
+  .content.yvers[selecting="true"] > div span {
     @apply  opacity-25;
   }
 
-  .content.yvers.selecting > div .selected {
+  .content.yvers[selecting="true"] > div [selected="true"],
+  .content.yvers[selecting="true"] > div [selected="true"] span {
     @apply  opacity-100;
   }
 
