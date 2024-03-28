@@ -84,6 +84,7 @@ export function activate( parent ) {
     }
 
     const popover = _activate_one( $trigger, $target[0] );
+    popovers.push( popover );
   });
 
   return popovers;
