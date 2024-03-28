@@ -14,7 +14,7 @@
  */
 import { build, files, version} from '$service-worker';
 
-const DISABLE             = true;
+const DISABLE             = false;
 const worker              = self;
 const CACHE_NAME          = `cache-${version}`;
 const OFFLINE_CACHE_NAME  = `offline-${version}`;
