@@ -21,7 +21,9 @@
   export let verse      = null;   // The target verse
   export let content    = null;   // Chapter content
 
+  /*
   console.log('ChapterYvers(): version:', version);
+  // */
 
   /*  External properties }
    *************************************************************************
@@ -49,16 +51,19 @@
 
   // As soon as this component has been updated, activate all popovers
   afterUpdate(async () => {
+    /*
     console.log('ChapterYvers.afterUpdate(): target_verse %s== verse:',
                 (target_verse === verse ? '=' : '!'), verse);
+    // */
 
     if (target_verse === verse) { return }
 
-    /* New target verse -- activate notes and, if a verse number was requested,
-     * select and scroll.
+    /* New target verse -- remove any current verse selection, activate notes
+     * and, if a verse number was requested, select and scroll.
      */
-    const notes = activate_notes( container_el );
+    remove_selection();
 
+    const notes     = activate_notes( container_el );
     const verse_num = (verse && verse.verse);
     if (verse_num) {
       // Select and scroll to the target verse
@@ -71,7 +76,7 @@
         // */
 
         // Scroll the target verse into view
-        first.scrollIntoView({ behavior: 'smooth', block: 'center'});
+        first.scrollIntoView({ behavior: 'auto', block: 'center'});
 
         // Select all portions of the target verse
         select_verse( verse_num, verses );
@@ -106,14 +111,33 @@
       verses = container_el.querySelectorAll(`[v="${verse_num}"]`);
     }
 
+    /*
     console.log('ChapterYvers.select_verse( %s ): %d elements ...',
                 verse_num, verses.length);
+    // */
 
     verses.forEach( verse => {
       verse.setAttribute( 'selected', 'true' );
     });
 
     selecting = true;
+  }
+
+  /**
+   *  Remove verse selection.
+   *
+   *  @method remove_selection
+   *
+   *  @return void
+   */
+  function remove_selection() {
+    const selected  = container_el.querySelectorAll('[selected="true"]');
+    selected.forEach( verse => {
+      verse.removeAttribute( 'selected' );
+    });
+
+    // Update 'selecting' (on the chapter container)
+    selecting = false;
   }
 
   /**
@@ -146,30 +170,14 @@
     const select    = (! verse.hasAttribute('selected'));
 
     if (select) {
-      // Locate ALL related verse elements and add a 'selected' attribute
-      const verses  = container_el.querySelectorAll(`[v="${verse_num}"]`);
-      verses.forEach( verse => {
-        verse.setAttribute( 'selected', 'true' );
-      });
-
-      // Update 'selecting' (on the chapter container)
-      selecting = true;
+      // Selet the target verse.
+      select_verse( verse_num );
 
     } else {
-      // Locate ALL selected verse elements and remove the 'selected' attribute
-      const selected  = container_el.querySelectorAll('[selected="true"]');
-      selected.forEach( verse => {
-        verse.removeAttribute( 'selected' );
-      });
+      // Remove verse selection
+      remove_selection();
 
-      // Update 'selecting' (on the chapter container)
-      selecting = false;
     }
-
-    /* Update 'selecting' based upon whether there are any 'selected' children
-    const selected  = container_el.querySelectorAll('[selected="true"]');
-    selecting = ( selected.length > 0 );
-    // */
   }
 
   /*  Local state/Methods }
