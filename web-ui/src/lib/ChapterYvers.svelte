@@ -44,12 +44,69 @@
    *  Local state/methods {
    */
   let container_el  = null;
+  let selecting     = false;
 
   // As soon as this component has been updated, activate all popovers
   beforeUpdate(async () => {
     await tick();
     activate_notes( container_el );
   });
+
+  /**
+   *  Handle a click on a verse.
+   *
+   *  @method click_verse
+   *  @param  event     The triggering event {Event};
+   *
+   *  @return void
+   */
+  function click_verse( event ) {
+    const target  = event.target;
+
+    /* Do NOT respond to clicks within:
+     *  1. A note label;
+     *  2. Note content;
+     */
+    const isNoteLabel = target.closest('.note-label');
+    if (isNoteLabel != null) { return }
+
+    const isNoteContent = target.closest('.note-content');
+    if (isNoteContent != null) { return }
+
+    // Locate the nearest parent with a 'v' attribute
+    const verse = event.target.closest('[v]');
+    if (verse == null) { return }
+
+    // Identify the verse number and determine if the current verse is selected
+    const verse_num = verse.getAttribute('v');
+    const select    = (! verse.hasAttribute('selected'));
+
+    if (select) {
+      // Locate ALL related verse elements and add a 'selected' attribute
+      const verses  = container_el.querySelectorAll(`[v="${verse_num}"]`);
+      verses.forEach( verse => {
+        verse.setAttribute( 'selected', 'true' );
+      });
+
+      // Update 'selecting' (on the chapter container)
+      selecting = true;
+
+    } else {
+      // Locate ALL selected verse elements and remove the 'selected' attribute
+      const selected  = container_el.querySelectorAll('[selected="true"]');
+      selected.forEach( verse => {
+        verse.removeAttribute( 'selected' );
+      });
+
+      // Update 'selecting' (on the chapter container)
+      selecting = false;
+    }
+
+    /* Update 'selecting' based upon whether there are any 'selected' children
+    const selected  = container_el.querySelectorAll('[selected="true"]');
+    selecting = ( selected.length > 0 );
+    // */
+  }
 
   /*  Local state/Methods }
    *************************************************************************
@@ -76,7 +133,11 @@
    *************************************************************************/
 </script>
 
-<div class='content yvers { Css.content.join(' ') }' bind:this={container_el} >
+<div class='content yvers { Css.content.join(' ') }'
+     selecting={ selecting }
+      role='presentation'
+      on:click={ click_verse }
+      bind:this={container_el} >
   {#if is_loading}
     Loading { verse.ui_ref } ...
   {:else if content}

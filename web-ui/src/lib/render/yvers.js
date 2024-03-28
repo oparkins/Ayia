@@ -198,7 +198,8 @@ export function html_continuous_block( state ) {
 
     } else {
       // Include a verse ref for each inner span
-      html.push( `<${tag} class='${css.join(' ')}' v='${verse_num}'>` );
+      html.push( `<${tag} role='button' class='${css.join(' ')}' `
+                 +        `v='${verse_num}'>` );
     }
   }
 
