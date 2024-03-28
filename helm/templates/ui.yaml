@@ -13,12 +13,11 @@ data: # {
 
     web_ui: # {
       port: 5173
-    # } web_ui
 
-    web_services: # {
-      host: {{ .Values.web_api.ingress.host }}
-      port: 443
-    #} web_services
+      api_map: #{
+        versions: https://{{ .Values.web_api.ingress.host }}/api/v2/versions
+      #} web_ui.api_map
+    # } web_ui
 # } ConfigMap.data
 # } ConfigMap
 ---
