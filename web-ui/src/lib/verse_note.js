@@ -193,13 +193,15 @@ function _icon_html( id, type, label ) {
  *  Return a validated note type
  *
  *  @method _validate_type
- *  @param  type    The note type (xref | foot) {String};
+ *  @param  type    The note type (xref | note.x | foot | note.f ) {String};
  *
  *  @return A validated type {String};
  *  @private
  */
 function _validate_type( type ) {
-  if (type !== 'xref' && type !== 'foot') { type = 'foot' }
+  if (type === 'xref' || type === 'note.x') { type = 'xref' }
+  else                                      { type = 'foot' }
+
   return type;
 }
 
