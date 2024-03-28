@@ -28,7 +28,7 @@
    *  Imports {
    *
    */
-  import { beforeUpdate, tick } from 'svelte';
+  import { afterUpdate } from 'svelte';
 
   import {
     show_footnotes,
@@ -45,12 +45,76 @@
    */
   let container_el  = null;
   let selecting     = false;
+  let target_verse  = null;
 
   // As soon as this component has been updated, activate all popovers
-  beforeUpdate(async () => {
-    await tick();
-    activate_notes( container_el );
+  afterUpdate(async () => {
+    console.log('ChapterYvers.afterUpdate(): target_verse %s== verse:',
+                (target_verse === verse ? '=' : '!'), verse);
+
+    if (target_verse === verse) { return }
+
+    /* New target verse -- activate notes and, if a verse number was requested,
+     * select and scroll.
+     */
+    const notes = activate_notes( container_el );
+
+    const verse_num = (verse && verse.verse);
+    if (verse_num) {
+      // Select and scroll to the target verse
+      const verses  = container_el.querySelectorAll(`[v="${verse_num}"]`);
+      const first   = verses.item( 0 );
+
+      if (first) {
+        /*
+        console.log('ChapterYvers.afterUpdate(): scrollIntoView:', first);
+        // */
+
+        // Scroll the target verse into view
+        first.scrollIntoView({ behavior: 'smooth', block: 'center'});
+
+        // Select all portions of the target verse
+        select_verse( verse_num, verses );
+
+        /* Only update the target verse AFTER it has been rendered and we've
+         * located it.
+         */
+        target_verse = verse;
+      }
+
+    } else if (notes.length > 0) {
+      /* No verse number so, once we've activated at least one note, remember
+       * the target verse to avoid activating the same notes multiple times.
+       */
+      target_verse = verse;
+    }
   });
+
+  /**
+   *  Select the numbered verse.
+   *
+   *  @method select_verse
+   *  @param  verse_num The verse number {Number};
+   *  @param  [verses]  The set of target verses ([v="${verse_num}"])
+   *                    {NodeList};
+   *
+   *  @return void
+   */
+  function select_verse( verse_num, verses=null ) {
+    // Locate the nearest parent with a 'v' attribute
+    if (! (verses instanceof NodeList)) {
+      verses = container_el.querySelectorAll(`[v="${verse_num}"]`);
+    }
+
+    console.log('ChapterYvers.select_verse( %s ): %d elements ...',
+                verse_num, verses.length);
+
+    verses.forEach( verse => {
+      verse.setAttribute( 'selected', 'true' );
+    });
+
+    selecting = true;
+  }
 
   /**
    *  Handle a click on a verse.
