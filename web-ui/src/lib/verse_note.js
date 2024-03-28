@@ -34,10 +34,6 @@ export function html( id, type, label, content ) {
 			+			`id='${id}-target' `
 			+			`role='tooltip' `
 			+			`class='invisible opacity-0 note-content'>`,
-      /*
-      `<div data-popover id='${id}' role='tooltip' `
-      +     `class='absolute z-10 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800'>`,
-      // */
         `<div class='px-3 py-2'>`,
           content,
         `</div>`,
@@ -166,13 +162,16 @@ function _icon_html( id, type, label ) {
          +       `stroke-linecap='round' `
          +       `stroke-linejoin='round' `
          +       `stroke-width='2' `
-         +       `d='M13.2 9.8a3.4 3.4 0 0 0-4.8 0L5 13.2A3.4 3.4 0 0 0 9.8 18l.3-.3m-.3-4.5a3.4 3.4 0 0 0 4.8 0L18 9.8A3.4 3.4 0 0 0 13.2 5l-1 1' />`;
+         +       `d='M13.2 9.8a3.4 3.4 0 0 0-4.8 0L5 13.2A3.4 3.4 0 0 0 9.8 18l.3-.3m-.3-4.5a3.4 3.4 0 0 0 4.8 0L18 9.8A3.4 3.4 0 0 0 13.2 5l-1 1' `
+         +  `/>`;
 
   } else {
     // MessageCaptionSolid
-    path = `<path fill-rule='evenodd' `
+    path = `<path fill='currentcolor' `
+         +       `fill-rule='evenodd' `
          +       `clip-rule='evenodd' `
-         +       `d='M3 6c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-6.6l-2.9 2.6c-1 .9-2.5.2-2.5-1.1V17H5a2 2 0 0 1-2-2V6Zm4 2a1 1 0 0 0 0 2h5a1 1 0 1 0 0-2H7Zm8 0a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2h-2Zm-8 3a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2H7Zm5 0a1 1 0 1 0 0 2h5a1 1 0 1 0 0-2h-5Z' />`
+         +       `d='M3 6c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-6.6l-2.9 2.6c-1 .9-2.5.2-2.5-1.1V17H5a2 2 0 0 1-2-2V6Zm4 2a1 1 0 0 0 0 2h5a1 1 0 1 0 0-2H7Zm8 0a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2h-2Zm-8 3a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2H7Zm5 0a1 1 0 1 0 0 2h5a1 1 0 1 0 0-2h-5Z' `
+         + `/>`;
   }
 
   return `<svg xmlns='http://www.w3.org/2000/svg' `
