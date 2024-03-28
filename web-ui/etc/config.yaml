@@ -4,10 +4,9 @@ verbosity:  1
 web_ui: # {
   #port: 3000
   port: 5173
-# } web_ui
 
-# Access to web-services (REST and JsonRPC)
-web_services: # {
-  host: api.ayia.nibious.com
-  port: 443
-#} web_services
+  api_map: #{
+    #versions: http://localhost:4000/api/v2/versions
+    versions: https://api.ayia.nibious.com/api/v2/versions
+  #} web_services.api_map
+# } web_ui

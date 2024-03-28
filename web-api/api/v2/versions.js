@@ -9,7 +9,7 @@ const Books     = require('../../lib/books');
  *  @param  config  Top-level configuration/state {Object};
  *
  *  Routes:
- *    GET /api/v1/versions
+ *    GET /api/v2/versions
  *      Fetch metadata about the set of available versions as well as a map
  *      providing book ordering and location information.
  *
@@ -20,12 +20,12 @@ const Books     = require('../../lib/books');
  *           }
  *        => [45]xx : { error }
  *
- *    GET /api/v1/versions/:id
+ *    GET /api/v2/versions/:id
  *      Fetch metadata about a single version
  *        => 200    : Version
  *        => [45]xx : { error }
  *
- *    GET /api/v1/versions/:id/:ref
+ *    GET /api/v2/versions/:id/:ref
  *      Fetch the references verse(s) from the target version where `:ref` has
  *      the form:
  *        BOOK[.chapter[.verse[-[.chapter].verse]]]
@@ -122,7 +122,7 @@ async function _versions_get( config, req, res ) {
      */
     count
       .then( total => {
-        console.log('v1/_versions_get(): total[ %s ], returning[ %s ]',
+        console.log('v2/_versions_get(): total[ %s ], returning[ %s ]',
                     total, json.versions.length);
 
         json.total = total;
@@ -168,7 +168,7 @@ async function _version_get( config, req, res ) {
   const id        = (req.params.id || req.query.id);
   const version   = await _fetch_version( id, $versions );
 
-  console.log('v1/_version_get( %s ): %s ...',
+  console.log('v2/_version_get( %s ): %s ...',
               id, (version ? version.abbreviation : null) );
 
   if (version) {
@@ -204,7 +204,7 @@ async function _verses_get( config, req, res ) {
   const id        = ( req.params.id  || req.query.id );
   const refStr    = ( req.params.ref || req.query.ref );
 
-  console.log('v1/_verses_get(): id[ %s ], ref[ %s ] ...', id, refStr);
+  console.log('v2/_verses_get(): id[ %s ], ref[ %s ] ...', id, refStr);
 
   // Attempt to find the target version
   const version = await _fetch_version( id, $versions );
@@ -231,9 +231,12 @@ async function _verses_get( config, req, res ) {
   const ids = generate.verse_ids( ref );
 
   // Pull all target verses
-  const col   = config.mongodb.db.collection( version.abbreviation );
-  const query = { _id : { $in: ids } };
-  const opts  = { sort: { _id: 1 } };
+  const colName = (version.type === 'yvers'
+                    ? `${version.abbreviation}_v2`
+                    : version.abbreviation);
+  const col     = config.mongodb.db.collection( colName );
+  const query   = { _id : { $in: ids } };
+  const opts    = { sort: { _id: 1 } };
   const verses  = await col.find( query, opts ).toArray();
 
   // Generate the final result
@@ -250,7 +253,7 @@ async function _verses_get( config, req, res ) {
   };
 
   /*
-  console.log('v1/_verses_get( %s ):', refStr, _inspect(json));
+  console.log('v2/_verses_get( %s ):', refStr, _inspect(json));
   // */
 
   res.status( 200 )
@@ -272,7 +275,7 @@ async function _fetch_version( id, col=null ) {
   if (col == null)  { col = config.mongodb.collections.versions }
 
   /*
-  console.log('v1/_fetch_version(): id[ %s ]', id);
+  console.log('v2/_fetch_version(): id[ %s ]', id);
   // */
 
   const query = {
@@ -287,7 +290,7 @@ async function _fetch_version( id, col=null ) {
   const doc   = await col.findOne( query );
 
   /*
-  console.log('v1/_fetch_version(): id[ %s ], doc:', id, doc);
+  console.log('v2/_fetch_version(): id[ %s ], doc:', id, doc);
   // */
 
   return doc;

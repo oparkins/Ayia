@@ -14,6 +14,7 @@
  */
 import { build, files, version} from '$service-worker';
 
+const DISABLE             = false;
 const worker              = self;
 const CACHE_NAME          = `cache-${version}`;
 const OFFLINE_CACHE_NAME  = `offline-${version}`;
@@ -24,11 +25,27 @@ const OFFLINE_CACHE_NAME  = `offline-${version}`;
 const to_cache      = build.concat( files );
 const staticAssets  = new Set( to_cache );
 
+if (! DISABLE) {
+  console.log('Ayia.service-worker: add event listeners ...');
+
+  worker.addEventListener('install',  _do_install);
+  worker.addEventListener('activate', _do_activate);
+  worker.addEventListener('fetch',    _do_fetch);
+
+} else {
+  console.log('Ayia.service-worker: DISABLED');
+}
+
+/****************************************************************************
+ * Private methods {
+ *
+ */
+
 /**
  *  Install the app, adding static assets to cache.
  *
  */
-worker.addEventListener('install', (event) => {
+function _do_install( event ) {
   // /*
   console.log('service-worker: install version[ %s ]: cache %d to %s ...',
                version, to_cache.length, CACHE_NAME);
@@ -40,13 +57,13 @@ worker.addEventListener('install', (event) => {
       .then((cache) => cache.addAll( to_cache ))
       .then(()      => { worker.skipWaiting() })
   );
-});
+}
 
 /**
  *  Activate the app.
  *
  */
-worker.addEventListener('activate', (event) => {
+function _do_activate( event ) {
   /*
   console.log('service-worker: activate version[ %s ] ...', version);
   // */
@@ -68,50 +85,13 @@ worker.addEventListener('activate', (event) => {
         worker.clients.claim();
       })
   );
-});
-
-/**
- *  Fetch the asset from the network and store it in the cache.
- *  Fall back to the cache if the user is offline.
- */
-async function fetchAndCache( request ) {
-  const cache = await caches.open( OFFLINE_CACHE_NAME );
-
-  try {
-    // Attempt a fetch
-    const response = await fetch( request );
-
-    /*
-    console.log('service-worker: fetchAndCache( %s ): success, cache %s ...',
-                request.url, OFFLINE_CACHE_NAME);
-    // */
-
-    // Put the new content in cache
-    cache.put( request, response.clone() );
-
-    return response;
-
-  } catch (err) {
-    // Fetch failed (offline?) -- see if it is in cache
-    const response = await cache.match( request );
-
-    if (response) {
-      console.log('service-worker: fetchAndCache( %s ): return cached ...',
-                  request.url);
-
-      return response;
-    }
-
-    console.log('service-worker: fetchAndCache( %s ): failed:',
-                request.url, err);
-    throw err;
-  }
 }
 
 /**
  *  Handle a 'fetch' request
  */
-worker.addEventListener('fetch', (event) => {
+function _do_fetch( event ) {
+
   const request = event.request;
 
   if (request.method !== 'GET' || request.headers.has('range')) {
@@ -149,8 +129,49 @@ worker.addEventListener('fetch', (event) => {
         }
         // */
 
-        return ( cachedAsset || fetchAndCache( request ) );
+        return ( cachedAsset || _fetchAndCache( request ) );
       })()
     );
   }
-});
+}
+
+/**
+ *  Fetch the asset from the network and store it in the cache.
+ *  Fall back to the cache if the user is offline.
+ */
+async function _fetchAndCache( request ) {
+  const cache = await caches.open( OFFLINE_CACHE_NAME );
+
+  try {
+    // Attempt a fetch
+    const response = await fetch( request );
+
+    /*
+    console.log('service-worker: _fetchAndCache( %s ): success, cache %s ...',
+                request.url, OFFLINE_CACHE_NAME);
+    // */
+
+    // Put the new content in cache
+    cache.put( request, response.clone() );
+
+    return response;
+
+  } catch (err) {
+    // Fetch failed (offline?) -- see if it is in cache
+    const response = await cache.match( request );
+
+    if (response) {
+      console.log('service-worker: _fetchAndCache( %s ): return cached ...',
+                  request.url);
+
+      return response;
+    }
+
+    console.log('service-worker: _fetchAndCache( %s ): failed:',
+                request.url, err);
+    throw err;
+  }
+}
+
+/* Private methods }
+ ****************************************************************************/

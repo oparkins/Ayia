@@ -31,7 +31,6 @@
   }
 }
 
-
 @layer components {
   @media (max-width: 768px) {
     .brand {
@@ -87,25 +86,14 @@
     @apply  text-yellow-400;
   }
 
-  .content .break,
-  .content .br {
-    @apply  block pb-[1em];
-  }
-  .content .s + .break,
-  .content .r + .break,
-  .content .s + .br,
-  .content .r + .br {
-    @apply  pb-0;
-  }
-
-  .content .break + .br,
-  .content .br    + .br {
-    @apply  inline;
+  .content .s + .block-new,
+  .content .r + .block-new {
+    @apply  !pt-0;
   }
 
   /* Navigation / Meta-data }
    **************************************************************************
-   * Title / Heading {
+   * Title / Heading / Label {
    *    https://ubsicap.github.io/usx/parastyles.html#titles-and-headings
    */
 
@@ -119,10 +107,11 @@
     @apply  text-[1em] leading-normal font-bold italic;
   }
 
-  .content .s1:first-of-type { @apply pl-[1em]; }
-  .content .s2:first-of-type { @apply pl-[2em]; }
-  .content .s3:first-of-type { @apply pl-[3em]; }
-  .content .s4:first-of-type { @apply pl-[4em]; }
+  .content .s.block-new,
+  .content .s1.block-new  { @apply pl-[1em]; }
+  .content .s2.block-new  { @apply pl-[2em]; }
+  .content .s3.block-new  { @apply pl-[3em]; }
+  .content .s4.block-new  { @apply pl-[4em]; }
 
   /* Parallel Passage Reference */
   .content .r {
@@ -130,32 +119,73 @@
     @apply  text-[.9em] leading-none italic;
   }
 
-  /* Title / Heading }
+  /* Major section */
+  .content .ms.block-new {
+    @apply  block pb-[.5em];
+    @apply  font-bold text-center;
+  }
+
+  /* Major section reference */
+  .content .mr.block-new {
+    @apply  block pb-[.5em];
+    @apply  font-bold italic text-center;
+  }
+
+  /* Chapter label */
+  .content .cl.block-new {
+    @apply  block pb-[.5em];
+    @apply  font-bold text-center;
+  }
+
+  /* Descriptive title */
+  .content .d.block-new {
+    @apply  block pb-[.5em];
+    @apply  text-center text-[.9em];
+  }
+
+  /* Speaker identification */
+  .content .sp.block-new {
+    @apply  block pt-[.5em] capitalize;
+
+  }
+
+  /* Title / Heading / Label }
    **************************************************************************
    * Paragraph {
    *    https://ubsicap.github.io/usx/parastyles.html#paragraphs
    */
 
-  /* Normal paragraph */
-  .content .p {
+  .content .block-new {
+    @apply  block;
+  }
+
+  .content .block-cont {
     @apply  inline;
   }
 
+  /* Normal paragraph */
+  .content .p.block-new { @apply  pt-[1em]; }
+  .content .p { }
+
   /* Right-aligned paragraph */
+  .content .pr.block-new { @apply  pt-[1em]; }
   .content .pr {
-    @apply  block text-right;
+    @apply  text-right;
   }
 
   /* Centered paragraph */
+  .content .pc.block-new { @apply  pt-[1em]; }
   .content .pc {
-    @apply  block text-center;
+    @apply  text-center;
   }
 
   /* Margin paragraph */
+  .content .m.block-new { @apply  pt-[1em]; }
   .content .m {
   }
 
   /* Indented flush left paragraph */
+  .content .mi.block-new { @apply  pt-[1em]; }
   .content .mi {
   }
 
@@ -169,34 +199,42 @@
   }
 
   /* Embedded text opening */
+  .content .pmo.block-new { @apply  pt-[.5em] pl-[1em]; }
   .content .pmo {
   }
 
   /* Embedded text paragraph */
+  .content .pm.block-new { @apply  pt-[1em] pl-[1em]; }
   .content .pm {
   }
 
   /* Embedded text closing */
+  .content .pmc.block-new { @apply  pt-[.5em] pl-[1em]; }
   .content .pmc {
   }
 
   /* Embedded text refrain */
+  .content .pmr.block-new { @apply  pl-[1em] pr-[1em] text-right; }
   .content .pmr {
   }
 
   /* Indented paragraph */
-  .content .pi,
-  .content .pi1:first-of-type { @apply pl-[1em]; }
-  .content .pi2:first-of-type { @apply pl-[2em]; }
-  .content .pi3:first-of-type { @apply pl-[3em]; }
-  .content .pi4:first-of-type { @apply pl-[4em]; }
+  .content .pi.block-new { @apply  pt-[1em]; }
+
+  .content .pi.block-new,
+  .content .pi1.block-new   { @apply pl-[1em]; }
+  .content .pi2.block-new   { @apply pl-[2em]; }
+  .content .pi3.block-new   { @apply pl-[3em]; }
+  .content .pi4.block-new   { @apply pl-[4em]; }
 
   /* Indented paragraph with hanging indent */
-  .content .ph  {}
-  .content .ph1:first-of-type { @apply pl-[1em]; }
-  .content .ph2:first-of-type { @apply pl-[2em]; }
-  .content .ph3:first-of-type { @apply pl-[3em]; }
-  .content .ph4:first-of-type { @apply pl-[4em]; }
+  .content .ph.block-new { @apply  pt-[1em]; }
+
+  .content .ph.block-new,
+  .content .ph1.block-new   { @apply pl-[1em]; }
+  .content .ph2.block-new   { @apply pl-[2em]; }
+  .content .ph3.block-new   { @apply pl-[3em]; }
+  .content .ph4.block-new   { @apply pl-[4em]; }
 
   /* Paragraph }
    **************************************************************************
@@ -205,32 +243,32 @@
    */
 
   /* Poetic Line */
-  .content .q  {}
-  .content .q1:first-of-type { @apply pl-[1em]; }
-  .content .q2:first-of-type { @apply pl-[2em]; }
-  .content .q3:first-of-type { @apply pl-[3em]; }
-  .content .q4:first-of-type { @apply pl-[4em]; }
+  .content .q.block-new,
+  .content .q1.block-new  { @apply pl-[1em]; }
+  .content .q2.block-new  { @apply pl-[2em]; }
+  .content .q3.block-new  { @apply pl-[3em]; }
+  .content .q4.block-new  { @apply pl-[4em]; }
 
   /* Embedded text poetic line */
-  .content .qm  {}
-  .content .qm1:first-of-type { @apply pl-[1em]; }
-  .content .qm2:first-of-type { @apply pl-[2em]; }
-  .content .qm3:first-of-type { @apply pl-[3em]; }
-  .content .qm4:first-of-type { @apply pl-[4em]; }
+  .content .qm.block-new,
+  .content .qm1.block-new   { @apply pl-[1em]; }
+  .content .qm2.block-new   { @apply pl-[2em]; }
+  .content .qm3.block-new   { @apply pl-[3em]; }
+  .content .qm4.block-new   { @apply pl-[4em]; }
 
   /* Right-aligned */
-  .content .qr {
-    @apply  block text-right;
+  .content .qr.block-new {
+    @apply  text-right;
   }
 
   /* Centered */
-  .content .qc {
-    @apply  block text-center;
+  .content .qc.block-new {
+    @apply  text-center;
   }
 
   /* Acrostic Heading */
-  .content .qa {
-    @apply  block text-center italic text-[.8em];
+  .content .qa.block-new {
+    @apply  text-center italic pt-[.5em];
   }
 
   /* Blank Line */
@@ -245,25 +283,23 @@
    */
 
   /* List header */
-  .content .lh {
+  .content .lh.block-new {
     @apply  block;
   }
 
   /* List entry */
-  .content .li,
-  .content .li1,
-  .content .li2,
-  .content .li3,
-  .content .li4 {
-  }
+  .content .li.block-new,
+  .content .li1.block-new   { @apply  pl-[1em]; }
+  .content .li2.block-new   { @apply  pl-[2em]; }
+  .content .li3.block-new   { @apply  pl-[3em]; }
+  .content .li4.block-new   { @apply  pl-[4em]; }
 
   /* Embedded list entry */
-  .content .lim,
-  .content .lim1,
-  .content .lim2,
-  .content .lim3,
-  .content .lim4 {
-  }
+  .content .lim.block-new,
+  .content .lim1.block-new  { @apply  pl-[1em]; }
+  .content .lim2.block-new  { @apply  pl-[2em]; }
+  .content .lim3.block-new  { @apply  pl-[3em]; }
+  .content .lim4.block-new  { @apply  pl-[4em]; }
 
   /* List footer */
   .content .lf {
@@ -317,7 +353,7 @@
   }
 
   /* Words of Jesus */
-  .content .verse .wj {
+  .content .wj {
     @apply  inline text-red-400;
   }
 
@@ -337,24 +373,27 @@
    *
    */
 
-  .content .verse .note {
+  .content .note {
     @apply  inline-block ml-[.025em] mr-[.25em];
   }
-  .content .verse .note+.note {
+  .content .note+.note {
     @apply  ml-[-.275em];
   }
 
   .content .note-label {
-    @apply  shrink-0 w-[1em] h-[1em] text-gray-400;
+    @apply  inline shrink-0 w-[1em] h-[1em] text-gray-400;
   }
 
   .content .note-content {
-    @apply  z-[60] p-0 m-0 max-w-[50ch];
+    @apply  z-[60] p-0 m-0 max-w-[50ch] rounded-lg shadow-sm border;
+    @apply  absolute inline-block transition-opacity;
     @apply  text-[.85em] text-start text-gray-800 leading-normal;
+    @apply  bg-white border-gray-200;
   }
 
   :is(.dark) .content .note-content {
     @apply  text-gray-200;
+    @apply  bg-gray-800 border-gray-600;
   }
 
   .content .note-content .fr {
@@ -362,6 +401,26 @@
   }
 
   /* Notes and cross-references }
+   **************************************************************************
+   * Verse selection (yvers) {
+   *    <div content>
+   *      <div block>
+   *        <span chars> ... </span>
+   *        ...
+   *      </div>
+   *      ...
+   *    </div>
+   */
+  .content.yvers[selecting="true"] > div span {
+    @apply  opacity-25;
+  }
+
+  .content.yvers[selecting="true"] > div [selected="true"],
+  .content.yvers[selecting="true"] > div [selected="true"] span {
+    @apply  opacity-100;
+  }
+
+  /* Verse selection (yvers) }
    **************************************************************************
    * Single version display
    */
@@ -375,4 +434,121 @@
   .parallel .content .verse {
     @apply  block;
   }
+
+  /**************************************************************************
+   * Style the data-popper arrow {
+   *  Ref: node_modules/flowbite/dist/flowbite.css
+   */
+  [data-popper-arrow],[data-popper-arrow]:before {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: inherit;
+  }
+
+  [data-popper-arrow] {
+    visibility: hidden;
+  }
+
+  [data-popper-arrow]:before {
+    content: "";
+    visibility: visible;
+    transform: rotate(45deg);
+  }
+
+  [data-popper-arrow]:after {
+    content: "";
+    visibility: visible;
+    transform: rotate(45deg);
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    background: inherit;
+  }
+
+  [role="tooltip"] > [data-popper-arrow]:before {
+    border-style: solid;
+    border-color: #e5e7eb;
+  }
+
+  .dark [role="tooltip"] > [data-popper-arrow]:before {
+    border-style: solid;
+    border-color: #4b5563;
+  }
+
+  [role="tooltip"] > [data-popper-arrow]:after {
+    border-style: solid;
+    border-color: #e5e7eb;
+  }
+
+  .dark [role="tooltip"] > [data-popper-arrow]:after {
+    border-style: solid;
+    border-color: #4b5563;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='top'] > [data-popper-arrow]:before {
+    border-bottom-width: 1px;
+    border-right-width: 1px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='top'] > [data-popper-arrow]:after {
+    border-bottom-width: 1px;
+    border-right-width: 1px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='right'] > [data-popper-arrow]:before {
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='right'] > [data-popper-arrow]:after {
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='bottom'] > [data-popper-arrow]:before {
+    border-top-width: 1px;
+    border-left-width: 1px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='bottom'] > [data-popper-arrow]:after {
+    border-top-width: 1px;
+    border-left-width: 1px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='left'] > [data-popper-arrow]:before {
+    border-top-width: 1px;
+    border-right-width: 1px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='left'] > [data-popper-arrow]:after {
+    border-top-width: 1px;
+    border-right-width: 1px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='top'] > [data-popper-arrow] {
+    bottom: -5px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='bottom'] > [data-popper-arrow] {
+    top: -5px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='left'] > [data-popper-arrow] {
+    right: -5px;
+  }
+
+  [data-popover][role="tooltip"][data-popper-placement^='right'] > [data-popper-arrow] {
+    left: -5px;
+  }
+
+  [role="tooltip"].invisible > [data-popper-arrow]:before {
+    visibility: hidden;
+  }
+
+  [role="tooltip"].invisible > [data-popper-arrow]:after {
+    visibility: hidden;
+  }
+  /* Style the data-popper arrow }
+   **************************************************************************/
 }

@@ -33,8 +33,17 @@
    *************************************************************************
    *  Local state/methods {
    */
-  let verse_el  = VerseText;
+  let container_el  = null;
+  let verse_el      = VerseText;
 
+  /**
+   *  Update the component based upon `version.type`
+   *
+   *  @method update_el
+   *  @param  version     The new version {Version};
+   *
+   *  @return void
+   */
   function update_el( version ) {
     if (version == null)  { return }
 
@@ -81,7 +90,7 @@
    *************************************************************************/
 </script>
 
-<div class='content { Css.content.join(' ') }'>
+<div class='content { Css.content.join(' ') }' bind:this={container_el} >
   {#if is_loading}
     Loading { verse.ui_ref } ...
   {:else if content}

@@ -82,6 +82,7 @@ async function main() {
 
 /**
  *  Parse a single book.
+ *
  *  @method _parseBook
  *  @param  abbrev        The book abbreviation {String};
  *  @param  chapters      The chapter data for this book {Object};
@@ -215,7 +216,8 @@ function _parseBook( abbrev, chapters, ref_filter = null ) {
     }
   });
   
-  console.log('%s', Inspect( book_json, 8, !'colors' ));
+  const depth = 10;
+  console.log('%s', Inspect( book_json, depth, !'colors' ));
 }
 
 /**
@@ -251,6 +253,7 @@ function _parseIntro( $, $intro ) {
 
 /**
  *  Parse a block-level element.
+ *
  *  @method _parseBlock
  *  @param  state         Chapter processing state {Object};
  *  @param  state.$       The top-level Cheerio instance {Cheerio};
@@ -313,13 +316,14 @@ function _parseBlock( state, el ) {
   } else {
     // Parse all block children
     $children.each( (jdex, ch) => {
-      _parseEl( state, ch );
+      _parseChar( state, ch );
     });
   }
 }
 
 /**
  *  Parse a table element.
+ *
  *  @method _parseTable
  *  @param  state         Chapter processing state {Object};
  *  @param  state.$       The top-level Cheerio instance {Cheerio};
@@ -374,7 +378,7 @@ function _parseTable( state, el ) {
       } else {
         // Parse all block children
         children.forEach( (ch) => {
-          _parseEl( state, ch );
+          _parseChar( state, ch );
         });
       }
     });
@@ -382,8 +386,9 @@ function _parseTable( state, el ) {
 }
 
 /**
- *  Parse a child of a block element.
- *  @method _parseEl
+ *  Parse a character element.
+ *
+ *  @method _parseChar
  *  @param  state         Chapter processing state {Object};
  *  @param  state.$       The top-level Cheerio instance {Cheerio};
  *  @param  state.book    The book abbreviation {String};
@@ -400,7 +405,7 @@ function _parseTable( state, el ) {
  *  @return void
  *  @private
  */
-function _parseEl( state, el, depth=1 ) {
+function _parseChar( state, el, depth=1 ) {
   const $         = state.$;
   const classes   = _getClasses( el );
   const cls0      = (classes.length > 0 && classes[0]);
@@ -420,7 +425,7 @@ function _parseEl( state, el, depth=1 ) {
     state.usfm = usfm;
 
     if (! state.verses.has( usfm )) {
-      /*
+      // /*
       console.log('-----------------------------------------------------');
       console.log('=== Verse [ %s.%s.%s ], depth[ %d ], usfm[ %s ] ...',
                   state.block, state.key, cls0, depth, usfm);
@@ -435,7 +440,7 @@ function _parseEl( state, el, depth=1 ) {
     } else {
       state.verse = state.verses.get( usfm );
 
-      /*
+      // /*
       console.log('+++ Verse [ %s.%s.%s ], depth[ %d ], usfm[ %s ] ...',
                   state.block, state.key, cls0, depth, usfm);
       // */
@@ -450,27 +455,32 @@ function _parseEl( state, el, depth=1 ) {
    *  - the sub-key is NOT 'verse', since we need to traverse on down to the
    *    label to properly adjust `state.key`;
    */
-  const hasSubkey = (state.sub_key !== null);
-  const isNote    = (cls0 === 'note');
-  const isVerse   = (state.sub_key === 'verse');
+  const isVerse = (cls0 === 'verse');
 
-  if (isNote || (hasSubkey && !isVerse)) {
-    // Parse this as a JSON object for directly inclusion
-    const json  = _jsonElement( $, el );
+  if (isVerse) {
+    /* The full JSON will be { verse.v#: [ ... ] }
+     *
+     * We only need the first value (array) associated with our current `key`
+     */
+    const fullJson  = _jsonElement( $, el );
+    const firstVal  = Object.values( fullJson )[0];
+
+    // assert( Array.isArray( firstVal ) );
 
     /*
-    console.log('_parseEl(): block [ %s.%s.%s : %s ], depth[ %d ], json:',
+    console.log('_parseChar(): block [ %s.%s.%s : %s ], depth[ %d ], firstVal:',
                 state.block, state.key, state.sub_key, cls0, depth,
-                Inspect( json, 5, !'color' ));
+                Inspect( firstVal, 5, !'color' ));
     // */
-
-    if (typeof(json) === 'string') {
-      const obj = { [state.sub_key]: json };
-
-      state.verse.markup.push( { [state.key]: obj } );
+    if (firstVal.length < 1) {
+      console.log('_parseChar(): Skip empty verse block...');
+      return;
 
     } else {
-      state.verse.markup.push( { [state.key]: json } );
+      state.verse.markup.push( { [state.key]: firstVal } );
+
+      // Gather the text of all children that are NOT 'label' or 'note'
+      _gatherText( state, el );
     }
 
     /* Update the primary key to indicate a block continuation and
@@ -478,6 +488,22 @@ function _parseEl( state, el, depth=1 ) {
      */
     state.key = '+'+ state.key.slice(1);
     state.sub_key = null;
+    return;
+  }
+
+  if (cls0 === 'note') {
+    /* Include notes directly -- this is likely a note within a non-verse
+     * element (e.g. chapter heading).
+     */
+    const note  = _jsonElement( $, el );
+
+    /*
+    console.log('=== block [ %s.%s.%s ], depth[ %d ]: note:',
+                state.block, state.key, state.sub_key, depth,
+                Inspect( note ));
+    // */
+
+    state.verse.markup.push( { [state.key]: note } );
     return;
   }
 
@@ -489,9 +515,9 @@ function _parseEl( state, el, depth=1 ) {
               state.block, state.key, state.sub_key, depth,
               $(el).html());
   // */
-
+  
   children.forEach( (ch, jdex) => {
-    _parseEl( state, ch, depth+1 );
+    _parseChar( state, ch, depth+1 );
   });
 }
 
@@ -520,7 +546,7 @@ function _parseLeaf( state, el, depth ) {
   const $el   = $(el);
   const text  = $el.text().trim();
 
-  /*
+  // /*
   console.log('_parseLeaf(): block [ %s.%s.%s ], depth[ %d ], text[ %s ]',
               state.block, state.key, state.sub_key, depth, text);
   // */
@@ -566,6 +592,39 @@ function _parseLeaf( state, el, depth ) {
 }
 
 /**
+ *  Gather text from this element from all children that are not 'label' or
+ *  'note' character blocks.
+ *
+ *  @method _gatherText
+ *  @param  state         Chapter processing state {Object};
+ *  @param  state.$       The top-level Cheerio instance {Cheerio};
+ *  @param  state.verse   The current accumulating verse {Array};
+ *  @param  el            The target HTML element {Object};
+ *
+ *  @return void
+ *  @private
+ */
+function _gatherText( state, el ) {
+  const $     = state.$;
+  const $el   = $(el);
+
+  el.children.forEach( child => {
+    const classes = _getClasses( child );
+    const cls0    = (classes.length > 0 && classes.shift());
+
+    // Skip 'label', 'header', and 'note' children
+    if (cls0 === 'label' || cls0 === 'header' || cls0 === 'note') { return }
+
+    const text  = $(child).text().trim();
+    if (text.length < 1) { return }
+
+    state.verse.text.push( text );
+  });
+
+  return;
+}
+
+/**
  *  Fill in back-references for multi-verse entries.
  *
  *  @method _addMultiverseRefs
@@ -597,6 +656,7 @@ function _addMultiverseRefs( ref, multi, book_json ) {
 
 /**
  *  Convert the given element to pure JSON.
+ *
  *  @method _jsonElement
  *  @param  $   The top-level Cheerio instance {Cheerio};
  *  @param  el  The current element {Element};
@@ -619,9 +679,11 @@ function _jsonElement( $, el ) {
   if (label === 'content') {
     return $el.text().trim();
   }
+ /* A heading MAY contain a note, e.g. NIV.PSA.003
   if (label === 'heading') {
     return $el.text().trim();
   }
+  // */
 
   if (children.length < 1) {
     // NO children
@@ -647,6 +709,7 @@ function _jsonElement( $, el ) {
         if (Array.isArray(chJson.body)) {
           // Merge this array into the top-level set
           ar = ar.concat( chJson.body );
+
         } else {
           // Push  item into the top-level set
           ar.push( chJson.body );
@@ -671,6 +734,7 @@ function _jsonElement( $, el ) {
 
 /**
  *  Fetch the specified attribute from the given element.
+ *
  *  @method _getAttr
  *  @param  el    The target element {Cheerio};
  *  @param  attr  The target attribute {String};
@@ -686,6 +750,7 @@ function _getAttr( el, attr ) {
 
 /**
  *  Fetch an array of CSS classes for the given element.
+ *
  *  @method _getClasses
  *  @param  el  The target element {Cheerio};
  *
@@ -702,6 +767,7 @@ function _getClasses( el ) {
 /**
  *  Generate a pluralized version of the given word based upon the provided
  *  count and plural suffix.
+ *
  *  @method _pluralize
  *  @param  count     The item count {Number};
  *  @param  singular  The singular version {String};

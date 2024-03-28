@@ -48,7 +48,12 @@ async function main() {
   app.get('/config',      (req, res) => {
     // Exclude the db password
     const safeConfig  = {...config};
+
+    // Redact/exclude information that should not/cannot be shared
     safeConfig.mongodb.password = '<redacted>';
+    delete safeConfig.mongodb.client;
+    delete safeConfig.mongodb.db;
+    delete safeConfig.mongodb.collections;
 
     res.status( 200 ).json( safeConfig )
   });
