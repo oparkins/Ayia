@@ -21,9 +21,10 @@
   export let verse      = null;   // The target verse
   export let content    = null;   // Chapter content
 
-  /*
+  /* Make use of `version` to remove the svelte warning about an unused
+   * property.
+   */
   console.log('ChapterYvers(): version:', version);
-  // */
 
   /*  External properties }
    *************************************************************************
