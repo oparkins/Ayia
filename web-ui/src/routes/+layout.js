@@ -1,6 +1,6 @@
-import { browser }  from '$app/environment';
-import { error }    from '@sveltejs/kit';
-import { get }      from "svelte/store";
+import { browser, version as app_version} from '$app/environment';
+import { error } from '@sveltejs/kit';
+import { get }   from "svelte/store";
 
 import {
   config    as config_store,
@@ -29,7 +29,7 @@ export async function load({ fetch, params }) {
      * the config store.
      */
     console.log('+layout.js: browser, config_store:', config);
-    if (config == null) {
+    if (config == null || config.app_version !== app_version) {
       const url = `${location.origin}/config`;
       console.log('+layout.js: browser, fetch config:', url);
 
