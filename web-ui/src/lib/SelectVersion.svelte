@@ -43,7 +43,7 @@
    *************************************************************************
    *  Local state {
    */
-	const dispatch      = createEventDispatcher();
+  const dispatch      = createEventDispatcher();
   let   dropdown_open = false;
   let   container_el  = null;
   const version_store = version_stores[ column ];

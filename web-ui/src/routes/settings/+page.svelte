@@ -42,8 +42,8 @@
   const version_primary =version_store.primary;
 
   const example = {
-		ref:	'JHN.003.003',
-		verse: {
+    ref:  'JHN.003.003',
+    verse: {
       markup: [
         {"+p":[
           {"label":"3"},

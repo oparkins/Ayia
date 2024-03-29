@@ -31,9 +31,9 @@ export function html( id, type, label, content ) {
         _icon_html( id, type, label ),
       `</sup>`,
       `<div data-popover `
-			+			`id='${id}-target' `
-			+			`role='tooltip' `
-			+			`class='invisible opacity-0 note-content'>`,
+      +     `id='${id}-target' `
+      +     `role='tooltip' `
+      +     `class='invisible opacity-0 note-content'>`,
         `<div class='px-3 py-2'>`,
           content,
         `</div>`,

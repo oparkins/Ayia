@@ -29,7 +29,7 @@
    *************************************************************************
    *  Local state {
    */
-	const dispatch  = createEventDispatcher();
+  const dispatch  = createEventDispatcher();
   const verse_ref = writable( (verse        && verse.ui_ref) ||
                               ($verse_store && $verse_store.ui_ref) ||
                               '' );
