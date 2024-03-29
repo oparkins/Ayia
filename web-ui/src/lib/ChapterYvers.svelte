@@ -189,7 +189,7 @@
     content: [
       'w-full',
       'h-full',
-      'pb-4',
+      'pb-14',
 
       'overflow-y-auto',
 

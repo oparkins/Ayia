@@ -31,6 +31,7 @@
 
   import {
     BottomNav,
+    Button,
     Card,
   } from 'flowbite-svelte';
 
@@ -338,7 +339,6 @@
       'dark:bg-gray-900',
       'mx-auto',
       'h-full',
-      //'!p-4',
       '!pb-14',
 
       'max-w-[100vw]',
@@ -353,8 +353,8 @@
     ],
 
     nav_outer: [
-      'h-10',
-      'bottom-3',
+      //'h-10',
+      //'bottom-3',
 
       'border-none',
 
@@ -370,21 +370,30 @@
 
     // BottomNav buttons
     nav_button_container: [
+      'col-span-1',
       'flex',
       'items-center',
-      'justify-center',
+      //'justify-center',
     ],
 
     nav_button: [
-      'grow',
+      //'grow',
       'flex',
       'items-center',
-      'px-8',
+      //'px-8',
 
       'focus:outline-none',
 
       'text-gray-700',
       'dark:text-gray-300',
+
+      'bg-gray-200',
+      'hover:bg-gray-300',
+      'focus-within:ring-gray-300',
+
+      'dark:bg-gray-900',
+      'dark:hover:bg-gray-800',
+      'dark:focus-within:ring-gray-800',
 
       'disabled:opacity-50',
     ],
@@ -422,13 +431,12 @@
 
    {#if column === 'primary'}
     <BottomNav
-        position='fixed'
-        navType='application'
+        position='absolute'
         classOuter='{ Css.nav_outer.join(' ') }'
         classInner='{ Css.nav_inner.join(' ') }'>
-      <div class='col-span-1 { Css.nav_button_container.join(' ') }'>
-        <button
-            type='button'
+      <div class='justify-start { Css.nav_button_container.join(' ') }'>
+        <Button
+            pill={ true }
             disabled={ prev_disabled }
             on:click={ chapter_prev }
             class='{ Css.nav_button.join(' ') } justify-start'>
@@ -443,14 +451,14 @@
                   stroke-width='2'
                   d='M15 19l-7-7 7-7' />
           </svg>
-        </button>
+        </Button>
       </div>
-      <div class='col-span-1 { Css.nav_button_container.join(' ') }'>
+      <div class='{ Css.nav_button_container.join(' ') }'>
         <!-- { $verse_store ? $verse_store.ui_ref : '' } -->
       </div>
-      <div class='col-span-1 { Css.nav_button_container.join(' ') }'>
-        <button
-            type='button'
+      <div class='justify-end { Css.nav_button_container.join(' ') }'>
+        <Button
+            pill={ true }
             disabled={ next_disabled }
             on:click={ chapter_next }
             class='{ Css.nav_button.join(' ') } justify-end'>
@@ -465,7 +473,7 @@
                   stroke-width='2'
                   d='M9 5l7 7-7 7' />
           </svg>
-        </button>
+        </Button>
       </div>
     </BottomNav>
    {/if}
