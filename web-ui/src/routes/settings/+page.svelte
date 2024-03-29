@@ -82,17 +82,28 @@
   };
 
   const Css = {
-    container_card: [
+    container: [
       'flex',
       'flex-col',
+      'w-full',
       'h-full',
-      'mx-auto',
-      '!p-4',
+      'overflow-hidden',
+    ],
 
-      'overflow-y-auto',
-
+    card: [
       'bg-gray-100',
       'dark:bg-gray-900',
+
+      'flex',
+      'flex-col',
+      'mx-auto',
+      'h-full',
+      //'!p-4',
+      //'!pb-14',
+      'overflow-y-auto',
+
+      'max-w-[100vw]',
+      'md:max-w-prose',
     ],
 
     example_card: [
@@ -121,12 +132,13 @@
       'py-2',
     ],
     label_text: [
-      'w-[30ch]',
+      'w-[20ch]',
       'shrink-0',
     ],
     label_helper: [
-      'inline',
+      'block',
       'opacity-50',
+      'pl-4',
     ],
     label_control: [
       'grow',
@@ -193,8 +205,8 @@
   <meta name='description' content='Ayia Bible UI > Settings' />
 </svelte:head>
 
-<div class='flex flex-col w-full h-full py-4'>
-  <Card size='md' class='{ Css.container_card.join(' ') }'>
+<div class={ Css.container.join(' ') }>
+  <Card class={ Css.card.join(' ') }>
     <h5>Bible reading</h5>
     <Card size='md' class='{ Css.example_card.join(' ') }'>
       <div class='content { Css.example_body.join(' ') }'>
@@ -223,7 +235,7 @@
         <div class='{ Css.label_text.join(' ') }'>
           Show footnotes
           <Helper class='{ Css.label_helper.join(' ') }'>
-            (when available)
+            when available
           </Helper>
         </div>
         <div class='{ Css.label_control.join(' ') }'>
@@ -238,7 +250,7 @@
         <div class='{ Css.label_text.join(' ') }'>
           Show Cross-references
           <Helper class='{ Css.label_helper.join(' ') }'>
-            (when available)
+            when available
           </Helper>
         </div>
         <div class='{ Css.label_control.join(' ') }'>
@@ -253,7 +265,7 @@
         <div class='{ Css.label_text.join(' ') }'>
           Red letters
           <Helper class='{ Css.label_helper.join(' ') }'>
-            (when available)
+            when available
           </Helper>
         </div>
         <div class='{ Css.label_control.join(' ') }'>
@@ -282,9 +294,9 @@
 
         <Label class='{ Css.label.join(' ') }'>
           <div class='{ Css.label_text.join(' ') }'>
-            Always Display Transliteration
-            <Helper class='{ Css.label_helper.join(' ') } block pl-4'>
-              If off, will be available by hovering over original language
+            Show Transliteration
+            <Helper class='{ Css.label_helper.join(' ') }'>
+              If off, shown by hovering over original language
             </Helper>
           </div>
           <div class='{ Css.label_control.join(' ') }'>

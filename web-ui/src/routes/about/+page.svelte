@@ -2,6 +2,28 @@
   import { version } from '$app/environment'
 
   import { Card, Heading, Badge, P } from 'flowbite-svelte';
+
+  const Css = {
+    container: [
+      'flex',
+      'flex-col',
+      'w-full',
+      'h-full',
+      'overflow-hidden',
+    ],
+
+    card: [
+      'bg-gray-100',
+      'dark:bg-gray-900',
+      'mx-auto',
+      'h-full',
+      //'!p-4',
+      //'!pb-14',
+
+      'max-w-[100vw]',
+      'md:max-w-prose',
+    ],
+  };
 </script>
 
 <svelte:head>
@@ -9,8 +31,8 @@
   <meta name='description' content='Ayia Bible UI > About' />
 </svelte:head>
 
-<div class='flex flex-col w-full h-full py-4'>
-  <Card size='md' class='bg-gray-100 dark:bg-gray-900 mx-auto h-full'>
+<div class={ Css.container.join(' ') }>
+  <Card class={ Css.card.join(' ') }>
     <Heading tag='h4' class='mb-4 flex items-center gap-4'>
       Ayia <Badge>v{ version }</Badge>
     </Heading>

@@ -338,8 +338,11 @@
       'dark:bg-gray-900',
       'mx-auto',
       'h-full',
-      '!p-4',
+      //'!p-4',
       '!pb-14',
+
+      'max-w-[100vw]',
+      'md:max-w-prose',
     ],
 
     controls: [
@@ -392,7 +395,7 @@
 </script>
 
 <div class={ Css.container.join(' ') }>
-  <Card size='md' class={ Css.card.join(' ') }>
+  <Card class={ Css.card.join(' ') }>
     <div class={ Css.controls.join(' ') }>
       <SelectVersion
           column={ column }
