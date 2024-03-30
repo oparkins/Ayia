@@ -64,23 +64,24 @@
      */
     remove_selection();
 
-    const notes     = activate_notes( container_el );
-    const verse_num = (verse && verse.verse);
-    if (verse_num) {
-      // Select and scroll to the target verse
-      const verses  = container_el.querySelectorAll(`[v="${verse_num}"]`);
-      const first   = verses.item( 0 );
+    const notes       = activate_notes( container_el );
+    const verse_nums  = (verse && verse.verses);
+    if (Array.isArray( verse_nums )) {
+      // Locate all portions of all target verse(s)
+      const selector  = verse_nums.map( num => `[v="${num}"]` ).join(',');
+      const verses    = container_el.querySelectorAll( selector );
+      const first     = verses.item( 0 );
 
       if (first) {
         /*
         console.log('ChapterYvers.afterUpdate(): scrollIntoView:', first);
         // */
 
-        // Scroll the target verse into view
-        first.scrollIntoView({ behavior: 'auto', block: 'center'});
+        // Select all portions of the target verse(s)
+        verse_nums.forEach( num => select_verse( num, verses ) );
 
-        // Select all portions of the target verse
-        select_verse( verse_num, verses );
+        // Scroll the first of the target verse(s) into view
+        first.scrollIntoView({ behavior: 'auto', block: 'center'});
 
         /* Only update the target verse AFTER it has been rendered and we've
          * located it.
