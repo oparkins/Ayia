@@ -3,7 +3,8 @@
  *    config            {Object};
  *    user              {Object};
  *    versions          {Array};
- *    verse             {Object}  -- { book, chapter, verse, ui_ref, api_ref };
+ *    verse             {Object}  -- { book, chapter, verse, verses,
+ *                                     ui_ref, url_ref };
  *    version           {Object}  -- { primary, column1, column2 };
  *
  *    theme             {String};

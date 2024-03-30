@@ -20,7 +20,7 @@ export function load() {
   const verse_ro    = get( verse );
                         
   if (version_ro && verse_ro) {
-    let path  = `/${ version_ro.abbreviation }/${ verse_ro.api_ref }`;
+    let path  = `/${ version_ro.abbreviation }/${ verse_ro.url_ref }`;
 
     console.log('/[version]/+page.js: redirect[302]:', path);
     redirect( 302, path );

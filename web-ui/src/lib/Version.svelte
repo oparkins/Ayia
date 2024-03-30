@@ -148,7 +148,7 @@
    *  @param  version   The selected version {Object};
    *                      { abbreviation, local_abbreviation, ... }
    *  @param  verse     The verse reference {Objecct};
-   *                      { book, chapter, verse, ui_ref, api_ref }
+   *                      { book, chapter, verse, verses, ui_ref, url_ref }
    *
    *  This sets the `contoent_loading` flag and, upon completion, the `content`
    *  value.
@@ -161,9 +161,9 @@
     if (version == null || verse == null || verse.full_book == null) {
       return;
     }
-    //const path  = `/versions/${version.abbreviation}/${verse.api_ref}`;
+    //const path  = `/versions/${version.abbreviation}/${verse.url_ref}`;
 
-    /* :XXX: Don't use `verse.api_ref` directly since we really want to
+    /* :XXX: Don't use `verse.url_ref` directly since we really want to
      *       ensure we fetch an entire chapter.
      */
     const api_ref = `${verse.full_book.abbr}.${ref_num(verse.chapter)}`;
@@ -226,7 +226,7 @@
     let path  = `/${ version.abbreviation}`;
     if (verse) {
       // Redirect to the full version/verse
-      path  += `/${verse.api_ref}`;
+      path  += `/${verse.url_ref}`;
     }
 
     goto( path );
@@ -253,7 +253,7 @@
     // assert( verse   != null );
 
     if (version) {
-      const path  = `/${ version.abbreviation}/${verse.api_ref}`;
+      const path  = `/${ version.abbreviation}/${verse.url_ref}`;
       goto( path );
     }
   }
@@ -279,11 +279,11 @@
 
     /*
     console.log('Version.chapter_prev(): %s => %s:',
-                verse.api_ref, new_ref, new_verse);
+                verse.url_ref, new_ref, new_verse);
     // */
 
     if (new_verse) {
-      const path  = `/${ version.abbreviation}/${new_verse.api_ref}`;
+      const path  = `/${ version.abbreviation}/${new_verse.url_ref}`;
       goto( path );
     }
   }
@@ -309,11 +309,11 @@
 
     /*
     console.log('Version.chapter_next(): %s => %s:',
-                verse.api_ref, new_ref, new_verse);
+                verse.url_ref, new_ref, new_verse);
     // */
 
     if (new_verse) {
-      const path  = `/${ version.abbreviation}/${new_verse.api_ref}`;
+      const path  = `/${ version.abbreviation}/${new_verse.url_ref}`;
       goto( path );
     }
   }

@@ -41,7 +41,7 @@ export async function load( {params, fetch, parent} ) {
   if (verse_ref) {
     const verse = set_verse( verse_ref );
 
-    /* :XXX: Don't use `verse.api_ref` directly since we really want to
+    /* :XXX: Don't use `verse.url_ref` directly since we really want to
      *       ensure we fetch an entire chapter.
      */
     const api_ref = `${verse.full_book.abbr}.${ref_num(verse.chapter)}`;

@@ -23,7 +23,7 @@ export function load() {
     let path  = `/${ version_ro.abbreviation }`;
 
     if (verse_ro) {
-      path += `/${ verse_ro.api_ref }`;
+      path += `/${ verse_ro.url_ref }`;
     }
 
     console.log('/+page.js: redirect[302]:', path);

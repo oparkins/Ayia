@@ -109,7 +109,7 @@
       />
     {/each}
   {:else if verse}
-    { verse.ui_ref } [ { verse.api_ref } ]
+    { verse.ui_ref } [ { verse.url_ref } ]
   {:else}
     Select the desired verse above
   {/if}
