@@ -115,8 +115,9 @@ export function parse_verse( verse_ref, apply_bounds = true ) {
   // Generate both the ui and url reference strings
   let ui_ref  = `${book.name} ${ch_str.trim()}`;
   let url_ref = `${book.abbr}.${ref_num(ch_num)}`;
-  let verses  = [ vs_num ];
+  let verses  = null;
   if (vs_num) {
+    verses = [ vs_num ];
     ui_ref += `:${vs_str.trim()}`;
     url_ref += `.${ref_num(vs_num)}`;
 
@@ -335,11 +336,14 @@ function validate_ref( book, ch, vs, apply_bounds = true ) {
 
   const max_vers  = book.verses[ ch_num ];
 
-  if (vs_num < 1) {
+  if (Number.isNaN(vs_num)) {
+    vs_num = null;
+
+  } else if (vs_num < 1) {
     if (! apply_bounds) { /* Invalid */ return }
     vs_num = 1;
-  }
-  if (vs_num > max_vers) {
+
+  } else if (vs_num > max_vers) {
     if (! apply_bounds) { /* Invalid */ return }
     vs_num = max_vers;
   }
