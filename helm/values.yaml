@@ -35,7 +35,7 @@ web_api: #{
 
 web_ui: #{
   image: #{
-    tag:  0.2.5
+    tag:  0.2.6
     #pullPolicy: IfNotPresent
   #} web_ui.image
 
