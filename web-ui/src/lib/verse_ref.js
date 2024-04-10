@@ -26,8 +26,8 @@ const Ref_RE = new RegExp( [
       '([0-9]+)',             // 2  : Chapter (from)
       '(?:[.:]([0-9]+))',     // 3  : Verse   (from)
     '?)?', // $ end of original
-    '(?:-',
-      '([0-9., ]+)',          // 4  : Verse (to allowing for a CSV of verses)
+    '(?:(-?)',                // 4  : Separator (-)
+      '([0-9., ]+)',          // 5  : Verse (to allowing for a CSV of verses)
     ')?$',
   ].join(''));
 
@@ -75,7 +75,13 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
     return;
   }
 
-  const [ _all, bk, ch, vs, vs2 ] = match;
+  const [ _all, bk, ch, vs, sep, vs2 ] = match;
+
+  /*
+  console.log('parse_verse( %s ): bk[ %s ], ch[ %s ], vs[ %s ], '
+              +                     'sep[ %s ], vs2[ %s ]',
+              verse_ref, bk, ch, vs, sep, vs2);
+  // */
 
   // Attempt to locate the book
   const book  = find_book( bk, versions );
@@ -100,51 +106,72 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
   let   vs_str  = (vs_num ? String(vs_num) : '');
   let   vs2_num = null;
   let   vs2_str = null;
+  let   verses  = null;
+  let   verses2 = [];
 
   if (vs2 != null) {
-    /* :TODO: If `vs2` has the form '#, #, #' then generate a full array of
-     *        verses.
-     */
+    // Handle a verse set as a range and/or CSV list
+    verses2 = vs2.split( /\s*,\s*/ )
+                .map( vs => {
+                  const is_valid  = validate_ref( book, ch, vs );
+                  return (is_valid && is_valid.verse);
+                })
+                .filter( vs => (vs != null) );
 
-    // Validate the end-verse bounds
-    const is_valid  = validate_ref( book, ch_num, vs2 );
-    if (is_valid) {
-      // We have a verse range within the same chapter
-      vs2_num = is_valid.verse;
-      vs2_str = (vs2_num ? String(vs2_num) : '');
+    verses = [];
+    if (sep === '-') {
+      // This is a range
+      vs2_num = verses2.shift();
+      vs2_str = String( vs2_num );
 
-      if (vs2_num == vs_num) {
-        // NO range
-        vs2_num = null;
-        vs2_str = null;
-
-      } else if (vs2_num < vs_num) {
+      if (vs2_num < vs_num) {
         // Revere the verses
         [ vs_num, vs2_num ] = [ vs2_num, vs_num ];
         [ vs_str, vs2_str ] = [ vs2_str, vs_str ];
       }
+
+      vs2_str = `-${vs2_str}`;
+      for (let verse = vs_num; verse <= vs2_num; verse++) {
+        verses.push( verse );
+      }
+
+    } else {
+      verses = [ vs_num, ...verses2 ];
+
+      vs2_str = `,${verses2.join(',')}`;
     }
+
+  } else {
+    verses = [ vs_num ];
   }
 
   // Generate both the ui and url reference strings
   let ui_ref  = `${book.name} ${ch_str.trim()}`;
   let url_ref = `${book.abbr}.${ref_num(ch_num)}`;
-  let verses  = null;
   if (vs_num) {
-    verses = [ vs_num ];
     ui_ref += `:${vs_str.trim()}`;
     url_ref += `.${ref_num(vs_num)}`;
 
-    if (vs2_num) {
-      // Include the range
-      ui_ref  += `-${vs2_str.trim()}`;
-      url_ref += `-${ref_num(vs2_num)}`;
+    if (vs2_str) {
+      // Include the range/CSV list
+      ui_ref  += `${vs2_str.trim()}`;
 
-      for (let verse = vs_num + 1; verse <= vs2_num; verse++) {
-        verses.push( verse );
+      if (verses2.length > 0) {
+        url_ref += ',' + verses2.map( vs => ref_num( vs ) ).join(',');
+      } else {
+        url_ref += `-${ref_num(vs2_num)}`;
       }
     }
   }
+
+  /*
+  console.log('parse_verse( %s ): verses2[ %s ], verses[ %s ]',
+              verse_ref, verses2.join(', '), verses.join(', '));
+  console.log('parse_verse( %s ): ui_ref[ %s ]',
+              verse_ref, ui_ref);
+  console.log('parse_verse( %s ): url_ref[ %s ]',
+              verse_ref, url_ref);
+  // */
 
   const data  = {
     book      : bk,
