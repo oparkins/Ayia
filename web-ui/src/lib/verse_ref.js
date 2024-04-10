@@ -135,6 +135,12 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
         verses.push( verse );
       }
 
+      if (verses2.length > 0) {
+        vs2_str += `,${verses2.join(',')}`;
+
+        verses = [ ...verses, ...verses2 ];
+      }
+
     } else {
       verses = [ vs_num, ...verses2 ];
 
@@ -156,10 +162,12 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
       // Include the range/CSV list
       ui_ref  += `${vs2_str.trim()}`;
 
+      if (sep === '-') {
+        url_ref += `-${ref_num(vs2_num)}`;
+      }
+
       if (verses2.length > 0) {
         url_ref += ',' + verses2.map( vs => ref_num( vs ) ).join(',');
-      } else {
-        url_ref += `-${ref_num(vs2_num)}`;
       }
     }
   }
