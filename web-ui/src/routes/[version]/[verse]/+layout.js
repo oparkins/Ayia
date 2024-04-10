@@ -1,7 +1,12 @@
 import { error } from '@sveltejs/kit';
 import { get }   from "svelte/store";
 
-import { set_verse, ref_num } from '$lib/verse_ref';
+import { parse_verse, ref_num } from '$lib/verse_ref';
+
+import {
+  versions  as versions_store,
+  verse     as verse_store,
+}  from '$lib/stores';
 
 import Agent  from '$lib/agent';
 
@@ -39,7 +44,10 @@ export async function load( {params, fetch, parent} ) {
   // */
 
   if (verse_ref) {
-    const verse = set_verse( verse_ref );
+    const versions  = get( versions_store );
+    const verse     = parse_verse( verse_ref, versions );
+
+    verse_store.set( verse );
 
     /* :XXX: Don't use `verse.url_ref` directly since we really want to
      *       ensure we fetch an entire chapter.

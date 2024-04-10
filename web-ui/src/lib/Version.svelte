@@ -46,6 +46,7 @@
   import ChapterYvers     from '$lib/ChapterYvers.svelte';
 
   import {
+    versions  as versions_store,
     version   as version_stores,
     verse     as verse_store,
   }  from '$lib/stores';
@@ -113,6 +114,8 @@
    *      book
    */
   function update_dependents( version, verse ) {
+    const versions  = get( versions_store );
+
     // Determine which Chapter element we should use
     if (version && version.type === 'yvers') {
       chapter_el = ChapterYvers;
@@ -128,7 +131,7 @@
     prev_disabled = (verse.chapter < 2);
 
     // Check if we have `versions` meta-data to enable bounds checking by book.
-    book = find_book( verse.book );
+    book = find_book( verse.book, versions );
     if (book) {
       // Determine if we should disable the next chapter button
       max_chapter = book.verses.length - 1;
@@ -267,15 +270,16 @@
    *  @return void
    */
   function chapter_prev( event ) {
-    const version = get( version_store );
-    const verse   = get( verse_store );
+    const versions  = get( versions_store );
+    const version   = get( version_store );
+    const verse     = get( verse_store );
 
     // assert( version != null );
     // assert( verse   != null );
 
     const ch_cur    = parseInt( verse.chapter );
     const new_ref   = `${verse.book}.${ch_cur - 1}`;
-    const new_verse = parse_verse( new_ref );
+    const new_verse = parse_verse( new_ref, versions );
 
     /*
     console.log('Version.chapter_prev(): %s => %s:',
@@ -297,15 +301,16 @@
    *  @return void
    */
   function chapter_next( event ) {
-    const version = get( version_store );
-    const verse   = get( verse_store );
+    const versions  = get( versions_store );
+    const version   = get( version_store );
+    const verse     = get( verse_store );
 
     // assert( version != null );
     // assert( verse   != null );
 
     const ch_cur    = parseInt( verse.chapter );
     const new_ref   = `${verse.book}.${ch_cur + 1}`;
-    const new_verse = parse_verse( new_ref );
+    const new_verse = parse_verse( new_ref, versions );
 
     /*
     console.log('Version.chapter_next(): %s => %s:',

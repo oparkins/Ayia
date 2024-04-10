@@ -1,9 +1,22 @@
-import { get } from 'svelte/store';
-
-import {
-    versions,
-    verse,
-} from "$lib/stores";
+/**
+ *  The full set of versions required by several methods should have the form:
+ *    { total:  {Number};
+ *      versions: [
+ *        { id, abbreviation, local_abbreviation,
+ *          title, local_title, type, vrs, language{},
+ *        }
+ *        ...
+ *      ],
+ *      books: [
+ *        { abbr, name, order, loc, verses[] },
+ *        ...
+ *      ],
+ *    }
+ *
+ *  import { get }              from 'svelte/store';
+ *  import { versions, verse }  from "$lib/stores";
+ *
+ */
 
 // Verse Ref (range) Identification
 const Ref_RE = new RegExp( [
@@ -30,6 +43,7 @@ const Book_RE = new RegExp( [
  *
  *  @method parse_verse
  *  @param  verse_ref               The incoming verse reference {String};
+ *  @param  versions                The full set of versions {Object};
  *  @param  [apply_bounds = true]   If truthy and the chapter or verse are
  *                                  out-of-bounds, update them to be within
  *                                  bounds. Otherwise, the reference is invalid
@@ -51,7 +65,7 @@ const Book_RE = new RegExp( [
  *              url_ref   : A URL representation of this reference {String};
  *            }
  */
-export function parse_verse( verse_ref, apply_bounds = true ) {
+export function parse_verse( verse_ref, versions, apply_bounds = true ) {
   if (verse_ref == null || verse_ref.length < 3) {
     return;
   }
@@ -64,7 +78,7 @@ export function parse_verse( verse_ref, apply_bounds = true ) {
   const [ _all, bk, ch, vs, vs2 ] = match;
 
   // Attempt to locate the book
-  const book  = find_book( bk );
+  const book  = find_book( bk, versions );
   if (book == null) {
     console.error('parse_verse( %s ): Unknown book[ %s ] ...',
                   verse_ref, bk);
@@ -143,31 +157,9 @@ export function parse_verse( verse_ref, apply_bounds = true ) {
     url_ref,
   };
 
-  // /*
+  /*
   console.log('parse_verse( %s ): data:', verse_ref, data);
   // */
-
-
-  return data;
-}
-
-/**
- *  Validating set for `verse`
- *
- *  @method set_verse
- *  @param  verse_ref               The incoming verse reference {String};
- *  @param  [apply_bounds = true]   If truthy and the chapter or verse are
- *                                  out-of-bounds, update them to be within
- *                                  bounds. Otherwise, the reference is invalid
- *                                  {Boolean};
- *
- *  @return The validated reference or undefined {Object};
- *            { book, chapter, verse, full_book, ui_ref, url_ref }
- */
-export function set_verse( verse_ref, apply_bounds = true ) {
-  const data  = parse_verse( verse_ref, apply_bounds );
-
-  verse.set( data );
 
   return data;
 }
@@ -176,21 +168,19 @@ export function set_verse( verse_ref, apply_bounds = true ) {
  *  Find the entry from `versions` for the named version.
  *
  *  @method find_version
- *  @param  name    The version name or abbreviation {String};
+ *  @param  name      The version name or abbreviation {String};
+ *  @param  versions  The full set of versions {Object};
  *
  *  @return The version entry if found {Object};
  *            {id, abbreviation, title, local_abbreviation, local_title,
  *             language, type }
  */
-export function find_version( name ) {
+export function find_version( name, versions ) {
   if (typeof(name) !== 'string' || name.length < 3) {
     // `name` is not usable
     return;
   }
-
-  // Ensure `versions` is available
-  const versions_ro = get( versions );
-  if (versions_ro == null || !Array.isArray(versions_ro.versions)) {
+  if (versions == null || !Array.isArray(versions.versions)) {
     // We don't yet have access to `$versions`
     return;
   }
@@ -213,21 +203,20 @@ export function find_version( name ) {
  *  Find the entry from `versions.books` for the named book.
  *
  *  @method find_book
- *  @param  name    The book name or abbreviation {String};
+ *  @param  name      The book name or abbreviation {String};
+ *  @param  versions  The full set of versions {Object};
  *
  *  @return The book entry if found {Object};
  *            {abbr, name, order, loc, verses}
  */
-export function find_book( name ) {
+export function find_book( name, versions ) {
+  const books = (versions && versions.books);
+
   if (typeof(name) !== 'string' || name.length < 3) {
     // `name` is not usable
     return;
   }
-
-  // Ensure `versions.books` is available
-  const versions_ro = get( versions );
-  const books       = (versions_ro && versions_ro.books);
-  if (! Array.isArray(books)) {
+  if (! Array.isArray( books )) {
     // No `$versions.books` available
     return;
   }

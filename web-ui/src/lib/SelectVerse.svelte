@@ -20,10 +20,14 @@
   import { createEventDispatcher }  from 'svelte';
   import { get, writable }          from 'svelte/store';
 
-  import { Input }    from 'flowbite-svelte';
+  import { Input }  from 'flowbite-svelte';
 
-  import { verse as verse_store } from '$lib/stores';
-  import { parse_verse }          from '$lib/verse_ref';
+  import {
+    versions  as versions_store,
+    verse     as verse_store,
+  }  from '$lib/stores';
+
+  import { parse_verse }  from '$lib/verse_ref';
 
   /*  Imports }
    *************************************************************************
@@ -55,8 +59,9 @@
    *  @return void
    */
   function verse_change( event ) {
+    const versions      = get( versions_store );
     const verse_ref_ro  = get( verse_ref );
-    const new_verse     = parse_verse( verse_ref_ro );
+    const new_verse     = parse_verse( verse_ref_ro, versions );
 
     // assert( event.target.value === verse_ref_ro );
 
