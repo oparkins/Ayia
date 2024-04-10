@@ -5,13 +5,20 @@ export const tests  = [
               url_ref : 'JHN.003.016',
     },
   },
-
   { val   : '1 John 3:16',
     expect: { book: '1 John ', chapter: 3, verse: 16, verses : [16],
               ui_ref  : '1 John 3:16',
               url_ref : '1JN.003.016',
     },
   },
+  { val   : 'Song of Songs 1:2',
+    expect: { book: 'Song of Songs ', chapter: 1, verse: 2, verses : [2],
+              ui_ref  : 'Song of Songs 1:2',
+              url_ref : 'SNG.001.002',
+    },
+  },
+
+  /*************************************************************************/
   { val   : 'John 3:16-17',
     expect: { book: 'John ', chapter: 3, verse: 16, verses : [16,17],
               ui_ref  : 'John 3:16-17',
