@@ -7,6 +7,8 @@
    *  @element  ChapterYvers
    *  @prop     is_loading    Indicates whether `content` is currently being
    *                          loaded {Boolean};
+   *  @prop     column        The column in which this chapter is presented
+   *                          (primary | column#) {String};
    *  @prop     version       The current version ('yvers') {Version};
    *  @prop     book          The target book {Book};
    *  @prop     verse         The target verse {VerseRef};
@@ -16,6 +18,7 @@
    *  External properties {
    */
   export let is_loading = true;
+  export let column     = null;   // The column for this chapter
   export let version    = null;   // The target version (yvers)
   export let book       = null;   // The target book
   export let verse      = null;   // The target verse
@@ -37,6 +40,9 @@
     show_footnotes,
     show_xrefs,
     show_redletters,
+
+    version   as version_stores,
+    verse     as verse_store,
   }  from '$lib/stores';
 
   import { html_chapter }                 from '$lib/render/yvers';
@@ -48,21 +54,30 @@
    */
   let container_el  = null;
   let selecting     = false;
-  let target_verse  = null;
+  let activated     = false;
+
+  const version_store = version_stores[ column ];
 
   // As soon as this component has been updated, activate all popovers
   afterUpdate(async () => {
     /*
-    console.log('ChapterYvers.afterUpdate(): target_verse %s== verse:',
-                (target_verse === verse ? '=' : '!'), verse);
+    console.log('ChapterYvers.afterUpdate(): '
+                +     'activated[ %s ], selecting[ %s ], verse:',
+                String( activated ),
+                String( selecting ),
+                verse );
     // */
 
-    if (target_verse === verse) { return }
+    if (activated) { return }
 
     /* New target verse -- activate notes and, if a verse number was
      * requested, select and scroll.
      */
-    const notes       = activate_notes( container_el );
+    if (! selecting) {
+      remove_selection();
+    }
+
+    const notes = activate_notes( container_el );
     const verse_nums  = (verse && verse.verses);
     if (Array.isArray( verse_nums )) {
       // Locate all portions of all target verse(s)
@@ -70,30 +85,61 @@
       const verses    = container_el.querySelectorAll( selector );
       const first     = verses.item( 0 );
 
+      if (verses.length > 0) {
+        /*
+        console.log('ChapterYvers.afterUpdate(): verse_nums,verses:',
+                    verse_nums, verses);
+        // */
+
+        // Select all portions of the target verse(s)
+        verse_nums.forEach( num => select_verse( num, verses ) );
+      }
+
       if (first) {
         /*
         console.log('ChapterYvers.afterUpdate(): scrollIntoView:', first);
         // */
 
-        // Select all portions of the target verse(s)
-        verse_nums.forEach( num => select_verse( num, verses ) );
-
         // Scroll the first of the target verse(s) into view
         first.scrollIntoView({ behavior: 'auto', block: 'center'});
 
-        /* Only update the target verse AFTER it has been rendered and we've
-         * located it.
-         */
-        target_verse = verse;
+        activated = true;
       }
 
     } else if (notes.length > 0) {
-      /* No verse number so, once we've activated at least one note, remember
-       * the target verse to avoid activating the same notes multiple times.
-       */
-      target_verse = verse;
+      activated = true;
     }
+
+    /*
+    if (activated) {
+      console.log('ChapterYvers.afterUpdate(): notes:', notes);
+    }
+    // */
   });
+
+  /**
+   *  Triggered whenever $verse_store changes, determine whether we are moving
+   *  to a new verse. If so, reset 'selecting'.
+   *
+   *  @method update_selecting
+   *  @param  in_store  The current verse in `$verse_store` {Verse};
+   *
+   *  @return void
+   */
+  function update_selecting( new_version, new_verse ) {
+    if (verse === new_verse && version === new_version) { return }
+
+    /*
+    console.log('update_selecting(): version/new:', version, new_version);
+    console.log('update_selecting(): verse/new  :', verse, new_verse);
+    console.log('update_selecting(): activated[ %s ], selecting[ %s ]',
+                String(activated), String(selecting));
+    // */
+
+    // Switching to a new version or verse so reset our local state
+    selecting = false;
+    activated = false;
+  }
 
   /**
    *  Select the numbered verse.
@@ -184,6 +230,11 @@
 
     }
   }
+
+  /* Whenever `$version_store` or `$verse_store` change, trigger
+   * update_selecting()
+   */
+  $: update_selecting( $version_store, $verse_store );
 
   /*  Local state/Methods }
    *************************************************************************

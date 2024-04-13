@@ -428,6 +428,7 @@
     <svelte:component
         this={        chapter_el }
         is_loading={  content_loading }
+        column={      column }
         version={     $version_store }
         book={        book }
         verse={       $verse_store }
