@@ -59,11 +59,9 @@
 
     if (target_verse === verse) { return }
 
-    /* New target verse -- remove any current verse selection, activate notes
-     * and, if a verse number was requested, select and scroll.
+    /* New target verse -- activate notes and, if a verse number was
+     * requested, select and scroll.
      */
-    remove_selection();
-
     const notes       = activate_notes( container_el );
     const verse_nums  = (verse && verse.verses);
     if (Array.isArray( verse_nums )) {
@@ -170,6 +168,11 @@
     // Identify the verse number and determine if the current verse is selected
     const verse_num = verse.getAttribute('v');
     const select    = (! verse.hasAttribute('selected'));
+
+    /*
+    console.log('ChapterYvers.click_verse(): verse_num[ %s ], select[ %s ]:',
+                verse_num, String( select ), verse);
+    // */
 
     if (select) {
       // Selet the target verse.
