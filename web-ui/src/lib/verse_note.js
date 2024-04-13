@@ -63,8 +63,10 @@ export function activate( parent ) {
   const popovers  = [];
   const $triggers = parent.querySelectorAll('[data-popover-target]');
 
+  /*
   console.log('verse_note.activate(): %d triggers ...',
               $triggers.length);
+  // */
 
   $triggers.forEach( $trigger => {
     const id        = $trigger.getAttribute( 'id' );
