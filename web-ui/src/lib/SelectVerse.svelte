@@ -96,6 +96,8 @@
       'rounded-s-none',
       'rounded-e-lg',
 
+      'text-center',
+
       'text-black',
       'bg-gray-100',
       'border',
