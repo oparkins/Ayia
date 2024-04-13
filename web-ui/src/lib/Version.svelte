@@ -350,13 +350,6 @@
       'md:max-w-prose',
     ],
 
-    controls: [
-      'flex',
-      'flex-row',
-      'w-full',
-      'mb-4',
-    ],
-
     nav_outer: [
       //'h-10',
       //'bottom-3',
@@ -368,7 +361,7 @@
     ],
 
     nav_inner: [
-      'grid-cols-3',
+      'grid-cols-7',
       'p-1',
       'mw-unset',
     ],
@@ -380,6 +373,14 @@
       'items-center',
       //'justify-center',
     ],
+
+    controls: [
+      'flex',
+      'flex-row',
+      'w-full',
+      //'mb-4',
+    ],
+
 
     nav_button: [
       //'grow',
@@ -410,21 +411,6 @@
 
 <div class={ Css.container.join(' ') }>
   <Card class={ Css.card.join(' ') }>
-    <div class={ Css.controls.join(' ') }>
-      <SelectVersion
-          column={ column }
-          version={ $version_store }
-          on:versionchanged={ version_changed }
-      />
-
-     {#if column === 'primary'}
-      <SelectVerse
-          verse={ $verse_store }
-          on:versechanged={ verse_changed }
-      />
-     {/if}
-    </div>
-
     <svelte:component
         this={        chapter_el }
         is_loading={  content_loading }
@@ -435,12 +421,12 @@
         content={     content }
     />
 
-   {#if column === 'primary'}
     <BottomNav
         position='absolute'
         classOuter='{ Css.nav_outer.join(' ') }'
         classInner='{ Css.nav_inner.join(' ') }'>
       <div class='justify-start { Css.nav_button_container.join(' ') }'>
+       {#if column === 'primary'}
         <Button
             pill={ true }
             disabled={ prev_disabled }
@@ -458,11 +444,26 @@
                   d='M15 19l-7-7 7-7' />
           </svg>
         </Button>
+       {/if}
       </div>
-      <div class='{ Css.nav_button_container.join(' ') }'>
-        <!-- { $verse_store ? $verse_store.ui_ref : '' } -->
+      <div class='{ Css.nav_button_container.join(' ') } col-span-5'>
+        <div class={ Css.controls.join(' ') }>
+          <SelectVersion
+              column={ column }
+              version={ $version_store }
+              on:versionchanged={ version_changed }
+          />
+
+         {#if column === 'primary'}
+          <SelectVerse
+              verse={ $verse_store }
+              on:versechanged={ verse_changed }
+          />
+         {/if}
+        </div>
       </div>
       <div class='justify-end { Css.nav_button_container.join(' ') }'>
+       {#if column === 'primary'}
         <Button
             pill={ true }
             disabled={ next_disabled }
@@ -480,8 +481,8 @@
                   d='M9 5l7 7-7 7' />
           </svg>
         </Button>
+       {/if}
       </div>
     </BottomNav>
-   {/if}
   </Card>
 </div>

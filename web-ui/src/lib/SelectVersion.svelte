@@ -232,7 +232,6 @@
       'border',
       'focus:ring-4',
       'focus:outline-none',
-      'w-32',
 
       'text-gray-500',
       'bg-gray-100',
@@ -272,8 +271,8 @@
    * primary Verse element.
    */
   if ( column === 'primary' ) {
-    // No grow, no rounded border on the end side of the button
-    Css.button.push( 'flex-shrink-0', 'rounded-s-lg' );
+    // No rounded border on the end side of the button
+    Css.button.push( 'rounded-s-lg' );
 
   } else {
     // Grow, Rounded border all around
