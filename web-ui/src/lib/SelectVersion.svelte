@@ -32,7 +32,7 @@
     Dropdown,
     DropdownItem,
   } from 'flowbite-svelte';
-  import { ChevronDownSolid } from 'flowbite-svelte-icons';
+  import { GlobeSolid } from 'flowbite-svelte-icons';
 
   import {
     versions  as versions_store,
@@ -224,26 +224,32 @@
       'items-center',
 
       'z-10',
-      'py-2.5',
-      'px-4',
+      'py-1',
+      'pl-2',
+      'pr-1',
+
       'text-sm',
+      'whitespace-nowrap',
       'font-medium',
       'text-center',
-      'border',
-      'focus:ring-4',
+
+      //'border',
+      'focus:ring-1',
       'focus:outline-none',
 
       'text-gray-500',
       'bg-gray-100',
-      'border-gray-300',
+      'border-gray-200',
       'hover:bg-gray-200',
-      'focus:ring-gray-100',
+      'hover:text-black',
+      'focus:ring-blue-500',
 
-      'dark:bg-gray-700',
-      'dark:hover:bg-gray-600',
-      'dark:focus:ring-gray-700',
-      'dark:text-white',
-      'dark:border-gray-600',
+      'dark:text-gray-500',
+      'dark:bg-gray-900',
+      'dark:border-gray-800',
+      'dark:hover:bg-gray-800',
+      'dark:hover:text-white',
+      'dark:focus:ring-blue-500',
     ],
 
     item: [
@@ -289,7 +295,7 @@
     type='button'
     class={ Css.button.join(' ') }
   >
-    { $vers_abbr || 'Version' }<ChevronDownSolid class='w-4 h-4 ms-2' />
+    { $vers_abbr || 'Version' }<GlobeSolid class='w-4 h-4 ms-2' />
   </button>
   <Dropdown
       bind:open={ dropdown_open }

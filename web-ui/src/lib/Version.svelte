@@ -362,6 +362,7 @@
 
     nav_inner: [
       'grid-cols-7',
+      'gap-2',
       'p-1',
       'mw-unset',
     ],
@@ -371,37 +372,36 @@
       'col-span-1',
       'flex',
       'items-center',
-      //'justify-center',
+    ],
+
+    nav_button: [
+      'w-full',
+      'flex',
+      'items-center',
+      'p-2',
+
+      'focus:ring-1',
+      'focus:outline-none',
+
+      'text-gray-500',
+      'bg-gray-100',
+      'hover:bg-gray-200',
+      'hover:text-black',
+      'focus:ring-blue-500',
+
+      'dark:text-gray-500',
+      'dark:bg-gray-900',
+      'dark:hover:bg-gray-800',
+      'dark:hover:text-white',
+      'dark:focus:ring-blue-500',
+
+      'disabled:opacity-50',
     ],
 
     controls: [
+      'w-full',
       'flex',
       'flex-row',
-      'w-full',
-      //'mb-4',
-    ],
-
-
-    nav_button: [
-      //'grow',
-      'flex',
-      'items-center',
-      //'px-8',
-
-      'focus:outline-none',
-
-      'text-gray-700',
-      'dark:text-gray-300',
-
-      'bg-gray-200',
-      'hover:bg-gray-300',
-      'focus-within:ring-gray-300',
-
-      'dark:bg-gray-900',
-      'dark:hover:bg-gray-800',
-      'dark:focus-within:ring-gray-800',
-
-      'disabled:opacity-50',
     ],
   };
 

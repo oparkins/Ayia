@@ -95,23 +95,31 @@
       'z-10',
       'rounded-s-none',
       'rounded-e-lg',
+      'p-1',
 
+      'whitespace-nowrap',
+      'leading-none',
       'text-center',
+
+      'text-2xl',
+
+      //'border',
+      'focus:ring-1',
+      'focus:outline-none',
 
       'text-black',
       'bg-gray-100',
-      'border',
-      'border-gray-300',
+      'border-gray-200',
       'hover:bg-gray-200',
-      'focus:ring-4',
-      'focus:outline-none',
-      'focus:ring-gray-100',
+      'focus:bg-gray-200',
+      'focus:ring-blue-500',
 
       'dark:text-white',
-      'dark:bg-gray-700',
-      'dark:hover:bg-gray-600',
-      'dark:focus:ring-gray-700',
-      'dark:border-gray-600',
+      'dark:bg-gray-900',
+      'dark:border-gray-800',
+      'dark:hover:bg-gray-800',
+      'dark:focus:bg-gray-800',
+      'dark:focus:ring-blue-500',
     ],
   };
 
