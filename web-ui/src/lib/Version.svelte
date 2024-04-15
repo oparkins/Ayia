@@ -402,6 +402,7 @@
       'w-full',
       'flex',
       'flex-row',
+      'gap-1',
     ],
   };
 
