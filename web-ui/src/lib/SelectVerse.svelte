@@ -17,10 +17,11 @@
    *  Imports {
    *
    */
-  import { createEventDispatcher }  from 'svelte';
-  import { get, writable }          from 'svelte/store';
+  import { afterUpdate, createEventDispatcher } from 'svelte';
+  import { get, writable }  from 'svelte/store';
 
   import { Input }  from 'flowbite-svelte';
+  import Fitty      from 'fitty';
 
   import {
     versions  as versions_store,
@@ -29,10 +30,14 @@
 
   import { parse_verse }  from '$lib/verse_ref';
 
+  // Adapt fitty so we don't get a server-side error
+  const fitty = (typeof(Fitty) === 'function' ? Fitty : () => {} );
+
   /*  Imports }
    *************************************************************************
    *  Local state {
    */
+  let   container_el  = null;
   const dispatch  = createEventDispatcher();
   const verse_ref = writable( (verse        && verse.ui_ref) ||
                               ($verse_store && $verse_store.ui_ref) ||
@@ -77,6 +82,20 @@
       dispatch( 'versechanged', new_verse );
     }
   }
+
+  // As soon as this component has been updated, invoke fitty on the input
+  afterUpdate(async () => {
+    const $verse  = (container_el && container_el.querySelector('#verse'));
+
+    if ($verse) {
+      /* Remove any existing styling so fitty will properly reduce the size if
+       * needed.
+       */
+      $verse.removeAttribute('style');
+
+      fitty( $verse, { minSize: 10, maxSize: 32, multiLine: false } );
+    }
+  });
 
   /*  Methods }
    *************************************************************************
@@ -127,7 +146,7 @@
    *************************************************************************/
 </script>
 
-<div class={ Css.container.join(' ') }>
+<div class={ Css.container.join(' ') } bind:this={ container_el }>
   <Input
     id='verse'
     type='text'
