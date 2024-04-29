@@ -100,17 +100,20 @@
         <span class='chapter number'>{ verse.chapter }</span>
       </div>
     {/if}
-
-    {#each Object.entries(content.verses) as [verse_ref, verse]}
-      <svelte:component
-          this={      verse_el }
-          verse_ref={ verse_ref }
-          verse={     verse }
-      />
-    {/each}
+    {#if content.verses}
+      {#each Object.entries(content.verses) as [verse_ref, verse]}
+        <svelte:component
+            this={      verse_el }
+            verse_ref={ verse_ref }
+            verse={     verse }
+        />
+      {/each}
+    {:else}
+      Select the desired version below
+    {/if}
   {:else if verse}
     { verse.ui_ref } [ { verse.url_ref } ]
   {:else}
-    Select the desired verse above
+    Select the desired verse below
   {/if}
 </div>
