@@ -58,7 +58,7 @@
   let activated     = false;
 
   const version_store = version_stores[ column ];
-  const selecting     = derived( selected_store, ( $selected_store ) => {
+  const is_selecting  = derived( selected_store, ( $selected_store ) => {
     return (Array.isArray( $selected_store ) && $selected_store.length > 0);
   });
 
@@ -66,10 +66,10 @@
   afterUpdate(async () => {
     /*
     console.log('ChapterYvers.afterUpdate(): '
-                +     'activated[ %s ], selecting[ %s : %s ], verse:',
+                +     'activated[ %s ], is_selecting[ %s : %s ], verse:',
                 String( activated ),
-                String( $selecting ),
-                ($selecting ? $selected_store.join(', ') : 'null'),
+                String( $is_selecting ),
+                ($is_selecting ? $selected_store.join(', ') : 'null'),
                 verse );
     // */
 
@@ -78,7 +78,7 @@
     /* New target verse -- activate notes and, if a verse number was
      * requested, select and scroll.
      */
-    if (! $selecting) {
+    if (! $is_selecting) {
       remove_selection();
     }
 
@@ -124,7 +124,7 @@
 
   /**
    *  Triggered whenever $verse_store changes, determine whether we are moving
-   *  to a new verse. If so, reset 'selecting'.
+   *  to a new verse. If so, reset 'is_selecting'.
    *
    *  @method reset_selecting
    *  @param  new_version The (new) version in `$version_store` {Version};
@@ -138,10 +138,10 @@
     /*
     console.log('reset_selecting(): version/new:', version, new_version);
     console.log('reset_selecting(): verse/new  :', verse, new_verse);
-    console.log('reset_selecting(): activated[ %s ], selecting[ %s : %s ]',
+    console.log('reset_selecting(): activated[ %s ], is_selecting[ %s : %s ]',
                 String(activated),
-                String($selecting),
-                ($selecting ? $selected_store.join(', ') : 'null') );
+                String($is_selecting),
+                ($is_selecting ? $selected_store.join(', ') : 'null') );
     // */
 
     // Switching to a new version or verse so reset our local state
@@ -197,7 +197,7 @@
       verse.removeAttribute( 'selected' );
     });
 
-    // Update 'selecting' (on the chapter container)
+    // Update 'is_selecting' (on the chapter container)
     selected_store.set( null );
   }
 
@@ -277,7 +277,7 @@
 </script>
 
 <div class='content yvers { Css.content.join(' ') }'
-     selecting={ $selecting }
+     selecting={ $is_selecting }
       role='presentation'
       on:click={ click_verse }
       bind:this={container_el} >

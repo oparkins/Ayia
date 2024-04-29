@@ -27,7 +27,7 @@
    *  Imports {
    *
    */
-  import { get } from 'svelte/store';
+  import { get, derived } from 'svelte/store';
 
   import {
     BottomNav,
@@ -49,6 +49,7 @@
     versions  as versions_store,
     version   as version_stores,
     verse     as verse_store,
+    selected  as selected_store,
   }  from '$lib/stores';
 
   import Agent  from '$lib/agent';
@@ -97,6 +98,10 @@
   let max_verse       = 0;
   let prev_disabled   = false;
   let next_disabled   = false;
+
+  const is_selecting  = derived( selected_store, ( $selected_store ) => {
+    return (Array.isArray( $selected_store ) && $selected_store.length > 0);
+  });
 
   /*  Local state }
    *************************************************************************
@@ -487,6 +492,7 @@
       <div class='{ Css.nav_button_container.join(' ') }'>
        {#if column === 'primary'}
         <Button
+            disabled={ ! $is_selecting }
             on:click={ more_options }
             class='{ Css.nav_button.join(' ') }'>
           <DotsVerticalSolid class='pointer-events-none' />
