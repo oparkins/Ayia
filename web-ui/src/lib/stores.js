@@ -7,6 +7,8 @@
  *                                     ui_ref, url_ref };
  *    version           {Object}  -- { primary, column1, column2 };
  *
+ *    selected          {Array}   -- verse numbers;
+ *
  *    theme             {String};
  *    content_font_size {Number};
  *    show_footnotes    {Boolean};
@@ -26,12 +28,13 @@ export const csr = true;
 export const ssr = false;
 // Only include on the client side }
 
-import { get, writable }  from 'svelte/store';
+import { writable }  from 'svelte/store';
 
 // Create shared stores
 export const  config            = _writable_json_ls( 'config', null );
 export const  user              = _writable_json_ls( 'user', null );
 export const  versions          = writable( null );
+export const  selected          = writable( null );
 export const  verse             = _writable_json_ls( 'verse', null );
 export const  version = {
   primary:  _writable_json_ls( 'version_primary', null ),

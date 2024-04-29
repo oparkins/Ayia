@@ -24,8 +24,8 @@
   export let verse      = null;   // The target verse
   export let content    = null;   // Chapter content
 
-  /* Make use of `version` to remove the svelte warning about an unused
-   * property.
+  /* :XXX: Make use of `version` to remove the svelte warning about an unused
+   *       property.
    */
   console.log('ChapterYvers(): version:', version);
 
@@ -34,7 +34,8 @@
    *  Imports {
    *
    */
-  import { afterUpdate } from 'svelte';
+  import { afterUpdate }  from 'svelte';
+  import { get, derived } from 'svelte/store';
 
   import {
     show_footnotes,
@@ -43,6 +44,7 @@
 
     version   as version_stores,
     verse     as verse_store,
+    selected  as selected_store,
   }  from '$lib/stores';
 
   import { html_chapter }                 from '$lib/render/yvers';
@@ -53,18 +55,21 @@
    *  Local state/methods {
    */
   let container_el  = null;
-  let selecting     = false;
   let activated     = false;
 
   const version_store = version_stores[ column ];
+  const selecting     = derived( selected_store, ( $selected_store ) => {
+    return (Array.isArray( $selected_store ) && $selected_store.length > 0);
+  });
 
   // As soon as this component has been updated, activate all popovers
   afterUpdate(async () => {
     /*
     console.log('ChapterYvers.afterUpdate(): '
-                +     'activated[ %s ], selecting[ %s ], verse:',
+                +     'activated[ %s ], selecting[ %s : %s ], verse:',
                 String( activated ),
-                String( selecting ),
+                String( $selecting ),
+                ($selecting ? $selected_store.join(', ') : 'null'),
                 verse );
     // */
 
@@ -73,11 +78,11 @@
     /* New target verse -- activate notes and, if a verse number was
      * requested, select and scroll.
      */
-    if (! selecting) {
+    if (! $selecting) {
       remove_selection();
     }
 
-    const notes = activate_notes( container_el );
+    const notes       = activate_notes( container_el );
     const verse_nums  = (verse && verse.verses);
     if (Array.isArray( verse_nums )) {
       // Locate all portions of all target verse(s)
@@ -121,23 +126,26 @@
    *  Triggered whenever $verse_store changes, determine whether we are moving
    *  to a new verse. If so, reset 'selecting'.
    *
-   *  @method update_selecting
-   *  @param  in_store  The current verse in `$verse_store` {Verse};
+   *  @method reset_selecting
+   *  @param  new_version The (new) version in `$version_store` {Version};
+   *  @param  new_verse   The (new) verse in `$verse_store` {Verse};
    *
    *  @return void
    */
-  function update_selecting( new_version, new_verse ) {
+  function reset_selecting( new_version, new_verse ) {
     if (verse === new_verse && version === new_version) { return }
 
     /*
-    console.log('update_selecting(): version/new:', version, new_version);
-    console.log('update_selecting(): verse/new  :', verse, new_verse);
-    console.log('update_selecting(): activated[ %s ], selecting[ %s ]',
-                String(activated), String(selecting));
+    console.log('reset_selecting(): version/new:', version, new_version);
+    console.log('reset_selecting(): verse/new  :', verse, new_verse);
+    console.log('reset_selecting(): activated[ %s ], selecting[ %s : %s ]',
+                String(activated),
+                String($selecting),
+                ($selecting ? $selected_store.join(', ') : 'null') );
     // */
 
     // Switching to a new version or verse so reset our local state
-    selecting = false;
+    selected_store.set( null )
     activated = false;
   }
 
@@ -152,21 +160,28 @@
    *  @return void
    */
   function select_verse( verse_num, verses=null ) {
+    const selected  = get( selected_store ) || [];
+    if (! selected.includes( verse_num )) {
+      selected.push( verse_num );
+    }
+
     // Locate the nearest parent with a 'v' attribute
     if (! (verses instanceof NodeList)) {
       verses = container_el.querySelectorAll(`[v="${verse_num}"]`);
     }
 
     /*
-    console.log('ChapterYvers.select_verse( %s ): %d elements ...',
-                verse_num, verses.length);
+    console.log('ChapterYvers.select_verse( %s ): [ %s ], %d elements ...',
+                verse_num,
+                selected.join(', '),
+                verses.length);
     // */
 
     verses.forEach( verse => {
       verse.setAttribute( 'selected', 'true' );
     });
 
-    selecting = true;
+    selected_store.set( selected );
   }
 
   /**
@@ -183,7 +198,7 @@
     });
 
     // Update 'selecting' (on the chapter container)
-    selecting = false;
+    selected_store.set( null );
   }
 
   /**
@@ -232,9 +247,9 @@
   }
 
   /* Whenever `$version_store` or `$verse_store` change, trigger
-   * update_selecting()
+   * reset_selecting()
    */
-  $: update_selecting( $version_store, $verse_store );
+  $: reset_selecting( $version_store, $verse_store );
 
   /*  Local state/Methods }
    *************************************************************************
@@ -262,7 +277,7 @@
 </script>
 
 <div class='content yvers { Css.content.join(' ') }'
-     selecting={ selecting }
+     selecting={ $selecting }
       role='presentation'
       on:click={ click_verse }
       bind:this={container_el} >
