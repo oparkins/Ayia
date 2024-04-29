@@ -61,6 +61,13 @@ export const tests  = [
               url_ref : 'JHN.003.016-018,020,022',
     },
   },
+  { msg   : 'should parse John 3:37 to John 3:36',
+    val   : 'John 3:37',
+    expect: { book: 'John ', chapter: 3, verse: 36, verses : [36],
+              ui_ref  : 'John 3:36',
+              url_ref : 'JHN.003.036',
+    },
+  },
 
   /*************************************************************************/
   { val   : 'JHN.003.016',
