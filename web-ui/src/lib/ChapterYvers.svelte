@@ -73,8 +73,6 @@
                 verse );
     // */
 
-    if (activated) { return }
-
     /* New target verse -- activate notes and, if a verse number was
      * requested, select and scroll.
      */
@@ -133,7 +131,6 @@
    *  @return void
    */
   function reset_selecting( new_version, new_verse ) {
-    if (verse === new_verse && version === new_version) { return }
 
     /*
     console.log('reset_selecting(): version/new:', version, new_version);
@@ -147,6 +144,13 @@
     // Switching to a new version or verse so reset our local state
     selected_store.set( null )
     activated = false;
+
+    if (version !== new_version) {
+      version = new_version;
+    }
+    if (verse !== new_verse) {
+      verse = new_verse;
+    }
   }
 
   /**
@@ -176,7 +180,6 @@
                 selected.join(', '),
                 verses.length);
     // */
-
     verses.forEach( verse => {
       verse.setAttribute( 'selected', 'true' );
     });

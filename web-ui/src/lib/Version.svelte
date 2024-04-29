@@ -196,12 +196,10 @@
         console.log('fetch_content():', res);
         // */
 
-        if (book == null) {
-          /* Once this fetch completes, versions meta-data should be available,
-           * allowing the use of `find_book()` to retrieve book information.
-           */
-          update_dependents( version, verse );
-        }
+        /* Once this fetch completes, versions meta-data should be available,
+         * allowing the use of `find_book()` to retrieve book information.
+         */
+        update_dependents( version, verse );
 
         content = res;
       })

@@ -93,26 +93,22 @@
 <div class='content { Css.content.join(' ') }' bind:this={container_el} >
   {#if is_loading}
     Loading { verse.ui_ref } ...
-  {:else if content}
+  {:else if content && content.verses}
     {#if (book && verse) }
       <div class='chapter header'>
         <span class='chapter name'>{ book.name }</span>
         <span class='chapter number'>{ verse.chapter }</span>
       </div>
     {/if}
-    {#if content.verses}
-      {#each Object.entries(content.verses) as [verse_ref, verse]}
-        <svelte:component
-            this={      verse_el }
-            verse_ref={ verse_ref }
-            verse={     verse }
-        />
-      {/each}
-    {:else}
-      Select the desired version below
-    {/if}
+    {#each Object.entries(content.verses) as [verse_ref, verse]}
+      <svelte:component
+          this={      verse_el }
+          verse_ref={ verse_ref }
+          verse={     verse }
+      />
+    {/each}
   {:else if verse}
-    { verse.ui_ref } [ { verse.url_ref } ]
+    Select the desired version below
   {:else}
     Select the desired verse below
   {/if}
