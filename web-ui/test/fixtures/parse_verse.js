@@ -17,6 +17,12 @@ export const tests  = [
               url_ref : 'SNG.001.002',
     },
   },
+  { val   : 'Esther 3:4',
+    expect: { book: 'Esther ', chapter: 3, verse: 4, verses : [4],
+              ui_ref  : 'Esther 3:4',
+              url_ref : 'EST.003.004',
+    },
+  },
 
   /*************************************************************************/
   { val   : 'John 3:16-17',

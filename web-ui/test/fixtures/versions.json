@@ -496,7 +496,7 @@
     },
     {
       "abbr": "EST",
-      "name": "Esther (Hebrew)",
+      "name": "Esther",
       "order": 17,
       "loc": "Old Testament",
       "verses": [
@@ -628,7 +628,7 @@
     },
     {
       "abbr": "DAN",
-      "name": "Daniel (Hebrew)",
+      "name": "Daniel",
       "order": 27,
       "loc": "Old Testament",
       "verses": [

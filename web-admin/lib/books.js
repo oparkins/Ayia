@@ -193,7 +193,7 @@ const BookMap = {
         // === Ours is correct for NIV
   },
   'EST': {
-    name  : 'Esther (Hebrew)',
+    name  : 'Esther',
     order : 17,
     loc   : 'Old Testament',
     verses: [ 0,  22, 23, 15, 17, 14, 14, 10, 17, 32, 3 ],
@@ -311,7 +311,7 @@ const BookMap = {
     ],
   },
   'DAN': {
-    name  : 'Daniel (Hebrew)',
+    name  : 'Daniel',
     order : 27,
     loc   : 'Old Testament',
     verses: [ 0,  21, 49, 30, 37, 31, 28, 28, 27, 27, 21, 45, 13 ],
