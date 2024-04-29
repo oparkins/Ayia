@@ -12,7 +12,9 @@ const versions = JSON.parse(
 describe('parse_verse', () => {
 
   tests.forEach( test => {
-    it( `should parse ${test.val}`, () => {
+    const msg = (test.msg || `should parse ${test.val}`);
+
+    it( msg, () => {
       const verse = parse_verse( test.val, versions );
 
       Assert.notEqual( verse, null );
