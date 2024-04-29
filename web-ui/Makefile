@@ -111,6 +111,12 @@ container-clean:
 	podman rmi $(CONTAINER_NAME):$(CONTAINER_TAG)
 	podman rmi $(CONTAINER_NAME):latest
 
+#? Run unit tests
+test: .force
+	npm test
+
 #############################################################################
 # Private (no help)
 #
+
+.force:
