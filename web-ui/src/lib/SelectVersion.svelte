@@ -29,10 +29,10 @@
   import { afterNavigate }          from '$app/navigation';
 
   import {
+    Button,
     Dropdown,
     DropdownItem,
   } from 'flowbite-svelte';
-  import { GlobeSolid } from 'flowbite-svelte-icons';
 
   import {
     versions  as versions_store,
@@ -214,24 +214,25 @@
    */
   const Css = {
     container: [
+      'grow',
       'flex',
       'flex-row',
     ],
 
     button: [
+      'grow',
       'flex',
-      'justify-between',
+      'justify-center',
       'items-center',
 
       'z-10',
-      'py-1',
-      'pl-2',
-      'pr-1',
+      'p-2',
 
       'text-sm',
       'whitespace-nowrap',
       'font-medium',
       'text-center',
+      'rounded-lg',
 
       //'border',
       'focus:ring-1',
@@ -253,9 +254,12 @@
     ],
 
     item: [
+      'grow',
+
       'flex',
       'gap-x-4',
       'items-center',
+      'justify-center',
       'font-medium',
     ],
 
@@ -273,30 +277,17 @@
 
   };
 
-  /* Update the classes for the dropdown button based upon whether this is the
-   * primary Verse element.
-   */
-  if ( column === 'primary' ) {
-    // No rounded border on the end side of the button
-    Css.button.push( 'rounded-s-lg' );
-
-  } else {
-    // Grow, Rounded border all around
-    Css.button.push( 'flex-grow', 'rounded-lg' );
-
-  }
   /*  Styling }
    *************************************************************************/
 </script>
 
 <div class={ Css.container.join(' ') }>
-  <button
+  <Button
     id='versions-button'
-    type='button'
     class={ Css.button.join(' ') }
   >
-    { $vers_abbr || 'Version' }<GlobeSolid class='w-4 h-4 ms-2' />
-  </button>
+    { $vers_abbr || 'Version' }
+  </Button>
   <Dropdown
       bind:open={ dropdown_open }
       on:show={   dropdown_show }

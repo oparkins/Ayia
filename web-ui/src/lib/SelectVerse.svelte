@@ -112,8 +112,7 @@
     input: [
       'inline-flex',
       'z-10',
-      'rounded-s-none',
-      'rounded-e-lg',
+      'rounded-lg',
       'p-1',
 
       'whitespace-nowrap',

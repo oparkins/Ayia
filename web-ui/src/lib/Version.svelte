@@ -53,6 +53,8 @@
 
   import Agent  from '$lib/agent';
 
+  import { DotsVerticalSolid } from 'flowbite-svelte-icons';
+
   /*  Imports }
    *************************************************************************
    *  Synchronization {
@@ -323,6 +325,20 @@
     }
   }
 
+  /**
+   *  Handle a click on a more options button.
+   *
+   *  @method more_options
+   *  @param  event     The triggering event {Event};
+   *
+   *  @return void
+   */
+  function more_options( event ) {
+    // /*
+    console.log('Version.more_options():', event);
+    // */
+  }
+
   // When either `version_store` or `verse_store` change, update content
   $: fetch_content( $version_store, $verse_store );
 
@@ -372,6 +388,7 @@
       'col-span-1',
       'flex',
       'items-center',
+      'justify-center',
     ],
 
     nav_button: [
@@ -396,13 +413,10 @@
       'dark:focus:ring-blue-500',
 
       'disabled:opacity-50',
-    ],
-
-    controls: [
-      'w-full',
-      'flex',
-      'flex-row',
-      'gap-1',
+      'disabled:hover:text-gray-500',
+      'disabled:hover:bg-gray-100',
+      'disabled:dark:hover:text-gray-500',
+      'disabled:dark:hover:bg-gray-900',
     ],
   };
 
@@ -447,21 +461,37 @@
         </Button>
        {/if}
       </div>
-      <div class='{ Css.nav_button_container.join(' ') } col-span-5'>
-        <div class={ Css.controls.join(' ') }>
-          <SelectVersion
-              column={ column }
-              version={ $version_store }
-              on:versionchanged={ version_changed }
-          />
-
-         {#if column === 'primary'}
-          <SelectVerse
-              verse={ $verse_store }
-              on:versechanged={ verse_changed }
-          />
-         {/if}
-        </div>
+      <div class='{ Css.nav_button_container.join(' ') }'>
+       {#if column === 'primary'}
+        <SelectVersion
+            column={ column }
+            version={ $version_store }
+            on:versionchanged={ version_changed }
+        />
+       {/if}
+      </div>
+      <div class='{ Css.nav_button_container.join(' ') } col-span-3'>
+       {#if column === 'primary'}
+        <SelectVerse
+            verse={ $verse_store }
+            on:versechanged={ verse_changed }
+        />
+       {:else}
+        <SelectVersion
+            column={ column }
+            version={ $version_store }
+            on:versionchanged={ version_changed }
+        />
+       {/if}
+      </div>
+      <div class='{ Css.nav_button_container.join(' ') }'>
+       {#if column === 'primary'}
+        <Button
+            on:click={ more_options }
+            class='{ Css.nav_button.join(' ') }'>
+          <DotsVerticalSolid class='pointer-events-none' />
+        </Button>
+       {/if}
       </div>
       <div class='justify-end { Css.nav_button_container.join(' ') }'>
        {#if column === 'primary'}
