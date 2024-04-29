@@ -14,11 +14,6 @@
  *    show_footnotes    {Boolean};
  *    show_xrefs        {Boolean};
  *    show_redletters   {Boolean};
- *    show_il_english   {Boolean};
- *    show_il_translit  {Boolean};
- *    show_il_wlc       {Boolean};
- *    show_il_strongs   {Boolean};
- *    show_il_tos       {Boolean};
  *
  *    errors            {Object}  -- arrays keyed by type (e.g. auth_password);
  */
@@ -48,12 +43,6 @@ export const  content_font_size = _writable_int_ls(  'content_font_size', 16 );
 export const  show_footnotes    = _writable_bool_ls( 'show_footnotes',  true );
 export const  show_xrefs        = _writable_bool_ls( 'show_xrefs',      true );
 export const  show_redletters   = _writable_bool_ls( 'show_redletters', true );
-
-export const  show_il_english   = _writable_bool_ls( 'show_il_english', true );
-export const  show_il_translit  = _writable_bool_ls( 'show_il_translit',false);
-export const  show_il_wlc       = _writable_bool_ls( 'show_il_wlc',     true );
-export const  show_il_strongs   = _writable_bool_ls( 'show_il_strongs', true );
-export const  show_il_tos       = _writable_bool_ls( 'show_il_tos',     true );
 
 export const  errors            = writable( [] );
 

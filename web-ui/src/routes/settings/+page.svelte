@@ -26,12 +26,6 @@
     show_footnotes,
     show_xrefs,
     show_redletters,
-
-    show_il_english,
-    show_il_translit,
-    show_il_wlc,
-    show_il_strongs,
-    show_il_tos
   }  from '$lib/stores';
 
   import * as stores from '$lib/stores';
@@ -275,75 +269,6 @@
                   on:change={ do_toggle } />
         </div>
       </Label>
-
-      <h5 class='pt-4'>Interlinear Settings</h5>
-      <div class='p-4 pt-0'>
-        <Label class='{ Css.label.join(' ') }'>
-          <div class='{ Css.label_text.join(' ') }'>
-            Show English
-          </div>
-          <div class='{ Css.label_control.join(' ') }'>
-            <Toggle color='blue'
-                    checked={ $show_il_english }
-                    data-target='show_il_english'
-                    class='opacity-25'
-                    disabled
-            />
-          </div>
-        </Label>
-
-        <Label class='{ Css.label.join(' ') }'>
-          <div class='{ Css.label_text.join(' ') }'>
-            Show Transliteration
-            <Helper class='{ Css.label_helper.join(' ') }'>
-              If off, shown by hovering over original language
-            </Helper>
-          </div>
-          <div class='{ Css.label_control.join(' ') }'>
-            <Toggle color='blue'
-                    checked={ $show_il_translit }
-                    data-target='show_il_translit'
-                    on:change={ do_toggle } />
-          </div>
-        </Label>
-
-        <Label class='{ Css.label.join(' ') }'>
-          <div class='{ Css.label_text.join(' ') }'>
-            Show Original Language
-          </div>
-          <div class='{ Css.label_control.join(' ') }'>
-            <Toggle color='blue'
-                    checked={ $show_il_wlc }
-                    data-target='show_il_wlc'
-                    on:change={ do_toggle } />
-          </div>
-        </Label>
-
-
-        <Label class='{ Css.label.join(' ') }'>
-          <div class='{ Css.label_text.join(' ') }'>
-            Show Strongs
-          </div>
-          <div class='{ Css.label_control.join(' ') }'>
-            <Toggle color='blue'
-                    checked={ $show_il_strongs }
-                    data-target='show_il_strongs'
-                    on:change={ do_toggle } />
-          </div>
-        </Label>
-
-        <Label class='{ Css.label.join(' ') }'>
-          <div class='{ Css.label_text.join(' ') }'>
-            Show Type of Speech
-          </div>
-          <div class='{ Css.label_control.join(' ') }'>
-            <Toggle color='blue'
-                    checked={ $show_il_tos }
-                    data-target='show_il_tos'
-                    on:change={ do_toggle } />
-          </div>
-        </Label>
-      </div>
     </div>
 
     <h5>Current Settings</h5>
@@ -397,26 +322,6 @@
             <TableBodyCell>
               <pre>{ JSON.stringify( $user, null, 2 ) }</pre>
             </TableBodyCell>
-          </TableBodyRow>
-          <TableBodyRow class='align-top'>
-            <TableBodyCell><b>show_il_english</b></TableBodyCell>
-            <TableBodyCell>{ $show_il_english }</TableBodyCell>
-          </TableBodyRow>
-          <TableBodyRow class='align-top'>
-            <TableBodyCell><b>show_il_wlc</b></TableBodyCell>
-            <TableBodyCell>{ $show_il_wlc }</TableBodyCell>
-          </TableBodyRow>
-          <TableBodyRow class='align-top'>
-            <TableBodyCell><b>show_il_translit</b></TableBodyCell>
-            <TableBodyCell>{ $show_il_translit }</TableBodyCell>
-          </TableBodyRow>
-          <TableBodyRow class='align-top'>
-            <TableBodyCell><b>show_il_tos</b></TableBodyCell>
-            <TableBodyCell>{ $show_il_tos }</TableBodyCell>
-          </TableBodyRow>
-          <TableBodyRow class='align-top'>
-            <TableBodyCell><b>show_il_strongs</b></TableBodyCell>
-            <TableBodyCell>{ $show_il_strongs }</TableBodyCell>
           </TableBodyRow>
         </TableBody>
       </Table>

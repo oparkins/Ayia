@@ -1,11 +1,6 @@
 <script>
 
   import {
-    show_il_english,
-    show_il_translit,
-    show_il_wlc,
-    show_il_strongs,
-    show_il_tos,
     show_xrefs
   } from '$lib/stores';
   
@@ -48,8 +43,4 @@
         <p>{word.tos_label} ( {word.tos} )</p>
       </div>
     </Popover>
-
-  {#if $show_il_translit }
-    <p class='text-gray-400 text-[.9em]'>{word.translit}</p>
-  {/if}
 </div>
