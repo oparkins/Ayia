@@ -80,8 +80,10 @@
 
 <div class='flex flex-col h-screen w-screen'>
   <Navbar fluid>
-      <NavBrand href='/'>
-        <span class='self-start whitespace-nowrap text-xl font-semibold dark:text-white'>
+      <NavBrand href='/' class='brand'>
+        <img  src='/Ayia.png'
+              alt='Ayia' />
+        <span class='whitespace-nowrap text-xl font-semibold dark:text-white'>
           Ayia
         </span>
       </NavBrand>

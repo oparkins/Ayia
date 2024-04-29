@@ -22,41 +22,32 @@
 </script>
 
 <div class='text-center leading-none'>
-  {#if $show_il_english }
-    <div>
-      <p id='en_{word_ref}' class='inline'>{word.text}</p>
-      {#if $show_xrefs && word.xref != null}
-        <VerseNote id='xref_{word_ref}' type='xref' label='#'>
+  <div>
+    <p class="inline">
+      {word.text}
+    </p>
+    {#if $show_xrefs && word.xref}
+        <VerseNote id='{word_ref}' type="xref" label="#">
           {word.xref}
         </VerseNote>
       {/if}
-      <Popover
-          class='note-content z-20'
-          triggeredBy='#en_{word_ref}'
-          placement='bottom'
-      >
-        {word.bdb}
-        <div class='px-[.5em] pt-[.5em] text-[.8em] text-gray-400'>
-          <p>{word.tos_label} ( {word.tos} )</p>
-          <p>Strongs {word.language}: {word.strongs}</p>
-        </div>
-      </Popover>
     </div>
-  {/if}
 
-  {#if $show_il_wlc }
-    <p id='wlc_{word_ref}' class='text-blue-400 text-[.9em]'>{word.wlc}</p>
+  <p id='wlc_{word_ref}' class='text-blue-400 text-[.9em]'>{word.wlc}</p>
 
-    {#if !$show_il_translit }
-      <Popover
-          class='note-content z-20'
-          triggeredBy='#wlc_{word_ref}'
-          placement='bottom'
-      >
-        {word.translit}
-      </Popover>
-    {/if}
-  {/if}
+    <Popover
+        class='note-content z-20'
+        triggeredBy='#wlc_{word_ref}'
+        placement='bottom'
+    >
+      
+      {word.bdb}
+      <div class='px-[.5em] pt-[.5em] text-[.8em] text-gray-400'>
+        <p>Translit: {word.translit}</p>
+        <p>Strongs {word.language}: {word.strongs}</p>
+        <p>{word.tos_label} ( {word.tos} )</p>
+      </div>
+    </Popover>
 
   {#if $show_il_translit }
     <p class='text-gray-400 text-[.9em]'>{word.translit}</p>

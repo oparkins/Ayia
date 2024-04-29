@@ -45,7 +45,7 @@ build-dev:
 
 #? Build the dev svelte application, rebuilding on any change
 build-dev-watch:
-	@npm run build -- --mode=development --watch
+	@./etc/build-dev-watch
 
 #? Run a vite dev server
 dev:
@@ -111,6 +111,12 @@ container-clean:
 	podman rmi $(CONTAINER_NAME):$(CONTAINER_TAG)
 	podman rmi $(CONTAINER_NAME):latest
 
+#? Run unit tests
+test: .force
+	npm test
+
 #############################################################################
 # Private (no help)
 #
+
+.force:

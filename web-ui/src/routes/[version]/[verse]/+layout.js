@@ -1,7 +1,12 @@
 import { error } from '@sveltejs/kit';
 import { get }   from "svelte/store";
 
-import { set_verse, ref_num } from '$lib/verse_ref';
+import { parse_verse, ref_num } from '$lib/verse_ref';
+
+import {
+  versions  as versions_store,
+  verse     as verse_store,
+}  from '$lib/stores';
 
 import Agent  from '$lib/agent';
 
@@ -39,20 +44,29 @@ export async function load( {params, fetch, parent} ) {
   // */
 
   if (verse_ref) {
-    const verse = set_verse( verse_ref );
+    const versions  = get( versions_store );
+    const verse     = parse_verse( verse_ref, versions );
 
-    /* :XXX: Don't use `verse.api_ref` directly since we really want to
+    verse_store.set( verse );
+
+    /* :XXX: Don't use `verse.url_ref` directly since we really want to
      *       ensure we fetch an entire chapter.
      */
     const api_ref = `${verse.full_book.abbr}.${ref_num(verse.chapter)}`;
     const path    = `/versions/${version.abbreviation}/${api_ref}`;
 
+    /*
     console.log('[version]/[verse]/+layout.js: get( %s ) ...', path);
+    // */
 
-    const content = Agent.get( path, {fetch} );
+    /* :XXX: If we attempt to pre-load the content, it will end up being loaded
+     *       a second time from Version.svelte...
+     */
+    //const content = await Agent.get( path, {fetch} );
     return {
+      ...data,
       verse   : verse,
-      content : await content,
+      //content : content,
     };
   }
 

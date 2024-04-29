@@ -37,18 +37,18 @@ export async function load({ params, fetch, parent }) {
   if (vers_name) {
     const path    = `/versions/${vers_name}`;
 
+    /*
     console.log('[version]/+layout.js: get( %s ) ...', path);
+    // */
 
-    const version = Agent.get( path, {fetch} );
-    version.then( res => {
-      // Place the 'version' data in our reactive store
-      version_store.primary.set( res );
+    const version = await Agent.get( path, {fetch} );
 
-      return res;
-    });
+    // Place the 'version' data in our reactive store
+    version_store.primary.set( version );
 
     return {
-      version:  await version,
+      ...data,
+      version:  version,
     };
   }
 

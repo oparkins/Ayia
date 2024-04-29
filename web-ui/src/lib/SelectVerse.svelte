@@ -17,19 +17,28 @@
    *  Imports {
    *
    */
-  import { createEventDispatcher }  from 'svelte';
-  import { get, writable }          from 'svelte/store';
+  import { afterUpdate, createEventDispatcher } from 'svelte';
+  import { get, writable }  from 'svelte/store';
 
-  import { Input }    from 'flowbite-svelte';
+  import { Input }  from 'flowbite-svelte';
+  import Fitty      from 'fitty';
 
-  import { verse as verse_store } from '$lib/stores';
-  import { parse_verse }          from '$lib/verse_ref';
+  import {
+    versions  as versions_store,
+    verse     as verse_store,
+  }  from '$lib/stores';
+
+  import { parse_verse }  from '$lib/verse_ref';
+
+  // Adapt fitty so we don't get a server-side error
+  const fitty = (typeof(Fitty) === 'function' ? Fitty : () => {} );
 
   /*  Imports }
    *************************************************************************
    *  Local state {
    */
-	const dispatch  = createEventDispatcher();
+  let   container_el  = null;
+  const dispatch  = createEventDispatcher();
   const verse_ref = writable( (verse        && verse.ui_ref) ||
                               ($verse_store && $verse_store.ui_ref) ||
                               '' );
@@ -55,12 +64,16 @@
    *  @return void
    */
   function verse_change( event ) {
+    const versions      = get( versions_store );
     const verse_ref_ro  = get( verse_ref );
-    const new_verse     = parse_verse( verse_ref_ro );
+    const new_verse     = parse_verse( verse_ref_ro, versions );
 
     // assert( event.target.value === verse_ref_ro );
+
+    /*
     console.log('SelectVerse.verse_change(): value[ %s / %s ], new_verse:',
                 event.target.value, verse_ref_ro, new_verse);
+    // */
 
     if (new_verse) {
       const new_ref = new_verse.ui_ref;
@@ -69,6 +82,20 @@
       dispatch( 'versechanged', new_verse );
     }
   }
+
+  // As soon as this component has been updated, invoke fitty on the input
+  afterUpdate(async () => {
+    const $verse  = (container_el && container_el.querySelector('#verse'));
+
+    if ($verse) {
+      /* Remove any existing styling so fitty will properly reduce the size if
+       * needed.
+       */
+      $verse.removeAttribute('style');
+
+      fitty( $verse, { minSize: 10, maxSize: 32, multiLine: false } );
+    }
+  });
 
   /*  Methods }
    *************************************************************************
@@ -85,23 +112,32 @@
     input: [
       'inline-flex',
       'z-10',
-      'rounded-s-none',
-      'rounded-e-lg',
+      'rounded-lg',
+      'p-1',
+
+      'whitespace-nowrap',
+      'leading-none',
+      'text-center',
+
+      'text-2xl',
+
+      //'border',
+      'focus:ring-1',
+      'focus:outline-none',
 
       'text-black',
       'bg-gray-100',
-      'border',
-      'border-gray-300',
+      'border-gray-200',
       'hover:bg-gray-200',
-      'focus:ring-4',
-      'focus:outline-none',
-      'focus:ring-gray-100',
+      'focus:bg-gray-200',
+      'focus:ring-blue-500',
 
       'dark:text-white',
-      'dark:bg-gray-700',
-      'dark:hover:bg-gray-600',
-      'dark:focus:ring-gray-700',
-      'dark:border-gray-600',
+      'dark:bg-gray-900',
+      'dark:border-gray-800',
+      'dark:hover:bg-gray-800',
+      'dark:focus:bg-gray-800',
+      'dark:focus:ring-blue-500',
     ],
   };
 
@@ -109,7 +145,7 @@
    *************************************************************************/
 </script>
 
-<div class={ Css.container.join(' ') }>
+<div class={ Css.container.join(' ') } bind:this={ container_el }>
   <Input
     id='verse'
     type='text'

@@ -1,0 +1,1277 @@
+{
+  "total": 17,
+  "versions": [
+    {
+      "id": 111,
+      "abbreviation": "NIV11",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "NIV",
+      "local_title": "New International Version",
+      "title": "New International Version 2011",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 59,
+      "abbreviation": "ESV",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "ESV",
+      "local_title": "English Standard Version 2016",
+      "title": "English Standard Version 2016",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 1588,
+      "abbreviation": "AMP",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "AMP",
+      "local_title": "Amplified Bible",
+      "title": "Amplified Bible",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 72,
+      "abbreviation": "HCSB",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "HCSB",
+      "local_title": "Holman Christian Standard Bible",
+      "title": "Holman Christian Standard Bible",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 1,
+      "abbreviation": "KJV",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "KJV",
+      "local_title": "King James Version",
+      "title": "King James Version",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 3034,
+      "abbreviation": "BSB",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "BSB",
+      "local_title": "English: Berean Standard Bible",
+      "title": "Berean Standard Bible",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 114,
+      "abbreviation": "NKJV",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "NKJV",
+      "local_title": "New King James Version",
+      "title": "New King James Version",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 1713,
+      "abbreviation": "CSB",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "CSB",
+      "local_title": "Christian Standard Bible",
+      "title": "Christian Standard Bible",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 100,
+      "abbreviation": "NASB1995",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "NASB1995",
+      "local_title": "New American Standard Bible - NASB 1995",
+      "title": "New American Standard Bible 1995",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 2692,
+      "abbreviation": "NASB2020",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "NASB2020",
+      "local_title": "New American Standard Bible - NASB",
+      "title": "New American Standard Bible 2020",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 97,
+      "abbreviation": "MSG",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "MSG",
+      "local_title": "The Message",
+      "title": "The Message",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 116,
+      "abbreviation": "NLT",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "NLT",
+      "local_title": "New Living Translation",
+      "title": "New Living Translation",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 2016,
+      "abbreviation": "NRSV",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "NRSV",
+      "local_title": "New Revised Standard Version",
+      "title": "New Revised Standard Version",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 68,
+      "abbreviation": "GNT",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "GNT",
+      "local_title": "Good News Translation",
+      "title": "Good News Translation",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 9999,
+      "abbreviation": "BSB-IL",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": [
+          "heb",
+          "hbo",
+          "grc"
+        ]
+      },
+      "local_abbreviation": "BSB-IL",
+      "local_title": "Berean Standard Bible (Interlinear)",
+      "title": "Berean Standard Bible (Interlinear)",
+      "type": "interlinear",
+      "vrs": "eng"
+    },
+    {
+      "id": 392,
+      "abbreviation": "CEV",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "CEV",
+      "local_title": "Contemporary English Version",
+      "title": "Contemporary English Version",
+      "type": "yvers",
+      "vrs": "eng"
+    },
+    {
+      "id": 1171,
+      "abbreviation": "MEV",
+      "language": {
+        "iso_639_1": "en",
+        "iso_639_3": "eng",
+        "name": "English",
+        "local_name": "English",
+        "text_direction": "ltr",
+        "language_tag": "eng",
+        "secondary_language_tags": null
+      },
+      "local_abbreviation": "MEV",
+      "local_title": "Modern English Version",
+      "title": "Modern English Version",
+      "type": "yvers",
+      "vrs": "eng"
+    }
+  ],
+  "books": [
+    {
+      "abbr": "GEN",
+      "name": "Genesis",
+      "order": 1,
+      "loc": "Old Testament",
+      "verses": [
+        0, 31, 25, 24, 26, 32, 22, 24, 22, 29,
+        32, 32, 20, 18, 24, 21, 16, 27, 33, 38,
+        18, 34, 24, 20, 67, 34, 35, 46, 22, 35,
+        43, 55, 32, 20, 31, 29, 43, 36, 30, 23,
+        23, 57, 38, 34, 34, 28, 34, 31, 22, 33,
+        26
+      ]
+    },
+    {
+      "abbr": "EXO",
+      "name": "Exodus",
+      "order": 2,
+      "loc": "Old Testament",
+      "verses": [
+        0, 22, 25, 22, 31, 23, 30, 25, 32, 35,
+        29, 10, 51, 22, 31, 27, 36, 16, 27, 25,
+        26, 36, 31, 33, 18, 40, 37, 21, 43, 46,
+        38, 18, 35, 23, 35, 35, 38, 29, 31, 43,
+        38
+      ]
+    },
+    {
+      "abbr": "LEV",
+      "name": "Leviticus",
+      "order": 3,
+      "loc": "Old Testament",
+      "verses": [
+        0, 17, 16, 17, 35, 19, 30, 38, 36, 24,
+        20, 47, 8, 59, 57, 33, 34, 16, 30, 37,
+        27, 24, 33, 44, 23, 55, 46, 34
+      ]
+    },
+    {
+      "abbr": "NUM",
+      "name": "Numbers",
+      "order": 4,
+      "loc": "Old Testament",
+      "verses": [
+        0, 54, 34, 51, 49, 31, 27, 89, 26, 23,
+        36, 35, 16, 33, 45, 41, 50, 13, 32, 22,
+        29, 35, 41, 30, 25, 18, 65, 23, 31, 40,
+        16, 54, 42, 56, 29, 34, 13
+      ]
+    },
+    {
+      "abbr": "DEU",
+      "name": "Deuteronomy",
+      "order": 5,
+      "loc": "Old Testament",
+      "verses": [
+        0, 46, 37, 29, 49, 33, 25, 26, 20, 29,
+        22, 32, 32, 18, 29, 23, 22, 20, 22, 21,
+        20, 23, 30, 25, 22, 19, 19, 26, 68, 29,
+        20, 30, 52, 29, 12
+      ]
+    },
+    {
+      "abbr": "JOS",
+      "name": "Joshua",
+      "order": 6,
+      "loc": "Old Testament",
+      "verses": [
+        0, 18, 24, 17, 24, 15, 27, 26, 35, 27,
+        43, 23, 24, 33, 15, 63, 10, 18, 28, 51,
+        9, 45, 34, 16, 33
+      ]
+    },
+    {
+      "abbr": "JDG",
+      "name": "Judges",
+      "order": 7,
+      "loc": "Old Testament",
+      "verses": [
+        0, 36, 23, 31, 24, 31, 40, 25, 35, 57,
+        18, 40, 15, 25, 20, 20, 31, 13, 31, 30,
+        48, 25
+      ]
+    },
+    {
+      "abbr": "RUT",
+      "name": "Ruth",
+      "order": 8,
+      "loc": "Old Testament",
+      "verses": [
+        0, 22, 23, 18, 22
+      ]
+    },
+    {
+      "abbr": "1SA",
+      "name": "1 Samuel",
+      "order": 9,
+      "loc": "Old Testament",
+      "verses": [
+        0, 28, 36, 21, 22, 12, 21, 17, 22, 27,
+        27, 15, 25, 23, 52, 35, 23, 58, 30, 24,
+        42, 15, 23, 29, 22, 44, 25, 12, 25, 11,
+        31, 13
+      ]
+    },
+    {
+      "abbr": "2SA",
+      "name": "2 Samuel",
+      "order": 10,
+      "loc": "Old Testament",
+      "verses": [
+        0, 27, 32, 39, 12, 25, 23, 29, 18, 13,
+        19, 27, 31, 39, 33, 37, 23, 29, 33, 43,
+        26, 22, 51, 39, 25
+      ]
+    },
+    {
+      "abbr": "1KI",
+      "name": "1 Kings",
+      "order": 11,
+      "loc": "Old Testament",
+      "verses": [
+        0, 53, 46, 28, 34, 18, 38, 51, 66, 28,
+        29, 43, 33, 34, 31, 34, 34, 24, 46, 21,
+        43, 29, 53
+      ]
+    },
+    {
+      "abbr": "2KI",
+      "name": "2 Kings",
+      "order": 12,
+      "loc": "Old Testament",
+      "verses": [
+        0, 18, 25, 27, 44, 27, 33, 20, 29, 37,
+        36, 21, 21, 25, 29, 38, 20, 41, 37, 37,
+        21, 26, 20, 37, 20, 30
+      ]
+    },
+    {
+      "abbr": "1CH",
+      "name": "1 Chronicles",
+      "order": 13,
+      "loc": "Old Testament",
+      "verses": [
+        0, 54, 55, 24, 43, 26, 81, 40, 40, 44,
+        14, 47, 40, 14, 17, 29, 43, 27, 17, 19,
+        8, 30, 19, 32, 31, 31, 32, 34, 21, 30
+      ]
+    },
+    {
+      "abbr": "2CH",
+      "name": "2 Chronicles",
+      "order": 14,
+      "loc": "Old Testament",
+      "verses": [
+        0, 17, 18, 17, 22, 14, 42, 22, 18, 31,
+        19, 23, 16, 22, 15, 19, 14, 19, 34, 11,
+        37, 20, 12, 21, 27, 28, 23, 9, 27, 36,
+        27, 21, 33, 25, 33, 27, 23
+      ]
+    },
+    {
+      "abbr": "EZR",
+      "name": "Ezra",
+      "order": 15,
+      "loc": "Old Testament",
+      "verses": [
+        0, 11, 70, 13, 24, 17, 22, 28, 36, 15,
+        44
+      ]
+    },
+    {
+      "abbr": "NEH",
+      "name": "Nehemiah",
+      "order": 16,
+      "loc": "Old Testament",
+      "verses": [
+        0, 11, 20, 32, 23, 19, 19, 73, 18, 38,
+        39, 36, 47, 31
+      ]
+    },
+    {
+      "abbr": "EST",
+      "name": "Esther (Hebrew)",
+      "order": 17,
+      "loc": "Old Testament",
+      "verses": [
+        0, 22, 23, 15, 17, 14, 14, 10, 17, 32,
+        3
+      ]
+    },
+    {
+      "abbr": "JOB",
+      "name": "Job",
+      "order": 18,
+      "loc": "Old Testament",
+      "verses": [
+        0, 22, 13, 26, 21, 27, 30, 21, 22, 35,
+        22, 20, 25, 28, 22, 35, 22, 16, 21, 29,
+        29, 34, 30, 17, 25, 6, 14, 23, 28, 25,
+        31, 40, 22, 33, 37, 16, 33, 24, 41, 30,
+        24, 34, 17
+      ]
+    },
+    {
+      "abbr": "PSA",
+      "name": "Psalms",
+      "order": 19,
+      "loc": "Old Testament",
+      "verses": [
+        0, 6, 12, 8, 8, 12, 10, 17, 9, 20,
+        18, 7, 8, 6, 7, 5, 11, 15, 50, 14,
+        9, 13, 31, 6, 10, 22, 12, 14, 9, 11,
+        12, 24, 11, 22, 22, 28, 12, 40, 22, 13,
+        17, 13, 11, 5, 26, 17, 11, 9, 14, 20,
+        23, 19, 9, 6, 7, 23, 13, 11, 11, 17,
+        12, 8, 12, 11, 10, 13, 20, 7, 35, 36,
+        5, 24, 20, 28, 23, 10, 12, 20, 72, 13,
+        19, 16, 8, 18, 12, 13, 17, 7, 18, 52,
+        17, 16, 15, 5, 23, 11, 13, 12, 9, 9,
+        5, 8, 28, 22, 35, 45, 48, 43, 13, 31,
+        7, 10, 10, 9, 8, 18, 19, 2, 29, 176,
+        7, 8, 9, 4, 8, 5, 6, 5, 6, 8,
+        8, 3, 18, 3, 3, 21, 26, 9, 8, 24,
+        13, 10, 7, 12, 15, 21, 10, 20, 14, 9,
+        6
+      ]
+    },
+    {
+      "abbr": "PRO",
+      "name": "Proverbs",
+      "order": 20,
+      "loc": "Old Testament",
+      "verses": [
+        0, 33, 22, 35, 27, 23, 35, 27, 36, 18,
+        32, 31, 28, 25, 35, 33, 33, 28, 24, 29,
+        30, 31, 29, 35, 34, 28, 28, 27, 28, 27,
+        33, 31
+      ]
+    },
+    {
+      "abbr": "ECC",
+      "name": "Ecclesiastes",
+      "order": 21,
+      "loc": "Old Testament",
+      "verses": [
+        0, 18, 26, 22, 16, 20, 12, 29, 17, 18,
+        20, 10, 14
+      ]
+    },
+    {
+      "abbr": "SNG",
+      "name": "Song of Songs",
+      "alts": [
+        "Song of Solomon"
+      ],
+      "order": 22,
+      "loc": "Old Testament",
+      "verses": [
+        0, 17, 17, 11, 16, 16, 13, 13, 14
+      ]
+    },
+    {
+      "abbr": "ISA",
+      "name": "Isaiah",
+      "order": 23,
+      "loc": "Old Testament",
+      "verses": [
+        0, 31, 22, 26, 6, 30, 13, 25, 22, 21,
+        34, 16, 6, 22, 32, 9, 14, 14, 7, 25,
+        6, 17, 25, 18, 23, 12, 21, 13, 29, 24,
+        33, 9, 20, 24, 17, 10, 22, 38, 22, 8,
+        31, 29, 25, 28, 28, 25, 13, 15, 22, 26,
+        11, 23, 15, 12, 17, 13, 12, 21, 14, 21,
+        22, 11, 12, 19, 12, 25, 24
+      ]
+    },
+    {
+      "abbr": "JER",
+      "name": "Jeremiah",
+      "order": 24,
+      "loc": "Old Testament",
+      "verses": [
+        0, 19, 37, 25, 31, 31, 30, 34, 22, 26,
+        25, 23, 17, 27, 22, 21, 21, 27, 23, 15,
+        18, 14, 30, 40, 10, 38, 24, 22, 17, 32,
+        24, 40, 44, 26, 22, 19, 32, 21, 28, 18,
+        16, 18, 22, 13, 30, 5, 28, 7, 47, 39,
+        46, 64, 34
+      ]
+    },
+    {
+      "abbr": "LAM",
+      "name": "Lamentations",
+      "order": 25,
+      "loc": "Old Testament",
+      "verses": [
+        0, 22, 22, 66, 22, 22
+      ]
+    },
+    {
+      "abbr": "EZK",
+      "name": "Ezekiel",
+      "order": 26,
+      "loc": "Old Testament",
+      "verses": [
+        0, 28, 10, 27, 17, 17, 14, 27, 18, 11,
+        22, 25, 28, 23, 23, 8, 63, 24, 32, 14,
+        49, 32, 31, 49, 27, 17, 21, 36, 26, 21,
+        26, 18, 32, 33, 31, 15, 38, 28, 23, 29,
+        49, 26, 20, 27, 31, 25, 24, 23, 35
+      ]
+    },
+    {
+      "abbr": "DAN",
+      "name": "Daniel (Hebrew)",
+      "order": 27,
+      "loc": "Old Testament",
+      "verses": [
+        0, 21, 49, 30, 37, 31, 28, 28, 27, 27,
+        21, 45, 13
+      ]
+    },
+    {
+      "abbr": "HOS",
+      "name": "Hosea",
+      "order": 28,
+      "loc": "Old Testament",
+      "verses": [
+        0, 11, 23, 5, 19, 15, 11, 16, 14, 17,
+        15, 12, 14, 16, 9
+      ]
+    },
+    {
+      "abbr": "JOL",
+      "name": "Joel",
+      "order": 29,
+      "loc": "Old Testament",
+      "verses": [
+        0, 20, 32, 21
+      ]
+    },
+    {
+      "abbr": "AMO",
+      "name": "Amos",
+      "order": 30,
+      "loc": "Old Testament",
+      "verses": [
+        0, 15, 16, 15, 13, 27, 14, 17, 14, 15
+      ]
+    },
+    {
+      "abbr": "OBA",
+      "name": "Obadiah",
+      "order": 31,
+      "loc": "Old Testament",
+      "verses": [
+        0, 21
+      ]
+    },
+    {
+      "abbr": "JON",
+      "name": "Jonah",
+      "order": 32,
+      "loc": "Old Testament",
+      "verses": [
+        0, 17, 10, 10, 11
+      ]
+    },
+    {
+      "abbr": "MIC",
+      "name": "Micah",
+      "order": 33,
+      "loc": "Old Testament",
+      "verses": [
+        0, 16, 13, 12, 13, 15, 16, 20
+      ]
+    },
+    {
+      "abbr": "NAM",
+      "name": "Nahum",
+      "order": 34,
+      "loc": "Old Testament",
+      "verses": [
+        0, 15, 13, 19
+      ]
+    },
+    {
+      "abbr": "HAB",
+      "name": "Habakkuk",
+      "order": 35,
+      "loc": "Old Testament",
+      "verses": [
+        0, 17, 20, 19
+      ]
+    },
+    {
+      "abbr": "ZEP",
+      "name": "Zephaniah",
+      "order": 36,
+      "loc": "Old Testament",
+      "verses": [
+        0, 18, 15, 20
+      ]
+    },
+    {
+      "abbr": "HAG",
+      "name": "Haggai",
+      "order": 37,
+      "loc": "Old Testament",
+      "verses": [
+        0, 15, 23
+      ]
+    },
+    {
+      "abbr": "ZEC",
+      "name": "Zechariah",
+      "order": 38,
+      "loc": "Old Testament",
+      "verses": [
+        0, 21, 13, 10, 14, 11, 15, 14, 23, 17,
+        12, 17, 14, 9, 21
+      ]
+    },
+    {
+      "abbr": "MAL",
+      "name": "Malachi",
+      "order": 39,
+      "loc": "Old Testament",
+      "verses": [
+        0, 14, 17, 18, 6
+      ]
+    },
+    {
+      "abbr": "MAT",
+      "name": "Matthew",
+      "order": 40,
+      "loc": "New Testament",
+      "verses": [
+        0, 25, 23, 17, 25, 48, 34, 29, 34, 38,
+        42, 30, 50, 58, 36, 39, 28, 27, 35, 30,
+        34, 46, 46, 39, 51, 46, 75, 66, 20
+      ]
+    },
+    {
+      "abbr": "MRK",
+      "name": "Mark",
+      "order": 41,
+      "loc": "New Testament",
+      "verses": [
+        0, 45, 28, 35, 41, 43, 56, 37, 38, 50,
+        52, 33, 44, 37, 72, 47, 20
+      ]
+    },
+    {
+      "abbr": "LUK",
+      "name": "Luke",
+      "order": 42,
+      "loc": "New Testament",
+      "verses": [
+        0, 80, 52, 38, 44, 39, 49, 50, 56, 62,
+        42, 54, 59, 35, 35, 32, 31, 37, 43, 48,
+        47, 38, 71, 56, 53
+      ]
+    },
+    {
+      "abbr": "JHN",
+      "name": "John",
+      "order": 43,
+      "loc": "New Testament",
+      "verses": [
+        0, 51, 25, 36, 54, 47, 71, 53, 59, 41,
+        42, 57, 50, 38, 31, 27, 33, 26, 40, 42,
+        31, 25
+      ]
+    },
+    {
+      "abbr": "ACT",
+      "name": "Acts",
+      "order": 44,
+      "loc": "New Testament",
+      "verses": [
+        0, 26, 47, 26, 37, 42, 15, 60, 40, 43,
+        48, 30, 25, 52, 28, 41, 40, 34, 28, 41,
+        38, 40, 30, 35, 27, 27, 32, 44, 31
+      ]
+    },
+    {
+      "abbr": "ROM",
+      "name": "Romans",
+      "order": 45,
+      "loc": "New Testament",
+      "verses": [
+        0, 32, 29, 31, 25, 21, 23, 25, 39, 33,
+        21, 36, 21, 14, 23, 33, 27
+      ]
+    },
+    {
+      "abbr": "1CO",
+      "name": "1 Corinthians",
+      "order": 46,
+      "loc": "New Testament",
+      "verses": [
+        0, 31, 16, 23, 21, 13, 20, 40, 13, 27,
+        33, 34, 31, 13, 40, 58, 24
+      ]
+    },
+    {
+      "abbr": "2CO",
+      "name": "2 Corinthians",
+      "order": 47,
+      "loc": "New Testament",
+      "verses": [
+        0, 24, 17, 18, 18, 21, 18, 16, 24, 15,
+        18, 33, 21, 14
+      ]
+    },
+    {
+      "abbr": "GAL",
+      "name": "Galatians",
+      "order": 48,
+      "loc": "New Testament",
+      "verses": [
+        0, 24, 21, 29, 31, 26, 18
+      ]
+    },
+    {
+      "abbr": "EPH",
+      "name": "Ephesians",
+      "order": 49,
+      "loc": "New Testament",
+      "verses": [
+        0, 23, 22, 21, 32, 33, 24
+      ]
+    },
+    {
+      "abbr": "PHP",
+      "name": "Philippians",
+      "order": 50,
+      "loc": "New Testament",
+      "verses": [
+        0, 30, 30, 21, 23
+      ]
+    },
+    {
+      "abbr": "COL",
+      "name": "Colossians",
+      "order": 51,
+      "loc": "New Testament",
+      "verses": [
+        0, 29, 23, 25, 18
+      ]
+    },
+    {
+      "abbr": "1TH",
+      "name": "1 Thessalonians",
+      "order": 52,
+      "loc": "New Testament",
+      "verses": [
+        0, 10, 20, 13, 18, 28
+      ]
+    },
+    {
+      "abbr": "2TH",
+      "name": "2 Thessalonians",
+      "order": 53,
+      "loc": "New Testament",
+      "verses": [
+        0, 12, 17, 18
+      ]
+    },
+    {
+      "abbr": "1TI",
+      "name": "1 Timothy",
+      "order": 54,
+      "loc": "New Testament",
+      "verses": [
+        0, 20, 15, 16, 16, 25, 21
+      ]
+    },
+    {
+      "abbr": "2TI",
+      "name": "2 Timothy",
+      "order": 55,
+      "loc": "New Testament",
+      "verses": [
+        0, 18, 26, 17, 22
+      ]
+    },
+    {
+      "abbr": "TIT",
+      "name": "Titus",
+      "order": 56,
+      "loc": "New Testament",
+      "verses": [
+        0, 16, 15, 15
+      ]
+    },
+    {
+      "abbr": "PHM",
+      "name": "Philemon",
+      "order": 57,
+      "loc": "New Testament",
+      "verses": [
+        0, 25
+      ]
+    },
+    {
+      "abbr": "HEB",
+      "name": "Hebrews",
+      "order": 58,
+      "loc": "New Testament",
+      "verses": [
+        0, 14, 18, 19, 16, 14, 20, 28, 13, 28,
+        39, 40, 29, 25
+      ]
+    },
+    {
+      "abbr": "JAS",
+      "name": "James",
+      "order": 59,
+      "loc": "New Testament",
+      "verses": [
+        0, 27, 26, 18, 17, 20
+      ]
+    },
+    {
+      "abbr": "1PE",
+      "name": "1 Peter",
+      "order": 60,
+      "loc": "New Testament",
+      "verses": [
+        0, 25, 25, 22, 19, 14
+      ]
+    },
+    {
+      "abbr": "2PE",
+      "name": "2 Peter",
+      "order": 61,
+      "loc": "New Testament",
+      "verses": [
+        0, 21, 22, 18
+      ]
+    },
+    {
+      "abbr": "1JN",
+      "name": "1 John",
+      "order": 62,
+      "loc": "New Testament",
+      "verses": [
+        0, 10, 29, 24, 21, 21
+      ]
+    },
+    {
+      "abbr": "2JN",
+      "name": "2 John",
+      "order": 63,
+      "loc": "New Testament",
+      "verses": [
+        0, 13
+      ]
+    },
+    {
+      "abbr": "3JN",
+      "name": "3 John",
+      "order": 64,
+      "loc": "New Testament",
+      "verses": [
+        0, 15
+      ]
+    },
+    {
+      "abbr": "JUD",
+      "name": "Jude",
+      "order": 65,
+      "loc": "New Testament",
+      "verses": [
+        0, 25
+      ]
+    },
+    {
+      "abbr": "REV",
+      "name": "Revelation",
+      "order": 66,
+      "loc": "New Testament",
+      "verses": [
+        0, 20, 29, 22, 11, 14, 17, 17, 13, 21,
+        11, 19, 17, 18, 20, 8, 21, 18, 24, 21,
+        15, 27, 21
+      ]
+    },
+    {
+      "abbr": "TOB",
+      "name": "Tobit",
+      "order": 16.1,
+      "loc": "Deuterocanon",
+      "verses": [
+        0, 22, 14, 17, 21, 22, 18, 17, 21, 6,
+        14, 18, 22, 18, 15
+      ]
+    },
+    {
+      "abbr": "JDT",
+      "name": "Judith",
+      "order": 16.2,
+      "loc": "Deuterocanon",
+      "verses": [
+        0, 22, 14, 17, 21, 22, 18, 17, 21, 6,
+        14, 18, 22, 18, 15
+      ]
+    },
+    {
+      "abbr": "WIS",
+      "name": "Wisdom of Solomon",
+      "order": 22.1,
+      "loc": "Deuterocanon",
+      "verses": [
+        0, 16, 24, 19, 20, 23, 25, 30, 21, 18,
+        21, 26, 27, 19, 31, 19, 29, 21, 25, 22
+      ]
+    },
+    {
+      "abbr": "SIR",
+      "name": "Sirach (Ecclesiasticus)",
+      "order": 22.2,
+      "loc": "Deuterocanon",
+      "verses": [
+        0, 29, 18, 30, 31, 17, 37, 36, 19, 18,
+        30, 34, 18, 25, 27, 20, 28, 27, 33, 26,
+        30, 28, 27, 27, 31, 25, 20, 30, 26, 28,
+        25, 31, 24, 33, 26, 24, 27, 30, 34, 35,
+        30, 24, 25, 35, 23, 26, 20, 25, 25, 16,
+        29, 30
+      ]
+    },
+    {
+      "abbr": "BAR",
+      "name": "Baruch",
+      "order": 25.1,
+      "loc": "Deuterocanon",
+      "verses": [
+        0, 22, 35, 38, 37, 9, 72
+      ]
+    },
+    {
+      "abbr": "ESG",
+      "name": "Esther Greek",
+      "order": 17.1,
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "LJE",
+      "name": "Letter of Jeremiah",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "S3Y",
+      "name": "Song of 3 Young Men",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "SUS",
+      "name": "Susanna",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "BEL",
+      "name": "Bel and the Dragon",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "1MA",
+      "name": "1 Maccabees",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "2MA",
+      "name": "2 Maccabees",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "3MA",
+      "name": "3 Maccabees",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "4MA",
+      "name": "4 Maccabees",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "1ES",
+      "name": "1 Esdras (Greek)",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "2ES",
+      "name": "2 Esdras (Latin)",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "MAN",
+      "name": "Prayer of Manasseh",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "PS2",
+      "name": "Psalm 151",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "ODA",
+      "name": "Odes",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "PSS",
+      "name": "Psalms of Solomon",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "EZA",
+      "name": "Apocalypse of Ezra",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "5EZ",
+      "name": "5 Ezra",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "6EZ",
+      "name": "6 Ezra",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "DAG",
+      "name": "Daniel Greek",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "PS3",
+      "name": "Psalms 152-155",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "2BA",
+      "name": "2 Baruch (Apocalypse)",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "LBA",
+      "name": "Letter of Baruch",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "JUB",
+      "name": "Jubilees",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "ENO",
+      "name": "Enoch 1MQ - 1 Meqabyan",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "2MQ",
+      "name": "2 Meqabyan",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "3MQ",
+      "name": "3 Meqabyan",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "REP",
+      "name": "Reproof 4BA - 4 Baruch",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "LAO",
+      "name": "Laodiceans",
+      "loc": "Deuterocanon"
+    },
+    {
+      "abbr": "XXA",
+      "name": "Extra A, e.g. a hymnal",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "XXB",
+      "name": "Extra B",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "XXC",
+      "name": "Extra C",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "XXD",
+      "name": "Extra D",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "XXE",
+      "name": "Extra E",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "XXF",
+      "name": "Extra F",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "XXG",
+      "name": "Extra G",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "FRT",
+      "name": "Front Matter",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "BAK",
+      "name": "Back Matter",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "OTH",
+      "name": "Other Matter",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "INT",
+      "name": "Introduction",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "CNC",
+      "name": "Concordance",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "GLO",
+      "name": "Glossary",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "TDX",
+      "name": "Topical Index",
+      "loc": "Non scripture"
+    },
+    {
+      "abbr": "NDX",
+      "name": "Names Index",
+      "loc": "Non scripture"
+    }
+  ]
+}

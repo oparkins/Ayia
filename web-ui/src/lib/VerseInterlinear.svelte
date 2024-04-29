@@ -9,7 +9,8 @@
   export let verse;
 
   // Create a nicer representation for the verse reference
-  const verse_num = parseInt(verse_ref.split('.')[2], 10);
+  const [ _bk, _ch, vs ]  = verse_ref.split('.');
+  const verse_num         = parseInt( vs, 10 );
 
 </script>
 
@@ -24,9 +25,8 @@
   <p class='verse label leading-none pr-0'>{verse_num}</p>
   {#each verse.markup as markup, m_dex}
     {#if markup.text !== undefined}
-      <WordInterlinear
-          word={markup}
-          word_ref={verse_ref.replaceAll('.','-') + m_dex} />
+      {@const word_ref = verse_ref.replaceAll('.','-') +'-'+ m_dex }
+      <WordInterlinear word={markup} word_ref={word_ref} />
     {/if}
   {/each}
 </div>

@@ -11,7 +11,11 @@ import deep_merge from './deep_merge.js';
  *  @private
  */
 export function generate_config( args ) {
-  const config    = {};
+  /* When run via npm, environment variables are injected:
+   *  Ref: https://docs.npmjs.com/cli/v6/using-npm/scripts#packagejson-vars
+   */
+  const app_version = process.env.npm_package_version;
+  const config      = { app_version };
 
   if (args.config) {
     const data  = yaml.load( fs.readFileSync( args.config, 'utf8' ) );

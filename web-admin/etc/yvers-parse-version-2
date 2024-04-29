@@ -1,0 +1,786 @@
+#!/usr/bin/env node
+const Yargs   = require('yargs');
+const Books   = require('../lib/books');
+const Yvers   = require('../versions/yvers');
+const Cheerio = require('cheerio');
+const sprintf = require('sprintf-js').sprintf;
+const Usage   = require('../lib/usage');
+const Inspect = require('../lib/inspect').inspect;
+const Refs    = require('../lib/refs');
+const yargs	  = Yargs
+	.usage('Parse the extracted <vers> data into a human readable form '
+          +     'optionally limited to a <ref>')
+  .positional('vers', {
+    describe: 'The desired version',
+    type    : 'string',
+  })
+  .positional('ref', {
+    describe: 'An optional reference limit [book[.chapter[.verse]]',
+    type    : 'string',
+  })
+  .options({
+    f: {
+      alias   : 'force',
+      describe: 'Force (re)creation of the JSON',
+      default : false,
+      type    : 'boolean',
+    },
+    v: {
+      alias   : 'verbosity',
+      describe: 'Increase debug verbosity',
+      count   : true,
+    },
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help();
+
+main().catch(err => { console.error('*** main:', err) });
+
+/****************************************************************************
+ * async main
+ *
+ */
+async function main() {
+  const args        = yargs.parse();
+  const [vers,ref]  = args._;
+  let   ref_filter;
+
+  if (vers == null) { Usage.yargs( yargs ) }
+  args.vers = vers;
+
+  if (ref) {
+    const [ only_bk, only_ch, only_vs ]  = ref.split(/[ :\.]+/);
+
+    const book = Books.getBook( only_bk );
+    if (book) {
+      ref_filter = book.abbr;
+
+      if (only_ch) {
+        ref_filter += `.${only_ch}`;
+        if (only_vs)  { ref_filter += `.${only_vs}` }
+      }
+    }
+  }
+
+  if (args.verbosity) {
+    console.log('>>> Version: %s %s', vers, (ref_filter || ''));
+  }
+
+  args.returnVersion = true;
+
+  const version = await Yvers.extract.version( args );
+
+  Object.entries(version.books).forEach( ([abbrev, chapters]) => {
+    _parseBook( abbrev,  chapters, ref_filter );
+  });
+}
+
+/****************************************************************************
+ * Private helpers {
+ *
+ */
+
+/**
+ *  Parse a single book.
+ *
+ *  @method _parseBook
+ *  @param  abbrev        The book abbreviation {String};
+ *  @param  chapters      The chapter data for this book {Object};
+ *  @param  [ref_filter]  If provided, only present books, chapters, and verses
+ *                        that match the filter ( BOK[.CHAPTER[.VERSE]] )
+ *                        {String};
+ *
+ *  @return void
+ *  @private
+ */
+function _parseBook( abbrev, chapters, ref_filter = null ) {
+  const [ only_book, only_ch, only_vs ] = (typeof(ref_filter) === 'string'
+                                            ? ref_filter.split('.')
+                                            : []);
+  if (only_book && only_book !== abbrev) { return }
+
+  let filter  = null;
+  if (only_book) {
+      filter = only_book;
+
+      if (only_ch) {
+        filter += `.${only_ch}`;
+        if (only_vs)  { filter += `.${only_vs}([+]|$)` }
+        else          { filter += '.[0-9]' }
+      }
+
+      filter = new RegExp( filter.replaceAll('.', '\\.'), 'i' );
+  }
+
+  /*
+  console.log('_parseBook( %s ): ref_filter[ %s ] => '
+              +   'only_book[ %s ], only_ch[ %s ], only_vs[ %s ] => %s',
+              abbrev, ref_filter, only_book, only_ch, only_vs);
+  // */
+
+  // Process all chapters for this book
+  const book_map  = {};
+  Object.entries( chapters ).forEach( ([chp, lines]) => {
+    if (only_ch && only_ch != chp) { return }
+
+    const $         = Cheerio.load( lines.join( '' ) );
+    const $intro    = $('.intro');
+
+    if ($intro.length > 0) {
+      /*******************************************************
+       * Process this as an introduction with no verses
+       *
+       */
+      const usfm          = _getAttr( $intro[0], 'data-usfm' );
+      const [bk, ch, vs]  = usfm.split('.');
+      const ref           = Refs.sortable( bk, ch, vs );
+      const intro         = _parseIntro( $, $intro );
+
+      intro.text = intro.text.join(' ');
+
+      book_map[ ref ] = intro;
+      return;
+    }
+
+    /*********************************************************
+     * Process this as a chapter with verses
+     *
+     */
+    const $chapter  = $('.chapter');
+    const usfm      = $chapter.attr('data-usfm');
+
+    const state = {
+      $       : $,
+      book    : abbrev,
+      label   : null,                     // The chapter label
+      verses  : new Map(),
+      verse   : { markup: [], text: [] }, // Current accumulating verse
+      block   : null,                     // Current block
+      key     : null,
+      sub_key : null,
+      usfm    : `${usfm}.1`,
+    };
+
+    /* Inject a holder for the first verse, which will also hold all content
+     * *up-to* the first verse.
+     */
+    state.verses.set( state.usfm, state.verse );
+
+    // Process all block-level elements for this chapter
+    $chapter.children().each( (idex, el) => {
+      _parseBlock( state, el );
+    });
+
+    // Convert the verses map into a simple object
+    for ( let [key,verse] of state.verses ) {
+      const [bk, ch, vs]  = key.split('.');
+      const ref           = Refs.sortable( bk, ch, vs );
+
+      if (key !== `${bk}.${ch}.${vs}`) {
+        // Augment this verse with a multi-verse indicator
+        verse._multi = key;
+      }
+
+      if (Array.isArray(verse.text)) {
+        verse.text = verse.text.join(' ');
+      }
+
+      book_map[ ref ] = verse;
+
+      //console.log('%s: %s', key, Inspect( verse ));
+    }
+  });
+
+  /* Finalize the book object by sorting keys and filling in any multi-verse
+   * references.
+   */
+  const book_json = {};
+  const refs      = Object.keys( book_map ).sort();
+  refs.forEach( ref => {
+    const verse = book_map[ ref ];
+
+    if (book_json.hasOwnProperty( ref )) {
+      /* Multi-verse collision. Typically a verse that has been split into
+       * parts, e.g. MSG John 3:27-29a ; 3:29b-30
+       *
+       * Over-write the reference with verse content.
+       */
+      console.warn('=== Verse overlap at %s:', ref, book_json[ref]);
+    }
+
+    book_json[ ref ] = verse;
+
+    if (verse._multi) {
+      _addMultiverseRefs( ref, verse._multi, book_json );
+      delete verse._multi;
+    }
+  });
+  
+  const depth = 10;
+  console.log('%s', Inspect( book_json, depth, !'colors' ));
+}
+
+/**
+ *  Parse an introduction.
+ *
+ *  @method _parseIntro
+ *  @param  $         The top-level Cheerio instance {Cheerio};
+ *  @param  $intro    The intro element(s) {Cheerio};
+ *
+ *  @return A simple object representing the intro {Object};
+ *  @private
+ */
+function _parseIntro( $, $intro ) {
+  const introJson = {
+    markup  : [],
+    text    : [],
+  };
+
+  $intro.children().each( (jdex, el) => {
+    const json  = _jsonElement( $, el );
+    const text  = $(el).text().trim();
+
+    /*
+    console.log('-- intro %s: %d:', chp, jdex, json);
+    // */
+
+    introJson.markup.push( json );
+    introJson.text.push( text );
+  });
+
+  return introJson;
+}
+
+/**
+ *  Parse a block-level element.
+ *
+ *  @method _parseBlock
+ *  @param  state         Chapter processing state {Object};
+ *  @param  state.$       The top-level Cheerio instance {Cheerio};
+ *  @param  state.book    The book abbreviation {String};
+ *  @param  state.label   The chapter label {String};
+ *  @param  state.verses  A map of verses {Map};
+ *  @param  state.verse   The current accumulating verse {Array};
+ *  @param  state.block   The current block {String};
+ *  @param  state.key     The key under which to gather content {String};
+ *  @param  state.sub_key The sub-key beneath `key` {String};
+ *  @param  state.usfm    The reference of the current verse {String};
+ *  @param  el            The target HTML element {Object};
+ *
+ *  @return void
+ *  @private
+ */
+function _parseBlock( state, el ) {
+  const $         = state.$;
+  const $el       = $(el);
+  const classes   = _getClasses( el );
+  const cls0      = (classes.length > 0 && classes[0]);
+  const block     = (cls0 || el.name);
+  const children  = $el.children();
+
+  // assert( children.length > 0 )
+
+  if (block === 'label') {
+    // Chapter label -- skip this block
+    if (state.label == null) {
+      state.label = $el.text().trim();
+
+      /*
+      console.log('=====================================================');
+      console.log('=== Chapter label[ %s ]', state.label);
+      // */
+
+    } else {
+      console.warn('=== Multiple chapter labels current[ %s ], new[ %s ]',
+                    state.label, $el.text());
+    }
+
+    return;
+  }
+
+  // New block
+  state.block = block;
+  state.key   = `#${state.block}`;
+
+  const $children = $el.children();
+
+  if (block === 'table') {
+    _parseTable( state, el );
+
+  } else if ($children.length < 1) {
+    // Empty block element
+
+    //console.log('_parseBlock(): %s -- NO children', classes.join('.'));
+    state.verse.markup.push( { [state.key]: null } );
+
+  } else {
+    // Parse all block children
+    $children.each( (jdex, ch) => {
+      _parseChar( state, ch );
+    });
+  }
+}
+
+/**
+ *  Parse a table element.
+ *
+ *  @method _parseTable
+ *  @param  state         Chapter processing state {Object};
+ *  @param  state.$       The top-level Cheerio instance {Cheerio};
+ *  @param  state.book    The book abbreviation {String};
+ *  @param  state.label   The chapter label {String};
+ *  @param  state.verses  A map of verses {Map};
+ *  @param  state.verse   The current accumulating verse {Array};
+ *  @param  state.block   The current block {String};
+ *  @param  state.key     The key under which to gather content {String};
+ *  @param  state.sub_key The sub-key beneath `key` {String};
+ *  @param  state.usfm    The reference of the current verse {String};
+ *  @param  el            The target HTML element {Object};
+ *
+ *  :TODO: Handle 'table' blocks
+ *          <table class='table'>
+ *            <tr class='row'>
+ *              <td class='cell'>
+ *                -- Block-like processing, taking into account row and cell
+ *                -- boundaries
+ *              </td>
+ *              ...
+ *            </tr>
+ *            ...
+ *          </table>
+ *
+ *  @return void
+ *  @private
+ */
+function _parseTable( state, el ) {
+  const $       = state.$;
+  const $el     = $(el);
+  const $rows   = $el.find('.row');
+
+  console.log('_parseTable: %d rows ...', $rows.length);
+
+  $rows.each( (rdex, row) => {
+    // assert( _getClasses( row ) == [ 'row' ] )
+    const $cells  = $(row).find('.cell');
+
+    $cells.each( (cdex, cell) => {
+      // assert( _getClasses( cell ) == [ 'cell' ] )
+      const children = cell.children || [];
+
+      state.block = `row:${rdex}.${cdex}`;
+      state.key   = (cdex === 0 ? '#' : '+')
+                  + state.block;
+
+      if (children.length < 1) {
+        // Empty cell
+        state.verse.markup.push( { [state.key]: null } );
+
+      } else {
+        // Parse all block children
+        children.forEach( (ch) => {
+          _parseChar( state, ch );
+        });
+      }
+    });
+  });;
+}
+
+/**
+ *  Parse a character element.
+ *
+ *  @method _parseChar
+ *  @param  state         Chapter processing state {Object};
+ *  @param  state.$       The top-level Cheerio instance {Cheerio};
+ *  @param  state.book    The book abbreviation {String};
+ *  @param  state.label   The chapter label {String};
+ *  @param  state.verses  A map of verses {Map};
+ *  @param  state.verse   The current accumulating verse {Array};
+ *  @param  state.block   The current block {String};
+ *  @param  state.key     The key under which to gather content {String};
+ *  @param  state.sub_key The sub-key beneath `key` {String};
+ *  @param  state.usfm    The reference of the current verse {String};
+ *  @param  el            The target HTML element {Object};
+ *  @param  [depth=1]     The recursion depth {Number};
+ *
+ *  @return void
+ *  @private
+ */
+function _parseChar( state, el, depth=1 ) {
+  const $         = state.$;
+  const classes   = _getClasses( el );
+  const cls0      = (classes.length > 0 && classes[0]);
+  const children  = el.children || [];
+
+  if (children.length < 1) {
+    // No children -- process this leaf eleemnt
+    _parseLeaf( state, el, depth );
+    state.sub_key = null;
+    return;
+  }
+
+  const usfm  = _getAttr( el, 'data-usfm' );
+  if (usfm) {
+    // This element has a 'data-usfm' attribute and so is related to a verse.
+    // assert( cls0 === 'verse' );
+    state.usfm = usfm;
+
+    if (! state.verses.has( usfm )) {
+      // /*
+      console.log('-----------------------------------------------------');
+      console.log('=== Verse [ %s.%s.%s ], depth[ %d ], usfm[ %s ] ...',
+                  state.block, state.key, cls0, depth, usfm);
+      // */
+
+      state.verse = {
+        markup: [],
+        text  : [],
+      };
+      state.verses.set( usfm, state.verse );
+
+    } else {
+      state.verse = state.verses.get( usfm );
+
+      // /*
+      console.log('+++ Verse [ %s.%s.%s ], depth[ %d ], usfm[ %s ] ...',
+                  state.block, state.key, cls0, depth, usfm);
+      // */
+
+    }
+  }
+
+  /* Do we need to process this element directly?
+   *  - if this is explicitly a 'note' element, since we want the ENTIRE
+   *    sub-element as the note;
+   *  - we have already traversed to a sub-key;
+   *  - the sub-key is NOT 'verse', since we need to traverse on down to the
+   *    label to properly adjust `state.key`;
+   */
+  const isVerse = (cls0 === 'verse');
+
+  if (isVerse) {
+    /* The full JSON will be { verse.v#: [ ... ] }
+     *
+     * We only need the first value (array) associated with our current `key`
+     */
+    const fullJson  = _jsonElement( $, el );
+    const firstVal  = Object.values( fullJson )[0];
+
+    // assert( Array.isArray( firstVal ) );
+
+    /*
+    console.log('_parseChar(): block [ %s.%s.%s : %s ], depth[ %d ], firstVal:',
+                state.block, state.key, state.sub_key, cls0, depth,
+                Inspect( firstVal, 5, !'color' ));
+    // */
+    if (firstVal.length < 1) {
+      console.log('_parseChar(): Skip empty verse block...');
+      return;
+
+    } else {
+      state.verse.markup.push( { [state.key]: firstVal } );
+
+      // Gather the text of all children that are NOT 'label' or 'note'
+      _gatherText( state, el );
+    }
+
+    /* Update the primary key to indicate a block continuation and
+     * remove this (consumed) sub_key
+     */
+    state.key = '+'+ state.key.slice(1);
+    state.sub_key = null;
+    return;
+  }
+
+  if (cls0 === 'note') {
+    /* Include notes directly -- this is likely a note within a non-verse
+     * element (e.g. chapter heading).
+     */
+    const note  = _jsonElement( $, el );
+
+    /*
+    console.log('=== block [ %s.%s.%s ], depth[ %d ]: note:',
+                state.block, state.key, state.sub_key, depth,
+                Inspect( note ));
+    // */
+
+    state.verse.markup.push( { [state.key]: note } );
+    return;
+  }
+
+  // Recursively parse all children
+  state.sub_key = cls0;
+
+  /*
+  console.log('+++ block [ %s.%s.%s ], depth[ %d ]:',
+              state.block, state.key, state.sub_key, depth,
+              $(el).html());
+  // */
+  
+  children.forEach( (ch, jdex) => {
+    _parseChar( state, ch, depth+1 );
+  });
+}
+
+/**
+ *  Parse a leaf element.
+ *
+ *  @method _parseLeaf
+ *  @param  state         Chapter processing state {Object};
+ *  @param  state.$       The top-level Cheerio instance {Cheerio};
+ *  @param  state.book    The book abbreviation {String};
+ *  @param  state.label   The chapter label {String};
+ *  @param  state.verses  A map of verses {Map};
+ *  @param  state.verse   The current accumulating verse {Array};
+ *  @param  state.block   The current block {String};
+ *  @param  state.key     The key under which to gather content {String};
+ *  @param  state.sub_key The sub-key beneath `key` {String};
+ *  @param  state.usfm    The reference of the current verse {String};
+ *  @param  el            The target HTML element {Object};
+ *  @param  depth         The recursion depth {Number};
+ *
+ *  @return void
+ *  @private
+ */
+function _parseLeaf( state, el, depth ) {
+  const $     = state.$;
+  const $el   = $(el);
+  const text  = $el.text().trim();
+
+  // /*
+  console.log('_parseLeaf(): block [ %s.%s.%s ], depth[ %d ], text[ %s ]',
+              state.block, state.key, state.sub_key, depth, text);
+  // */
+
+  if (text.length < 1) {
+    // No text -- Allow for tags that are MAY be empty, otherwise, skip.
+    if (state.key === 'b' || state.key === 'nb') {
+      state.verse.markup.push( { [state.key]: null } );
+
+    }
+    return;
+  }
+
+  if (state.sub_key === 'label') {
+    // Verse label
+    const key = `${state.key}.v`;
+
+    //console.log('===== push: { %s: %s }', key, text );
+    state.verse.markup.push( { [key]: text } );
+
+  } else {
+    state.verse.markup.push( { [state.key]: text } );
+
+    if (state.sub_key === 'content') {
+      // Include this content in the full text
+      state.verse.text.push( text );
+
+      /*
+    } else {
+      console.log('===== block[ %s.%s.%s], Exclude text[ %s ]',
+                  state.block, state.key, state.sub_key, text );
+      // */
+    }
+  }
+
+  /* Update the primary key to indicate a block continuation and
+   * remove this (consumed) sub_key
+   */
+  state.key = '+'+ state.key.slice(1);
+  state.sub_key = null;
+
+  return;
+}
+
+/**
+ *  Gather text from this element from all children that are not 'label' or
+ *  'note' character blocks.
+ *
+ *  @method _gatherText
+ *  @param  state         Chapter processing state {Object};
+ *  @param  state.$       The top-level Cheerio instance {Cheerio};
+ *  @param  state.verse   The current accumulating verse {Array};
+ *  @param  el            The target HTML element {Object};
+ *
+ *  @return void
+ *  @private
+ */
+function _gatherText( state, el ) {
+  const $     = state.$;
+  const $el   = $(el);
+
+  el.children.forEach( child => {
+    const classes = _getClasses( child );
+    const cls0    = (classes.length > 0 && classes.shift());
+
+    // Skip 'label', 'header', and 'note' children
+    if (cls0 === 'label' || cls0 === 'header' || cls0 === 'note') { return }
+
+    const text  = $(child).text().trim();
+    if (text.length < 1) { return }
+
+    state.verse.text.push( text );
+  });
+
+  return;
+}
+
+/**
+ *  Fill in back-references for multi-verse entries.
+ *
+ *  @method _addMultiverseRefs
+ *  @param  ref             The reference for the multi-verse fills {String};
+ *  @param  multi           The multi-verse reference {String};
+ *  @param  book_json       The accumulating book object into which references
+ *                          should be added {Object};
+ *
+ *  @return void
+ *  @private
+ */
+function _addMultiverseRefs( ref, multi, book_json ) {
+  const usfms = multi.split('+');
+
+  usfms.forEach( (usfm) => {
+    const [ bk, ch, vs ]  = usfm.split('.');
+    const thisRef         = Refs.sortable( bk, ch, vs );
+    if (thisRef === ref) { return }
+
+    // Generate a back-reference to the full verse
+    const backRef = { _ref: ref };
+
+    console.warn('=== Multi-verse[ %s ]: add ref @ %s:',
+                  multi, thisRef, backRef);
+
+    book_json[ thisRef ] = backRef;
+  });
+}
+
+/**
+ *  Convert the given element to pure JSON.
+ *
+ *  @method _jsonElement
+ *  @param  $   The top-level Cheerio instance {Cheerio};
+ *  @param  el  The current element {Element};
+ *
+ *  @return The final note {Object};
+ *  @private
+ */
+function _jsonElement( $, el ) {
+  const classes   = _getClasses( el );
+  const cls0      = (classes.length > 0 && classes.shift());
+  const $el       = $(el);
+  const label     = (cls0 || el.type)
+                  + (classes.length > 0
+                        ? '.' + classes.join('.')
+                        : '');
+  const children  = el.children || [];  //$el.children();
+  let   json;
+
+  // Flatten elements that are 'content' or 'heading'
+  if (label === 'content') {
+    return $el.text().trim();
+  }
+ /* A heading MAY contain a note, e.g. NIV.PSA.003
+  if (label === 'heading') {
+    return $el.text().trim();
+  }
+  // */
+
+  if (children.length < 1) {
+    // NO children
+    if (label === 'text') {
+      // JUST a text node so no need for a 'text' label
+      json = $el.text().trim();
+
+    } else {
+      json = {
+        [label]: $el.text().trim(),
+      };
+    }
+    return json;
+  }
+
+  // Recursively parse all children
+  let ar  = [];
+  children.forEach( (ch, jdex) => {
+    const chJson  = _jsonElement( $, ch );
+    if (chJson) {
+      if (chJson.body) {
+        // Flatten this child's body...
+        if (Array.isArray(chJson.body)) {
+          // Merge this array into the top-level set
+          ar = ar.concat( chJson.body );
+
+        } else {
+          // Push  item into the top-level set
+          ar.push( chJson.body );
+        }
+
+      } else {
+        // Push the entire child json into the top-level set
+        ar.push( chJson );
+      }
+    }
+  });
+
+  if (ar.length === 1) {
+    // Replace this single-item array with just the item.
+    ar = ar.pop();
+  }
+
+  return {
+    [label]: ar,
+  };
+}
+
+/**
+ *  Fetch the specified attribute from the given element.
+ *
+ *  @method _getAttr
+ *  @param  el    The target element {Cheerio};
+ *  @param  attr  The target attribute {String};
+ *
+ *  @return The value of the attribute {String | undefined};
+ *  @private
+ */
+function _getAttr( el, attr ) {
+  if (el.attribs == null) { return }
+
+  return el.attribs[ attr ];
+}
+
+/**
+ *  Fetch an array of CSS classes for the given element.
+ *
+ *  @method _getClasses
+ *  @param  el  The target element {Cheerio};
+ *
+ *  @return The array of CSS classes {Array};
+ *  @private
+ */
+function _getClasses( el ) {
+  const attrCls = _getAttr( el, 'class' ) || '';
+  const classes = attrCls.split(/\s+/).filter( str => str.length > 0 );
+
+  return classes;
+}
+
+/**
+ *  Generate a pluralized version of the given word based upon the provided
+ *  count and plural suffix.
+ *
+ *  @method _pluralize
+ *  @param  count     The item count {Number};
+ *  @param  singular  The singular version {String};
+ *  @param  plural    The plural version {String};
+ *
+ *  @return The pluralized word {String};
+ *  @private
+ */
+function _pluralize( count, singular, plural ) {
+  return (count === 1 ? singular : plural);
+}
+
+/* Private helpers }
+ ****************************************************************************/
+
+// vi: ft=javascript

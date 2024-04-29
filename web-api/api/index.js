@@ -7,6 +7,7 @@ const handleAuthError = require('../lib/handleAuthError');
 
 const api_routes = {
   v1: require('./v1'),
+  v2: require('./v2'),
 };
 
 /**

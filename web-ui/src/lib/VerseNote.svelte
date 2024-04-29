@@ -12,6 +12,11 @@
   export let label;
   export let type;
 
+  /* :XXX: A DOM id CANNOT start with a number.
+   *       To avoid issues with books like '1 Corinthians' (1CO),
+   *       prefix ALL id values with theh type.
+   */
+  id = `${type || 'note'}-${id}`;
 </script>
 
 <div class='inline note {type || 'foot'}'>

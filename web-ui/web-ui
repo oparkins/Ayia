@@ -37,6 +37,8 @@ const args  = Yargs( process.argv )
 // Generate a configuration using the incoming arguments
 const config  = generate_config( args );
 
+global.config = config;
+
 // Create the Express application
 const app = express();
  

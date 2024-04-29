@@ -1,9 +1,13 @@
 /**
  *  Available stores:
+ *    config            {Object};
  *    user              {Object};
  *    versions          {Array};
- *    verse             {Object}  -- { book, chapter, verse, ui_ref, api_ref };
+ *    verse             {Object}  -- { book, chapter, verse, verses,
+ *                                     ui_ref, url_ref };
  *    version           {Object}  -- { primary, column1, column2 };
+ *
+ *    selected          {Array}   -- verse numbers;
  *
  *    theme             {String};
  *    content_font_size {Number};
@@ -24,11 +28,13 @@ export const csr = true;
 export const ssr = false;
 // Only include on the client side }
 
-import { get, writable }  from 'svelte/store';
+import { writable }  from 'svelte/store';
 
 // Create shared stores
+export const  config            = _writable_json_ls( 'config', null );
 export const  user              = _writable_json_ls( 'user', null );
 export const  versions          = writable( null );
+export const  selected          = writable( null );
 export const  verse             = _writable_json_ls( 'verse', null );
 export const  version = {
   primary:  _writable_json_ls( 'version_primary', null ),
@@ -110,7 +116,11 @@ function _writable_int_ls( key, def_val ) {
  */
 function _writable_json_ls( key, def_val ) {
   const serialize   = (val) => JSON.stringify(val);
-  const deserialize = (str) => JSON.parse(str);
+  const deserialize = (str) => {
+    if (str === 'undefined')      { return }
+    if (typeof(str) === 'string') { return JSON.parse(str) }
+    return str;
+  };
 
   return _writable_ls( key, def_val, serialize, deserialize );
 }

@@ -45,58 +45,65 @@
     ref:  'JHN.003.003',
     verse: {
       markup: [
-        { "label": "3" },
-        { "p": "Jesus answered him, " },
-        { "wj": "“Truly, truly, I say to you, unless one is " },
-        { "note.x": [
-            { "label": "#" },
-            "See ch. 1:13 "
-          ]
-        },
-        { "wj": "born " },
-        { "note.x": [
-            { "label": "#" },
-            "[2 Cor. 5:17; Gal. 6:15; 1 Pet. 1:3, 23] "
-          ]
-        },
-        { "wj": "again" },
-        { "note.f": [
-            { "label": "#" },
-            { "fr": "3:3 " },
-            { "ft": "Or " },
-            { "fq": "from above" },
-            { "ft": "; the Greek is purposely ambiguous and can mean both " },
-            { "fq": "again " },
-            { "ft": "and " },
-            { "fq": "from above" },
-            { "ft": "; also verse 7" }
-          ]
-        },
-        { "p": "  " },
-        { "wj": "he cannot " },
-        { "note.x": [
-            { "label": "#" },
+        {"+p":[
+          {"label":"3"},
+          "Jesus answered him,",
+          {"wj":"“Truly, truly, I say to you, unless one is"},
+          {"note.x":[
+            {"label":"#"},
+            "See ch. 1:13"
+          ]},
+          {"wj":"born"},
+          {"note.x":[
+            {"label":"#"},
+            "[2 Cor. 5:17; Gal. 6:15; 1 Pet. 1:3, 23]"
+          ]},
+          {"wj":"again"},
+          {"note.f":[
+            {"label":"#"},
+            {"fr":"3:3"},
+            {"ft":"Or"},
+            {"fq":"from above"},
+            {"ft":"; the Greek is purposely ambiguous and can mean both"},
+            {"fq":"again"},
+            {"ft":"and"},
+            {"fq":"from above"},
+            {"ft":"; also verse 7"}
+          ]},
+          {"wj":"he cannot"},
+          {"note.x":[
+            {"label":"#"},
             "ver. 36"
-          ]
-        },
-        { "wj": "see the kingdom of God.”" },
-        { "p": "  " }
+          ]},
+          {"wj":"see the kingdom of God.”"}
+        ]}
       ],
     },
   };
 
   const Css = {
-    container_card: [
+    container: [
       'flex',
       'flex-col',
+      'w-full',
       'h-full',
-      'mx-auto',
-      '!p-4',
+      'overflow-hidden',
+    ],
 
-      'overflow-y-auto',
-
+    card: [
       'bg-gray-100',
       'dark:bg-gray-900',
+
+      'flex',
+      'flex-col',
+      'mx-auto',
+      'h-full',
+      //'!p-4',
+      //'!pb-14',
+      'overflow-y-auto',
+
+      'max-w-[100vw]',
+      'md:max-w-prose',
     ],
 
     example_card: [
@@ -125,12 +132,13 @@
       'py-2',
     ],
     label_text: [
-      'w-[30ch]',
+      'w-[20ch]',
       'shrink-0',
     ],
     label_helper: [
-      'inline',
+      'block',
       'opacity-50',
+      'pl-4',
     ],
     label_control: [
       'grow',
@@ -197,8 +205,8 @@
   <meta name='description' content='Ayia Bible UI > Settings' />
 </svelte:head>
 
-<div class='flex flex-col w-full h-full py-4'>
-  <Card size='md' class='{ Css.container_card.join(' ') }'>
+<div class={ Css.container.join(' ') }>
+  <Card class={ Css.card.join(' ') }>
     <h5>Bible reading</h5>
     <Card size='md' class='{ Css.example_card.join(' ') }'>
       <div class='content { Css.example_body.join(' ') }'>
@@ -227,7 +235,7 @@
         <div class='{ Css.label_text.join(' ') }'>
           Show footnotes
           <Helper class='{ Css.label_helper.join(' ') }'>
-            (when available)
+            when available
           </Helper>
         </div>
         <div class='{ Css.label_control.join(' ') }'>
@@ -242,7 +250,7 @@
         <div class='{ Css.label_text.join(' ') }'>
           Show Cross-references
           <Helper class='{ Css.label_helper.join(' ') }'>
-            (when available)
+            when available
           </Helper>
         </div>
         <div class='{ Css.label_control.join(' ') }'>
@@ -257,7 +265,7 @@
         <div class='{ Css.label_text.join(' ') }'>
           Red letters
           <Helper class='{ Css.label_helper.join(' ') }'>
-            (when available)
+            when available
           </Helper>
         </div>
         <div class='{ Css.label_control.join(' ') }'>
@@ -286,9 +294,9 @@
 
         <Label class='{ Css.label.join(' ') }'>
           <div class='{ Css.label_text.join(' ') }'>
-            Always Display Transliteration
-            <Helper class='{ Css.label_helper.join(' ') } block pl-4'>
-              If off, will be available by hovering over original language
+            Show Transliteration
+            <Helper class='{ Css.label_helper.join(' ') }'>
+              If off, shown by hovering over original language
             </Helper>
           </div>
           <div class='{ Css.label_control.join(' ') }'>

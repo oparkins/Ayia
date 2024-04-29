@@ -26,12 +26,13 @@
    */
   import { createEventDispatcher }  from 'svelte';
   import { get, writable, derived } from 'svelte/store';
+  import { afterNavigate }          from '$app/navigation';
 
   import {
+    Button,
     Dropdown,
     DropdownItem,
   } from 'flowbite-svelte';
-  import { ChevronDownSolid } from 'flowbite-svelte-icons';
 
   import {
     versions  as versions_store,
@@ -42,7 +43,7 @@
    *************************************************************************
    *  Local state {
    */
-	const dispatch      = createEventDispatcher();
+  const dispatch      = createEventDispatcher();
   let   dropdown_open = false;
   let   container_el  = null;
   const version_store = version_stores[ column ];
@@ -62,6 +63,50 @@
     return versions.sort( (a,b) => {
       return a.title.localeCompare( b.title );
     });
+  });
+
+  afterNavigate( (nav) => {
+    /*  nav {
+     *    type      : The type of navigation {String};
+     *      enter   : The app has hydrated
+     *      form    : The user submitted a <form>
+     *      link    : Navigation was triggered by a link click
+     *      goto    : Navigation was triggered by a goto(...) call or a redirect
+     *      popstate: Navigation was triggered by back/forward navigation
+     *
+     *    from      : The previous location (null if none) {Object};
+     *    to        : { The new location {Object};
+     *      params  : Incoming parameters {Object};
+     *      route   : { Route data {Object};
+     *        id    : The id of the route {String};
+     *      }
+     *      url     : The full URL to the route {String};
+     *    }
+     *    willUnload: Will the page be unloaded {Boolean};
+     *    complete  : A promise for completion {Promise};
+     *  }
+     */
+
+    /*
+    console.log('SelectVersion:afterNavigate:', nav);
+    // */
+
+    if (nav.type === 'popstate') {
+      // Verify that the `vers_abbr` matches the new location
+      const vers_abbr_ro  = get( vers_abbr );
+      const to_vers       = nav.to.params.version;
+
+      /*
+      console.log('SelectVersion:afterNavigate: popstate: '
+                  +         'vers[ %s ] => [ %s ]',
+                  vers_abbr_ro, to_vers);
+      // */
+
+      if ( vers_abbr_ro !== to_vers ) {
+        // Update our `vers_abbr` to match the new location
+        vers_abbr.set( to_vers );
+      }
+    }
   });
 
   /*  Local state }
@@ -123,8 +168,10 @@
     const value       = target.value;
     const new_version = versions_ro[ value ];
 
+    /*
     console.log('SelectVersion.dropdown_select(): value[ %s ], new_version:',
                 value, new_version);
+    // */
 
     if (new_version) {
       const new_abbr  = new_version.local_abbreviation;
@@ -167,43 +214,52 @@
    */
   const Css = {
     container: [
+      'grow',
       'flex',
       'flex-row',
     ],
 
     button: [
+      'grow',
       'flex',
-      'justify-between',
+      'justify-center',
       'items-center',
 
       'z-10',
-      'py-2.5',
-      'px-4',
+      'p-2',
+
       'text-sm',
+      'whitespace-nowrap',
       'font-medium',
       'text-center',
-      'border',
-      'focus:ring-4',
+      'rounded-lg',
+
+      //'border',
+      'focus:ring-1',
       'focus:outline-none',
-      'w-32',
 
       'text-gray-500',
       'bg-gray-100',
-      'border-gray-300',
+      'border-gray-200',
       'hover:bg-gray-200',
-      'focus:ring-gray-100',
+      'hover:text-black',
+      'focus:ring-blue-500',
 
-      'dark:bg-gray-700',
-      'dark:hover:bg-gray-600',
-      'dark:focus:ring-gray-700',
-      'dark:text-white',
-      'dark:border-gray-600',
+      'dark:text-gray-500',
+      'dark:bg-gray-900',
+      'dark:border-gray-800',
+      'dark:hover:bg-gray-800',
+      'dark:hover:text-white',
+      'dark:focus:ring-blue-500',
     ],
 
     item: [
+      'grow',
+
       'flex',
       'gap-x-4',
       'items-center',
+      'justify-center',
       'font-medium',
     ],
 
@@ -221,30 +277,17 @@
 
   };
 
-  /* Update the classes for the dropdown button based upon whether this is the
-   * primary Verse element.
-   */
-  if ( column === 'primary' ) {
-    // No grow, no rounded border on the end side of the button
-    Css.button.push( 'flex-shrink-0', 'rounded-s-lg' );
-
-  } else {
-    // Grow, Rounded border all around
-    Css.button.push( 'flex-grow', 'rounded-lg' );
-
-  }
   /*  Styling }
    *************************************************************************/
 </script>
 
 <div class={ Css.container.join(' ') }>
-  <button
+  <Button
     id='versions-button'
-    type='button'
     class={ Css.button.join(' ') }
   >
-    { $vers_abbr }<ChevronDownSolid class='w-4 h-4 ms-2' />
-  </button>
+    { $vers_abbr || 'Version' }
+  </Button>
   <Dropdown
       bind:open={ dropdown_open }
       on:show={   dropdown_show }
