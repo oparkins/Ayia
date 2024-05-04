@@ -11,7 +11,19 @@
    *                          (primary | column#) {String};
    *  @prop     version       The current version ('yvers') {Version};
    *  @prop     book          The target book {Book};
-   *  @prop     verse         The target verse {VerseRef};
+   *  @prop     verse         The target verse, via `parse_verse()`
+   *                          {VerseRef};
+   *                            { book      : Extracted book name {String},
+   *                              chapter   : Extracted chapter {Number},
+   *                              verse     : First extracted verse {Number},
+   *                              verses    : Full set of referenced verses
+   *                                          {Array};
+   *                              full_book : Full book information {Object};
+   *                              ui_ref    : A UI representation of this
+   *                                          reference {String};
+   *                              url_ref   : A URL representation of this
+   *                                          reference {String};
+   *                            }
    *  @prop     content       Chapter content for the current `book` and
    *                          `verse` {Object};
    *
@@ -81,8 +93,8 @@
     }
 
     const notes       = activate_notes( container_el );
-    const verse_nums  = (verse && verse.verses);
-    if (Array.isArray( verse_nums )) {
+    const verse_nums  = ($is_selecting ? $selected_store : null);
+    if (Array.isArray( verse_nums ) && verse_nums.length > 0) {
       // Locate all portions of all target verse(s)
       const selector  = verse_nums.map( num => `[v="${num}"]` ).join(',');
       const verses    = container_el.querySelectorAll( selector );
@@ -151,6 +163,15 @@
     if (verse !== new_verse) {
       verse = new_verse;
     }
+
+    const verse_nums  = (verse && verse.verses);
+    if (Array.isArray( verse_nums ) && verse_nums.length > 0) {
+      // Update the set of selected verses
+      console.log('reset_selecting(): Update selected verses to:',
+                  verse_nums.join(', '));
+
+      selected_store.set( verse_nums );
+    }
   }
 
   /**
@@ -180,8 +201,8 @@
                 selected.join(', '),
                 verses.length);
     // */
-    verses.forEach( verse => {
-      verse.setAttribute( 'selected', 'true' );
+    verses.forEach( el => {
+      el.setAttribute( 'selected', 'true' );
     });
 
     selected_store.set( selected );
@@ -196,8 +217,8 @@
    */
   function remove_selection() {
     const selected  = container_el.querySelectorAll('[selected="true"]');
-    selected.forEach( verse => {
-      verse.removeAttribute( 'selected' );
+    selected.forEach( el => {
+      el.removeAttribute( 'selected' );
     });
 
     // Update 'is_selecting' (on the chapter container)
@@ -226,16 +247,16 @@
     if (isNoteContent != null) { return }
 
     // Locate the nearest parent with a 'v' attribute
-    const verse = event.target.closest('[v]');
-    if (verse == null) { return }
+    const el = event.target.closest('[v]');
+    if (el == null) { return }
 
     // Identify the verse number and determine if the current verse is selected
-    const verse_num = verse.getAttribute('v');
-    const select    = (! verse.hasAttribute('selected'));
+    const verse_num = el.getAttribute('v');
+    const select    = (! el.hasAttribute('selected'));
 
     /*
     console.log('ChapterYvers.click_verse(): verse_num[ %s ], select[ %s ]:',
-                verse_num, String( select ), verse);
+                verse_num, String( select ), el);
     // */
 
     if (select) {
