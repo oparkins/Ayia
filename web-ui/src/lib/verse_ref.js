@@ -109,7 +109,7 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
   let   verses  = null;
   let   verses2 = [];
 
-  if (vs2 != null) {
+  if (vs_num != null && vs2 != null) {
     // Handle a verse set as a range and/or CSV list
     verses2 = vs2.split( /\s*,\s*/ )
                 .map( vs => {
@@ -147,7 +147,7 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
       vs2_str = `,${verses2.join(',')}`;
     }
 
-  } else {
+  } else if (vs_num != null) {
     verses = [ vs_num ];
   }
 
