@@ -17,6 +17,11 @@ web_admin: #{
     size: 8Gi
   #} web_admin.persistence
 
+  port: #{
+    private:  4000
+    public:   80
+  #} web_admin.port
+
   ingress: #{
     host: admin.ayia.nibious.com
   #} web_admin.ingress
@@ -28,6 +33,11 @@ web_api: #{
     #pullPolicy: IfNotPresent
   #} web_api.image
 
+  port: #{
+    private:  4000
+    public:   80
+  #} web_api.port
+
   ingress: #{
     host: api.ayia.nibious.com
   #} web_api.ingress
@@ -38,6 +48,11 @@ web_ui: #{
     tag:  0.2.11
     #pullPolicy: IfNotPresent
   #} web_ui.image
+
+  port: #{
+    private:  5173
+    public:   80
+  #} web_ui.port
 
   ingress: #{
     host: ui.ayia.nibious.com
