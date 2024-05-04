@@ -12,7 +12,7 @@ data: # {
     verbosity:  0
 
     web_admin: # {
-      port:   4000
+      port:   {{ .Values.web_admin.port.private }}
     # } web_admin
 
     mongodb: # {
@@ -49,9 +49,10 @@ spec: # {
     release:  ayia
   # } Service.spec.selector
   ports: # {
-    - protocol:   TCP
-      port:       80    #&service_public_port 80
-      targetPort: 4000  #*service_private_port
+    - name:       ayia-admin
+      protocol:   TCP
+      port:       {{ .Values.web_admin.port.public }}
+      targetPort: ayia-admin
   # } Service.spec.ports
 # } Service.spec
 # } Service
@@ -100,7 +101,7 @@ spec: # {
       app:      ayia-admin
       release:  ayia
   strategy:
-    type: Recreate
+    type: Recreate  # Since we have a persistent volume
   template: # {
     metadata: # {
       labels: # {
@@ -168,6 +169,19 @@ spec: # {
               mountPath:  /app/cache
           # } Deployment.spec.template.spec.containers[server].volumeMounts
 
+          ports: #{
+            - name:           ayia-admin
+              containerPort:  {{ .Values.web_admin.port.private }}
+          # } Deployment.spec.template.spec.containers[server].ports
+
+          livenessProbe: # {
+            httpGet:
+              path: /healthcheck
+              port: {{ .Values.web_admin.port.private }}
+            initialDelaySeconds:  3
+            periodSeconds:        3
+          # } Deployment.spec.template.spec.containers[server].livenessProbe
+
         # } Deployment.spec.template.spec.containers[server]
       # } Deployment.spec.template.spec.containers
 
@@ -215,7 +229,7 @@ spec: # {
             service:
               name: ayia-admin  #*service_name
               port:
-                number: 80  #*service_public_port
+                number: {{ .Values.web_admin.port.public }}
   tls:
     - secretName: admin-ayia-tls
       hosts:
