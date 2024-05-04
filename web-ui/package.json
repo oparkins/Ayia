@@ -1,6 +1,6 @@
 {
   "name": "web-ui",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "scripts": {
     "dev": "vite dev --host 0.0.0.0",
     "build": "vite build",
