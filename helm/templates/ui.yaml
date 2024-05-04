@@ -12,7 +12,7 @@ data: # {
     verbosity:  0
 
     web_ui: # {
-      port: 5173
+      port: {{ .Values.web_ui.port.private }}
 
       api_map: #{
         versions: https://{{ .Values.web_api.ingress.host }}/api/v2/versions
@@ -36,9 +36,10 @@ spec: # {
     release:  ayia
   # } Service.spec.selector
   ports: # {
-    - protocol:   TCP
-      port:       80    #&service_public_port 80
-      targetPort: 5173  #*service_private_port
+    - name:       ayia-ui
+      protocol:   TCP
+      port:       {{ .Values.web_ui.port.public }}
+      targetPort: ayia-ui
   # } Service.spec.ports
 # } Service.spec
 # } Service
@@ -58,7 +59,7 @@ spec: # {
       app:      ayia-ui
       release:  ayia
   strategy:
-    type: Recreate
+    type: RollingUpdate   # Recreate
   template: # {
     metadata: # {
       labels: # {
@@ -82,6 +83,19 @@ spec: # {
               subPath:    config.yaml
               readOnly:   true
           # } Deployment.spec.template.spec.containers[server].volumeMounts
+
+          ports: #{
+            - name:           ayia-ui
+              containerPort:  {{ .Values.web_ui.port.private }}
+          # } Deployment.spec.template.spec.containers[server].ports
+
+          livenessProbe: # {
+            httpGet:
+              path: /healthcheck
+              port: {{ .Values.web_ui.port.private }}
+            initialDelaySeconds:  3
+            periodSeconds:        3
+          # } Deployment.spec.template.spec.containers[server].livenessProbe
 
         # } Deployment.spec.template.spec.containers[server]
       # } Deployment.spec.template.spec.containers
@@ -127,7 +141,7 @@ spec: # {
             service:
               name: ayia-ui  #*service_name
               port:
-                number: 80  #*service_public_port
+                number: {{ .Values.web_ui.port.public }}
   tls:
     - secretName: ui-ayia-tls
       hosts:

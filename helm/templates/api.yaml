@@ -12,7 +12,7 @@ data: # {
     verbosity:  0
 
     web_api: # {
-      port:   4000
+      port:   {{ .Values.web_api.port.private }}
     # } web_api
 
     mongodb: # {
@@ -49,9 +49,10 @@ spec: # {
     release:  ayia
   # } Service.spec.selector
   ports: # {
-    - protocol:   TCP
-      port:       80    #&service_public_port 80
-      targetPort: 4000  #*service_private_port
+    - name:       ayia-api
+      protocol:   TCP
+      port:       {{ .Values.web_api.port.public }}
+      targetPort: ayia-api
   # } Service.spec.ports
 # } Service.spec
 # } Service
@@ -74,7 +75,7 @@ spec: # {
       app:      ayia-api
       release:  ayia
   strategy:
-    type: Recreate
+    type: RollingUpdate   # Recreate
   template: # {
     metadata: # {
       labels: # {
@@ -122,6 +123,19 @@ spec: # {
               readOnly:   true
           # } Deployment.spec.template.spec.containers[server].volumeMounts
 
+          ports: #{
+            - name:           ayia-api
+              containerPort:  {{ .Values.web_api.port.private }}
+          # } Deployment.spec.template.spec.containers[server].ports
+
+          livenessProbe: # {
+            httpGet:
+              path: /healthcheck
+              port: {{ .Values.web_api.port.private }}
+            initialDelaySeconds:  3
+            periodSeconds:        3
+          # } Deployment.spec.template.spec.containers[server].livenessProbe
+
         # } Deployment.spec.template.spec.containers[server]
       # } Deployment.spec.template.spec.containers
 
@@ -166,7 +180,7 @@ spec: # {
             service:
               name: ayia-api  #*service_name
               port:
-                number: 80  #*service_public_port
+                number: {{ .Values.web_api.port.public }}
   tls:
     - secretName: api-ayia-tls
       hosts:
