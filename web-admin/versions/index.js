@@ -4,6 +4,7 @@
  */
 const Yvers       = require('./yvers');
 const Interlinear = require('./interlinear');
+const Pdf         = require('./pdf');
 
 /**
  *  Fetch the current version index either cached or from the source.
@@ -41,6 +42,13 @@ async function fetch_versions( config=null ) {
     const il  = await Interlinear.fetch.versions( config )
 
     versions.push( ...il );
+
+  } catch { /* squelch */ }
+
+  try   {
+    const pdf = await Pdf.fetch.versions( config )
+
+    versions.push( ...pdf );
 
   } catch { /* squelch */ }
 
@@ -136,6 +144,9 @@ async function fetch_version( config ) {
   if (version.type === 'interlinear') {
     res = Interlinear.fetch.version( config );
 
+  } else if (version.type === 'pdf') {
+    res = Pdf.fetch.version( config );
+
   } else {
     res = Yvers.fetch.version( config );
   }
@@ -185,6 +196,9 @@ async function extract_version( config ) {
   let res;
   if (version.type === 'interlinear') {
     res = Interlinear.extract.version( config );
+
+  } else if (version.type === 'pdf') {
+    res = Pdf.extract.version( config );
 
   } else {
     res = Yvers.extract.version( config );
@@ -241,6 +255,12 @@ async function prepare_version( config ) {
   let res;
   if (version.type === 'interlinear') {
     res = Interlinear.prepare.version( config );
+
+  /*
+  } else if (version.type === 'pdf') {
+    res = Pdf.prepare.version( config );
+
+  // */
 
   } else {
     res = Yvers.prepare.version( config );
