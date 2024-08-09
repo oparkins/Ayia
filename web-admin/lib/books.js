@@ -815,6 +815,10 @@ function getVerses( book, chapter ) {
 function nameToABBR( name ) {
   if (typeof(name) !== 'string')  { return }
 
+  if (name.startsWith('1st')) { name = name.replace(/^1st/, '1') }
+  if (name.startsWith('2nd')) { name = name.replace(/^2nd/, '2') }
+  if (name.startsWith('3rd')) { name = name.replace(/^3rd/, '3') }
+
   const ABBR  = name.toUpperCase();
   let   keyMatch;
 
