@@ -17,6 +17,7 @@ const { mkdir }     = require("fs/promises");
 const { Readable }  = require('stream');
 const { finished }  = require('stream/promises');
 const Cheerio       = require('cheerio');
+const FsUtils       = require('../lib/fs_utils');
 
 const SOURCE='https://www.christunite.com/index.php/bible/niv-1984-bible-pdf'
 
@@ -24,11 +25,9 @@ main().catch(err => { console.error('*** main:', err) });
 
 async function main() {
   const urls    = await gather_urls( SOURCE );
-  const outDir  = 'niv84';
+  const outDir  = Path.resolve( __dirname, '..', 'cache', 'NIV84-pdf' );
 
-  if (!Fs.existsSync( outDir )) {
-    await mkdir( outDir );
-  }
+  await FsUtils.make_dir( outDir );
 
   await fetch_urls( SOURCE, outDir, urls );
 }
@@ -49,13 +48,17 @@ async function gather_urls( source ) {
 
   console.log('>>> Fetched %s byte body ...', body.length);
 
-  // 'div[itemprop="articleBody"] a[target="_blank"]'
+  // 'div[itemprop="articleBody"] a[title]'
   const $             = Cheerio.load( body );
   const $articleBody  = $('div[itemprop="articleBody"]');
   const hrefs         = [];
 
   console.log('>>> Fetch %s byte body ...', body.length);
-  $articleBody.find('a[target="_blank"]').each( (idex, el) => {
+  $articleBody.find('a[title]').each( (idex, el) => {
+    const href  = el.attribs['href'];
+    if (href.includes('NIVBible'))  { return }
+    if (! href.endsWith('.pdf'))    { return }
+
     hrefs.push( el.attribs['href'] );
   });
 
@@ -88,7 +91,7 @@ async function fetch_urls( source, outDir, urls ) {
     console.log('>>> Fetch %s ...', url);
 
     const res     = await fetch( origin + url );
-    const stream  = Fs.createWriteStream( outPath, { flags: 'wx' });
+    const stream  = Fs.createWriteStream( outPath, { flags: 'w' });
 
     await finished( Readable.fromWeb(res.body).pipe( stream ));
   });

@@ -1,0 +1,86 @@
+#!/usr/bin/env node
+const Fs    = require('fs/promises');
+const Path  = require('path');
+const Yargs = require('yargs');
+const Usage = require('../lib/usage');
+const Niv84 = require('../lib/niv84');
+
+const { PATH_CACHE }  = require('../versions/constants');
+
+const yargs	= Yargs
+	.usage('Parse a secific <chapter>')
+  .positional('chapter', {
+    describe: 'The path to the desired NIV84 PDF chapter',
+    type    : 'string',
+  })
+  .options({
+    f: {
+      alias   : 'force',
+      describe: 'Force (re)process',
+      default : false,
+      type    : 'boolean',
+    },
+    v: {
+      alias   : 'verbosity',
+      describe: 'Increase debug verbosity',
+      count   : true,
+    },
+    h: { alias : [ '?', 'help' ] },
+  })
+  .help();
+
+main().catch(err => { console.error('*** main:', err) });
+
+/****************************************************************************
+ * async main
+ *
+ */
+async function main() {
+  const args    = yargs.parse();
+  const [path]  = args._;
+  const outDir  = Path.resolve( PATH_CACHE, 'NIV84' );
+
+  if (path == null) { Usage.yargs( yargs ) }
+  args.path = path;
+
+  await _make_dir( outDir );
+
+  await Niv84.parseBook( path, outDir );
+}
+
+/****************************************************************************
+ * Private helpers {
+ *
+ */
+
+/**
+ *  Create a new directory.
+ *
+ *  @method _make_dir
+ *  @param  dir   The path to the target directory {String};
+ *
+ *  @return A promise for results {Promise};
+ *  @private
+ */
+function _make_dir( dir ) {
+  return new Promise( (resolve, reject) => {
+
+    Fs.mkdir( dir )
+      .then( res => {
+        // Newly created
+        return resolve( true );
+      })
+      .catch( err => {
+        if (err.code === 'EEXIST') {
+          // Aready exists
+          return resolve( true );
+        }
+
+        return reject( err );
+      });
+  });
+}
+/* Private helpers }
+ ****************************************************************************/
+
+// vi: ft=javascript
