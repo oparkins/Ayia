@@ -8,6 +8,8 @@
  *  As of 2024-08-09, these were available via:
  *    https://www.christunite.com/index.php/bible/niv-1984-bible-pdf
  *
+ *    The NIV-1984 in a single PDF:
+ *      https://www.turnbacktogod.com/wp-content/uploads/2011/02/NIV-Bible-PDF.pdf
  */
 const Fs            = require('fs');
 const Path          = require('path');
