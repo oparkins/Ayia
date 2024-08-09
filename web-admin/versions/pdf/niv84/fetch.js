@@ -124,7 +124,8 @@ async function _gather_urls( config, source ) {
 
   $articleBody.find('a[title]').each( (idex, el) => {
     const href  = el.attribs['href'];
-    if (href.includes('NIVBible')) { return }
+    if (href.includes('NIVBible'))  { return }
+    if (! href.endsWith('.pdf'))    { return }
 
     hrefs.push( href );
   });
