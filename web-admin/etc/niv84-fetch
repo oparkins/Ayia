@@ -1,0 +1,96 @@
+#!/usr/bin/env node
+/**
+ *  Fetch each book of the NIV-1984 version of the Bible in PDF format.
+ *
+ *  Store all files in the `niv84/` subdirectory of the directory from which
+ *  the script was run.
+ *
+ *  As of 2024-08-09, these were available via:
+ *    https://www.christunite.com/index.php/bible/niv-1984-bible-pdf
+ *
+ */
+const Fs            = require('fs');
+const Path          = require('path');
+const { mkdir }     = require("fs/promises");
+const { Readable }  = require('stream');
+const { finished }  = require('stream/promises');
+const Cheerio       = require('cheerio');
+
+const SOURCE='https://www.christunite.com/index.php/bible/niv-1984-bible-pdf'
+
+main().catch(err => { console.error('*** main:', err) });
+
+async function main() {
+  const urls    = await gather_urls( SOURCE );
+  const outDir  = 'niv84';
+
+  if (!Fs.existsSync( outDir )) {
+    await mkdir( outDir );
+  }
+
+  await fetch_urls( SOURCE, outDir, urls );
+}
+
+/**
+ *  Fetch the source page and extract the URLs for each PDF.
+ *
+ *  @method gather_urls
+ *  @param  source      The source page {String};
+ *
+ *  @return The set of URLs {Array[String]};
+ */
+async function gather_urls( source ) {
+  console.log('>>> Fetching %s ...', source);
+
+  const res   = await fetch( source );
+  const body  = await res.text();
+
+  console.log('>>> Fetched %s byte body ...', body.length);
+
+  // 'div[itemprop="articleBody"] a[target="_blank"]'
+  const $             = Cheerio.load( body );
+  const $articleBody  = $('div[itemprop="articleBody"]');
+  const hrefs         = [];
+
+  console.log('>>> Fetch %s byte body ...', body.length);
+  $articleBody.find('a[target="_blank"]').each( (idex, el) => {
+    hrefs.push( el.attribs['href'] );
+  });
+
+  console.log('>>> Found %d hrefs ...', hrefs.length);
+
+  return hrefs;
+}
+
+/**
+ *  Given a set of URLs, possibly reletive to a source, fetch each and store
+ *  in the given directory.
+ *
+ *  @method fetch_urls
+ *  @param  source      The source page {String};
+ *  @param  outDir      The path to the destination directory {String};
+ *  @param  urls        The set of urls {Array[String]};
+ *
+ *  @return void
+ */
+async function fetch_urls( source, outDir, urls ) {
+  const origin  = (new URL( source )).origin;
+
+  urls.forEach( async url => {
+    // URLs we process will be relative to `origin`
+    if (url[0] !== '/') { return }
+
+    const fileName  = Path.basename( url );
+    const outPath   = Path.resolve( outDir, fileName );
+
+    console.log('>>> Fetch %s ...', url);
+
+    const res     = await fetch( origin + url );
+    const stream  = Fs.createWriteStream( outPath, { flags: 'wx' });
+
+    await finished( Readable.fromWeb(res.body).pipe( stream ));
+  });
+}
+
+
+// vi: ft=javascript
