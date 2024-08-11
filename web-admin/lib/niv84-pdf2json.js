@@ -228,8 +228,8 @@ class PdfBook {
     // assert( this.verse       != null )
 
     /*
-    console.error('*** _add_text( %s ):%s: '
-                  +     'book[ %s ], chap[ %s ], vs[ %s ]: [ %s ] ...',
+    console.log('>>> _add_text( %s ):%s: '
+                  +     'book[ %s ], chap[ %s ], vs[ %s ]: [ %s ]',
                   text, this.file_name,
                   this.book_name, this.chapter_num, this.verse_num,
                   text);
@@ -251,7 +251,9 @@ class PdfBook {
      * text directly to theh previous markup BUT ONLY if the new text does NOT
      * begin with '\n'.
      */
-    const continue_text = (this._continue_text && text[0] !== '\n');
+    const markup        = this.verse.markup[0]['#p'];
+    const prev_continue = this._continue_text;
+    const continue_text = (this._continue_text || text[0] !== '\n');
     const last_char     = text[ text.length - 1 ];
 
     // Does this text appear to need continuation?
@@ -259,7 +261,15 @@ class PdfBook {
                            last_char !== ' ' &&
                            last_char !== '\n');
 
-    const markup  = this.verse.markup[0]['#p'];
+    /*
+    console.log('>>> _add_text():%s: '
+                  +     'book[ %s ], chap[ %s ], vs[ %s ]: [%s] -- %s / %s',
+                  this.file_name,
+                  this.book_name, this.chapter_num, this.verse_num,
+                  text,
+                  (continue_text       ? 'continue' : 'new-line'),
+                  (this._continue_text ? 'continue' : 'no-continue'));
+    // */
 
     if (continue_text) {
       const idex  = markup.length - 1;
@@ -268,7 +278,8 @@ class PdfBook {
         markup.push( trimmed );
 
       } else {
-        const continued = prev + trimmed;
+        const join      = (prev_continue ? '' : ' ');
+        const continued = prev + join + trimmed;
 
         /*
         console.log('>>> Continue text: prev[ %s ], trimmed[ %s ]:',
@@ -279,10 +290,9 @@ class PdfBook {
 
     } else {
       markup.push( trimmed );
-
     }
 
-    if (this.verse.text.length > 0) {
+    if (! prev_continue && this.verse.text.length > 0) {
       this.verse.text += ' ';
     }
     this.verse.text += trimmed;
