@@ -157,11 +157,8 @@ class PdfBook {
     const id  = this.verse_id();
 
     this.verse = {
-      markup: [
-        { '#p': [
-            { label: String( num ) },
-          ],
-        }
+      markup: {
+        { label: String( num ) },
       ],
       text:   '',
     };
@@ -202,7 +199,7 @@ class PdfBook {
     // assert( this.verse != null )
 
     /* Add to:
-     *    this.verse.markup[0]['#p']
+     *    this.verse.markup
      *    this.verse.text
      */
 
@@ -225,26 +222,30 @@ class PdfBook {
                            last_char !== ' ' &&
                            last_char !== '\n');
 
-    const markup  = this.verse.markup[0]['#p'];
+    const markup  = this.verse.markup;
 
     if (continue_text) {
-      const idex  = markup.length - 1;
-      const prev  = markup[ idex ];
-      if (typeof(prev) !== 'string') {
-        markup.push( trimmed );
+      const last_entry  = markup.length - 1;
+      const prev_text   = markup[ last_entry ].p;
+
+      if (typeof(prev_text) !== 'string') {
+        // Push a new paragraph entry
+        markup.push( {p: trimmed} );
 
       } else {
+        // Update the previous paragraph text
         const continued = prev + trimmed;
 
         /*
         console.log('>>> Continue text: prev[ %s ], trimmed[ %s ]:',
                     prev, trimmed, continued);
         // */
-        markup[ idex ] = continued;
+        markup[ last_entry ].p = continued;
       }
 
     } else {
-      markup.push( trimmed );
+      // Push a new paragraph entry
+      markup.push( {p: trimmed} );
 
     }
 
