@@ -256,11 +256,8 @@ async function prepare_version( config ) {
   if (version.type === 'interlinear') {
     res = Interlinear.prepare.version( config );
 
-  /*
   } else if (version.type === 'pdf') {
     res = Pdf.prepare.version( config );
-
-  // */
 
   } else {
     res = Yvers.prepare.version( config );
