@@ -2,6 +2,8 @@ cache/**/*.json
 cache/**/*.xlsx
 cache/**/*.csv
 cache/**/*.zip
+cache/**/*.pdf
+cache/NIV84-pdf/niv-1984-bible-pdf
 etc/mongo-pass
 node_modules/
 tmp/
