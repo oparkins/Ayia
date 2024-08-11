@@ -768,7 +768,7 @@ async function parseBook( pdfPath, outDir ) {
     /*
     console.log('>>> Parsing %s ...', pdfPath);
     // */
-    await book.parse( pdfPath );
+    const json    = await book.parse( pdfPath );
 
     const outFile = `${book.ABBR}.json`;
     const outPath = Path.join( outDir, outFile );
@@ -778,7 +778,7 @@ async function parseBook( pdfPath, outDir ) {
     // */
 
     await Fs.writeFile( outPath,
-                        JSON.stringify( book.json, null, 2 ) );
+                        JSON.stringify( json, null, 2 ) );
 
   } catch(err) {
     console.error('*** Parsing %s FAILED:', pdfPath, err);
