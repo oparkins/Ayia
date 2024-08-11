@@ -9,7 +9,7 @@
 const Path        = require('path');
 const Fs          = require('fs');
 const { readdir } = require('fs/promises');
-const Niv84       = require('../../../lib/niv84');
+const Niv84       = require('../../../lib/niv84-pdf2json');
 
 const FsUtils     = require('../../../lib/fs_utils');
 const Books       = require('../../../lib/books');
