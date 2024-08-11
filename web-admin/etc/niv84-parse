@@ -3,7 +3,7 @@ const Fs    = require('fs/promises');
 const Path  = require('path');
 const Yargs = require('yargs');
 const Usage = require('../lib/usage');
-const Niv84 = require('../lib/niv84');
+const Niv84 = require('../lib/niv84-pdf2json');
 
 const { PATH_CACHE }  = require('../versions/constants');
 
