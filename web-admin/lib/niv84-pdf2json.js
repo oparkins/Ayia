@@ -186,8 +186,10 @@ class PdfBook {
 
     this.verse = {
       markup: [
-        { label: String( num ) },
-        //{ 'p': '' },
+        { '#p': [
+            { label: String( num ) },
+          ],
+        }
       ],
       text:   '',
     };
@@ -234,7 +236,7 @@ class PdfBook {
     // */
 
     /* Add to:
-     *    this.verse.markup
+     *    this.verse.markup[0]['#p']
      *    this.verse.text
      */
 
@@ -249,7 +251,7 @@ class PdfBook {
      * text directly to theh previous markup BUT ONLY if the new text does NOT
      * begin with '\n'.
      */
-    const markup        = this.verse.markup;
+    const markup        = this.verse.markup[0]['#p'];
     const prev_continue = this._continue_text;
     const continue_text = (this._continue_text || text[0] !== '\n');
     const last_char     = text[ text.length - 1 ];
@@ -270,24 +272,24 @@ class PdfBook {
     // */
 
     if (continue_text) {
-      const last_entry  = markup.length - 1;
-      const prev_text   = markup[ last_entry ].p;
-
-      if (typeof(prev_text) !== 'string') {
-        // Push a new paragraph entry
-        markup.push( {p: trimmed} );
+      const idex  = markup.length - 1;
+      const prev  = markup[ idex ];
+      if (typeof(prev) !== 'string') {
+        markup.push( trimmed );
 
       } else {
-        // Update the previous paragraph text
-        const join      = (prev_text.length < 1 || prev_continue ? '' : ' ');
-        const continued = prev_text + join + trimmed;
+        const join      = (prev_continue ? '' : ' ');
+        const continued = prev + join + trimmed;
 
-        markup[ last_entry ].p = continued;
+        /*
+        console.log('>>> Continue text: prev[ %s ], trimmed[ %s ]:',
+                    prev, trimmed, continued);
+        // */
+        markup[ idex ] = continued;
       }
 
     } else {
-      // Push a new paragraph entry
-      markup.push( {p: trimmed} );
+      markup.push( trimmed );
     }
 
     if (! prev_continue && this.verse.text.length > 0) {
