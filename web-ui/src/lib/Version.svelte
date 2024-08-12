@@ -124,7 +124,7 @@
     const versions  = get( versions_store );
 
     // Determine which Chapter element we should use
-    if (version && version.type === 'yvers') {
+    if (version && (version.type === 'yvers' || version.type === 'pdf')) {
       chapter_el = ChapterYvers;
 
     } else {
