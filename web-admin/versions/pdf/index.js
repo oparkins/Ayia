@@ -1,6 +1,8 @@
 /**
  *  PDF utilities.
  *
+ *  :NOTE: PDF parsers should generate a yvers-compatible JSON format
+ *
  */
 const Fs    = require('fs');
 const Niv84 = require('./niv84');
