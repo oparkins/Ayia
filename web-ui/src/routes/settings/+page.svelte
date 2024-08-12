@@ -2,6 +2,7 @@
   import { derived }  from 'svelte/store';
 
   import {
+    Button,
     Card,
     Helper,
     Label,
@@ -142,7 +143,22 @@
       'justify-center',
     ],
 
+    reset_buttons: [
+      'flex',
+      'flex-row',
+      'items-center',
+      'gap-4',
+      'py-2',
+
+      'border-t',
+      'border-gray-200',
+      'dark:border-gray-600',
+    ],
+
     current_values: [
+      'border-t',
+      'border-gray-200',
+      'dark:border-gray-600',
       'grow',
     ],
 
@@ -190,6 +206,30 @@
     // */
 
     content_font_size.set( value );
+  }
+
+  /**
+   *  Clear the current verse from local store
+   *
+   *  @method clear_verse
+   *  @param  event   The triggering event {Event};
+   *
+   *  @return void
+   */
+  function clear_verse( event ) {
+    verse.set( null );
+  }
+
+  /**
+   *  Clear the current version from local store
+   *
+   *  @method clear_version
+   *  @param  event   The triggering event {Event};
+   *
+   *  @return void
+   */
+  function clear_version( event ) {
+    version_primary.set( null );
   }
 
 </script>
@@ -271,7 +311,17 @@
       </Label>
     </div>
 
-    <h5>Current Settings</h5>
+    <h5 class='mt-6'>State resets</h5>
+    <div class='{ Css.reset_buttons.join(' ') }'>
+      <Button pill={ true } on:click={ clear_verse }>
+        Clear verse
+      </Button>
+      <Button pill={ true } on:click={ clear_version }>
+        Clear version
+      </Button>
+    </div>
+
+    <h5 class='mt-6'>Current Settings</h5>
     <div class='current { Css.current_values.join(' ') }'>
       <Table striped={true} class='current { Css.table.join(' ') }'>
         <TableHead>
