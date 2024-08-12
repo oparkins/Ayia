@@ -48,6 +48,9 @@
     if (version == null)  { return }
 
     switch( version.type ) {
+      case 'pdf':
+        // :fall-through: PDF parsers generate a yvers-compatible format
+
       case 'yvers':
         verse_el = VerseYvers;
         break;
