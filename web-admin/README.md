@@ -96,7 +96,7 @@ Documents within the `versions` collection have the form the consists of
   id          : A unique id for this version {Number};
   abbreviation: The unique, upper-cased abbreviation for this version {String};
   title       : The title for this version {String};
-  type        : The format type (yvers, interlinear) {String};
+  type        : The format type (yvers, interlinear, pdf) {String};
   language    : {
     iso_639_1             : ISO 639-1 2-character language code {String};
     iso_639_3             : ISO 639-3 3-character language code {String};
@@ -123,10 +123,45 @@ version list and will have the form:
 }
 ```
 
-#### Type `yvers` markup
-Versions with a type of `yvers` will have markup based on
-[USX](https://ubsicap.github.io/usx/index.html) /
+#### Type `yvers` and `pdf` markup
+Versions with a type of `yvers` (and `pdf` which uses the same format) will
+have markup based on [USX](https://ubsicap.github.io/usx/index.html) /
 [USFM](https://ubsicap.github.io/usfm/).
+
+Verse entries will be of the form:
+```yaml
+{
+  GEN.001.001: {
+    markup: [
+      { %type%: {String | Array} },
+      ...
+    ],
+    text: {String},
+  },
+  ...
+}
+```
+
+For these entries, the `%type%` values will begin with either `#` (new item) or
+`+` (continued item).
+
+When a `%type%` value is an Array, it often begins with a label followed by a
+set of strings that define the content, for example:
+```yaml
+{
+  GEN.001.001: {
+    markup: [
+      { #s1: "The Beginning" },
+      { #pi: [
+          { label: "1" },
+          "In the beginning God created the heavens and the earth."
+        ]
+      }
+    ],
+    "text": "In the beginning God created the heavens and the earth."
+  }
+}
+```
 
 
 #### Type `interlinear` markup

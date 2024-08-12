@@ -30,23 +30,54 @@ running at: https://api.ayia.nibious.com/
 
 ### Rendering
 
-#### Type: `yvers`
-Versions of this type have verse entries of the form:
+#### Type: `yvers` and `pdf`
+Versions with a type of `yvers` (and `pdf` which uses the same format) will
+have markup based on [USX](https://ubsicap.github.io/usx/index.html) /
+[USFM](https://ubsicap.github.io/usfm/).
+
+Verse entries will be of the form:
 ```yaml
 {
   GEN.001.001: {
-    markup: {
-      { %type%: {String} },
+    markup: [
+      { %type%: %value% },
       ...
-    },
+    ],
     text: {String},
   },
   ...
 }
 ```
 
-For these entries, the most common `%type%` values with references and a brief
-description:
+The `%type%` specifies the type of formatting to be applied to the contained
+values and should always begin with:
+- `#` : New block;
+- `+` : Continued block;
+- `/` : End block;
+
+The `%value%` may be either a simple String or an Array. When it is an Array,
+it will contain either objects specifying character elements (e.g.
+`{label:"1"}`), or simple strings of content text. Most often one of the first
+elements will be a label (i.e. verse label) with the following entries being
+strings that define the content, for example:
+```yaml
+{
+  GEN.001.001: {
+    markup: [
+      { #s1: "The Beginning" },
+      { #pi: [
+          { label: "1" },
+          "In the beginning God created the heavens and the earth."
+        ]
+      }
+    ],
+    "text": "In the beginning God created the heavens and the earth."
+  }
+}
+```
+
+The most common `%type%` values (excluding the leading `#`, `+`, and `/`) with
+references and a brief description of each:
 <table>
  <thead>
   <tr><th>Tag</th><th>Rendering</th></tr>
