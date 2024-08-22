@@ -54,7 +54,7 @@
 
   import Agent  from '$lib/agent';
 
-  import { DotsVerticalSolid } from 'flowbite-svelte-icons';
+  import { DotsVerticalOutline as DotsVertical } from 'flowbite-svelte-icons';
 
   /*  Imports }
    *************************************************************************
@@ -493,7 +493,7 @@
             disabled={ ! $is_selecting }
             on:click={ more_options }
             class='{ Css.nav_button.join(' ') }'>
-          <DotsVerticalSolid class='pointer-events-none' />
+          <DotsVertical class='pointer-events-none' />
         </Button>
        {/if}
       </div>
