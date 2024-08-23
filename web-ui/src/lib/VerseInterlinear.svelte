@@ -21,7 +21,8 @@
   <p class='s'>{verse.markup[0].heading}</p>
 {/if}
 
-<div class='verse pb-[1.5em] !flex flex-wrap gap-x-[1em] gap-y-[.75em]'>
+<div class='verse pb-[1.5em] !flex flex-wrap gap-x-[1em] gap-y-[.75em]'
+     role='button' v='{verse_num}'>
   <p class='verse label leading-none pr-0'>{verse_num}</p>
   {#each verse.markup as markup, m_dex}
     {#if markup.text !== undefined}
