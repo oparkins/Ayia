@@ -372,6 +372,14 @@
    * Notes and cross-references {
    *
    */
+  /* Disable hover events on notes that are NOT within a selected verse */
+  .content.yvers[selecting="true"] > div :not([selected="true"]) .note {
+    pointer-events: none;
+  }
+  .content:not(.yvers)[selecting="true"] > div:not([selected="true"]) .note,
+  .content:not(.yvers)[selecting="true"] > div:not([selected="true"]) .hover-trigger {
+    pointer-events: none;
+  }
 
   .content .note {
     @apply  inline-block ml-[.025em] mr-[.25em];
