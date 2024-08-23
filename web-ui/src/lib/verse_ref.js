@@ -18,24 +18,37 @@
  *
  */
 
+/* Support various HTML dashes for separator
+ *                  character   Unicode (hexadecimal)   HTML entity
+ *  Hyphen          -           U+002d  (&#x0045);      -
+ *  Unicode hyphen  ‐           U+2010  (&#x2010);      &dash; | &hyphen;
+ *  Figure dash     ‒           U+2012  (&#x2012);
+ *  En dash         –           U+2013  (&#x2013);      &ndash;
+ *  Em dash         —           U+2014  (&#x2014);      &mdash;
+ *  Horizontal bar  ―           U+2015  (&#x2015);      &horbar;
+ *  minus sign      −           U+2212  (&#x2212);      &minus;
+ */
+const Dashes  =  [ '‐', '‒', '–', '—', '―', '\−', '\-' ];
+
 // Verse Ref (range) Identification
 const Ref_RE = new RegExp( [
-    '^((?:[123] ?)?[^0-9.]+)',// 1  : Book
+    '^((?:[123] ?)?[^0-9.]+)',      // 1  : Book
     '[. ]*',
     '(?:',
-      '([0-9]+)',             // 2  : Chapter (from)
-      '(?:[.:]([0-9]+))',     // 3  : Verse   (from)
+      '([0-9]+)',                   // 2  : Chapter (from)
+      '(?:[.:]([0-9]+))',           // 3  : Verse   (from)
     '?)?', // $ end of original
-    '(?:(-?)',                // 4  : Separator (-)
-      '([0-9., ]+)',          // 5  : Verse (to allowing for a CSV of verses)
+    `(?:([${Dashes.join('')}]?)`,   // 4  : Separator (dashes)
+      '([0-9., ]+)',                // 5  : Verse (to allowing for a CSV of
+                                    //             verses)
     ')?$',
   ].join(''));
 
 // Book Identification
 const Book_RE = new RegExp( [
-    '^([123] ?)?',              // 1  : Book Numeric
-    '([^0-9.]+)',               // 2  : Book Non-Numweic
-    '(?:[. ]*([0-9:., -]+)|$)', // 3  : Chapter/Verse (range)
+    '^([123] ?)?',                                // 1  : Book Numeric
+    '([^0-9.]+)',                                 // 2  : Book Non-Numweic
+    `(?:[. ]*([0-9:., ${Dashes.join('')}]+)|$)`,  // 3  : Chapter/Verse (range)
   ].join(''));
 
 /**
@@ -119,7 +132,7 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
                 .filter( vs => (vs != null) );
 
     verses = [];
-    if (sep === '-') {
+    if (Dashes.includes( sep )) {
       // This is a range
       vs2_num = verses2.shift();
       vs2_str = String( vs2_num );
@@ -162,7 +175,7 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
       // Include the range/CSV list
       ui_ref  += `${vs2_str.trim()}`;
 
-      if (sep === '-') {
+      if (Dashes.includes( sep )) {
         url_ref += `-${ref_num(vs2_num)}`;
       }
 

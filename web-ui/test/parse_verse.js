@@ -17,6 +17,10 @@ describe('parse_verse', () => {
     it( msg, () => {
       const verse = parse_verse( test.val, versions );
 
+      /*
+      console.log('>>> %s => ', test.val, verse);
+      // */
+
       Assert.notEqual( verse, null );
       Assert.notEqual( verse, undefined );
 
