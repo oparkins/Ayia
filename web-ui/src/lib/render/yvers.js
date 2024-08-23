@@ -268,6 +268,8 @@ export function html_block( state ) {
   const markup    = state.markup;
   const show      = state.show;
 
+  if (markup == null) { return null }
+
   if (state.note_idex == null) { state.note_idex = 0 }
 
   /*
@@ -364,6 +366,8 @@ export function html_block( state ) {
  *  @return The rendered HTML {String};
  */
 export function html_char( state, item ) {
+  if (item == null) { return null }
+
   const verse_ref = state.verse_ref;
   const verse_num = state.verse_num;
   const m_dex     = state.index;

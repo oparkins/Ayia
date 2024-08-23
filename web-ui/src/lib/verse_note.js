@@ -61,6 +61,8 @@ export function html( id, type, label, content ) {
  */
 export function activate( parent ) {
   const popovers  = [];
+  if (parent == null) { return popovers }
+
   const $triggers = parent.querySelectorAll('[data-popover-target]');
 
   /*
