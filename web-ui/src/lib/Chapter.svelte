@@ -230,15 +230,26 @@
   function click_verse( event ) {
     const target  = event.target;
 
-    /* Do NOT respond to clicks within:
-     *  1. A note label;
-     *  2. Note content;
+    /* Do NOT respond to clicks if:
+     *  1. A tool-tip is visible;
+     *  2. The click target is:
+     *     a. a note label;
+     *     b. within note content;
+     *     c. a hover-trigger;
+     *
+     * :NOTE: Interlinear tooltips are added and remove from the DOM as needed.
      */
+    const toolTips  = document.querySelectorAll( '[role="tooltip"]' );
+    if (toolTips && toolTips.length > 0) { return }
+
     const isNoteLabel = target.closest('.note-label');
     if (isNoteLabel != null) { return }
 
     const isNoteContent = target.closest('.note-content');
     if (isNoteContent != null) { return }
+
+    const isTrigger = target.closest('.hover-trigger');
+    if (isTrigger != null) { return }
 
     // Locate the nearest parent with a 'v' attribute
     const el = event.target.closest('[v]');
