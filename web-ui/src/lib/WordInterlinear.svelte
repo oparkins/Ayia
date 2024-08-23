@@ -28,7 +28,8 @@
       {/if}
     </div>
 
-  <p id='wlc_{word_ref}' class='text-blue-400 text-[.9em]'>{word.wlc}</p>
+  <p id='wlc_{word_ref}'
+     class='text-blue-400 text-[.9em] hover-trigger'>{word.wlc}</p>
 
     <Popover
         class='note-content z-20'
