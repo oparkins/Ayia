@@ -422,6 +422,24 @@
 
   /* Verse selection (yvers) }
    **************************************************************************
+   * Verse selection (interlinear) {
+   *    <div content>
+   *      <div block [selected="true"]>
+   *        ...
+   *      </div>
+   *      ...
+   *    </div>
+   */
+  .content:not(.yvers)[selecting="true"] > div {
+    @apply  opacity-25;
+  }
+
+  .content:not(.yvers)[selecting="true"] > div[selected="true"] {
+    @apply  opacity-100;
+  }
+
+  /* Verse selection (interlinear) }
+   **************************************************************************
    * Single version display
    */
   .content .verse {
