@@ -145,7 +145,7 @@ export function html_continuous_block( state ) {
 
   /*
   console.log('html_continuous_block(): cur_block[ %s ], key_type[ %s ], '
-              +       'key_parts:', 
+              +       'key_parts:',
               state.block, key_type, key_parts);
   // */
 
@@ -428,8 +428,8 @@ export function html_char( state, item ) {
     let   label   = '#';
     const content = val.map( (n_item, n_dex) => {
       if (typeof(n_item) === 'string') {
-        return (type === 'xref'
-                  ? `<span class='xt'>${n_item}</span>`
+        return (type === 'note.x'
+                  ? _generate_refs( n_item )
                   : n_item);
       }
 
@@ -643,9 +643,10 @@ function html_markup( markup, m_dex, show={} ) {
                         : 'foot');
       let   label   = '#';
       const content = m_val.map( n_obj => {
+
         if (typeof(n_obj) === 'string') {
           return (type === 'xref'
-                    ? `<span class='xt'>${n_obj}</span>`
+                    ? _generate_refs( n_obj )
                     : n_obj);
         }
 
@@ -692,4 +693,33 @@ function html_markup( markup, m_dex, show={} ) {
   return html;
 }
 /* Version 1 }
+ ****************************************************************************
+ * Private helpers {
+ *
+ */
+
+/**
+ *  Generate anchors for verse references.
+ *
+ *  @method _generate_refs
+ *  @param  text      The text from which to generate references {String};
+ *
+ *  @return HTML markup {String};
+ *  @private
+ */
+function _generate_refs( text ) {
+  /* :TODO: When iterating over `items` to convert to references
+   *        If the item has no book (i.e. begins with a number), it is a
+   *        chapter/verse reference referring to the previous book. If no
+   *        previous book, the currently presented book.
+   */
+  //const items = text.replace(/\s*(ver\.|ch\.|Cited from|See)\s*/gi, '')
+  //                  .replace(/\s*[\[\(\)\]]\s*/g, '')
+  //                  .split(/\s*;\s*/);
+  //console.log('_generate_refs( %s ):', text, items);
+
+  return `<span class='xt'>${text}</span>`;
+}
+
+/* Private helpers }
  ****************************************************************************/
