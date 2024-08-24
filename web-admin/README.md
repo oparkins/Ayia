@@ -124,7 +124,7 @@ version list and will have the form:
 }
 ```
 
-#### <a name='yvers-markup'></a>Type `yvers` and `pdf` markup
+#### Type `yvers` and `pdf` markup
 Versions with a type of `yvers` (and `pdf` which uses the same format) will
 have markup based on [USX](https://ubsicap.github.io/usx/index.html) /
 [USFM](https://ubsicap.github.io/usfm/).
