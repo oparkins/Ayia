@@ -2,7 +2,7 @@
  *  Parsing for PDF chapters of the NIV84 version of the Bible.
  *
  */
-const Fs 	      = require('fs/promises');
+const Fs        = require('fs/promises');
 const Path      = require('path');
 const PDFParser = require('pdf2json');
 const Books     = require('./books');
