@@ -6,7 +6,7 @@ NIV-84 version.
 
 These PDFs are fetched, text extracted, paying attention to chapter and verse
 references, and used to generate a JSON representation that is a simplified
-version of the [yvers format](/README.md#type-yvers-and-pdf-markup).
+version of the [yvers format](/web-admin/README.md#type-yvers-and-pdf-markup).
 
 Extraction and JSON generation is handled by our custom
 [pdf-parse](https://gitlab.com/autokent/pdf-parse) based parser: the PDF to our
