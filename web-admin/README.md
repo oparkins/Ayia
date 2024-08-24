@@ -178,30 +178,36 @@ like:
 
 In addition, we:
 - add `label` to explicitly identify a verse or note label;
-- perform additional processing on `note.x` elements, converting the simple
-  text of references into a set of normalized references. For example:
-  - 'See Matt. 25:1' is converted to:
+- perform additional processing on `note.x` and `note.f` elements, parsing any
+  simple text of references and augmenting the node with `refs` containing
+  normalized verse references. For example:
+  - A `note.x` with text `See Matt. 25:1` is augmented with `refs` for a final
+    `note.x` object of the form:
     ```yaml
-    { verses: [ 'MAT.025.001' ] }
-    ```
-  - 'Judg. 14:20; Song 5:1':
-    ```yaml
-    { verses: [ 'JDG.014.020', 'SNG.005.001' ] }
-    ```
-  - '[ver. 19; ch. 1:11; 5:43; 12:37]' (from John 3:32):
-    ```yaml
-    { verses: [ 'JHN.003.019', 'JHN.001.011', 'JHN.005.043', 'JHN.012.037' ] }
-    ```
-  - '[ch. 6:27; 2 Cor. 1:22; Eph. 1:13; Rev. 7:3-8]' (from John 3:33):
-    ```yaml
-    { verses: [
-        'JHN.006.027', '2CO.001.022', 'EPH.001.013', 'REV.007.003-008'
+    { note.x: [
+        { label: '#' },
+        'See Matt. 25:1',
+        { refs: [ 'MAT.025.001' ] }
       ]
     }
     ```
-  - '[Ezek. 4:11, 16]':
+  - `Judg. 14:20; Song 5:1`:
     ```yaml
-    { verses: [ 'EZK.004.011', 'EZK.004.016' ] }
+        { refs: [ 'JDG.014.020', 'SNG.005.001' ] }
+    ```
+  - `[ver. 19; ch. 1:11; 5:43; 12:37]` (from John 3:32):
+    ```yaml
+        { refs: [ 'JHN.003.019', 'JHN.001.011',
+                  'JHN.005.043', 'JHN.012.037' ] }
+    ```
+  - `[ch. 6:27; 2 Cor. 1:22; Eph. 1:13; Rev. 7:3-8]` (from John 3:33):
+    ```yaml
+        { refs: [ 'JHN.006.027', '2CO.001.022',
+                  'EPH.001.013', 'REV.007.003-008' ] }
+    ```
+  - `[Ezek. 4:11, 16]`:
+    ```yaml
+        { refs: [ 'EZK.004.011', 'EZK.004.016' ] }
     ```
 
 
