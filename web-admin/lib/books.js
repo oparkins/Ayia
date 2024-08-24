@@ -9,6 +9,7 @@ const BookMap = {
   // Old Testament (OT) {
   'GEN': {
     name  : 'Genesis',        // full name
+    alts  : [ 'Gn' ],
     order : 1,                // cannoical order (null == not in cannon)
     loc   : 'Old Testament',  // location/section
     /*
@@ -60,6 +61,7 @@ const BookMap = {
   },
   'LEV': {
     name  : 'Leviticus',
+    alts  : [ /* 'Le', */ 'Lv' ],
     order : 3,
     loc   : 'Old Testament',
     verses: [ 0,  17, 16, 17, 35, 19, 30, 38, 36, 24, 20, 47,  8, 59, 57,
@@ -70,6 +72,7 @@ const BookMap = {
   },
   'NUM': {
     name  : 'Numbers',
+    alts  : [ 'Nm' ],
     order : 4,
     loc   : 'Old Testament',
     verses: [ 0,  54, 34, 51, 49, 31, 27, 89, 26, 23, 36, 35, 16, 33, 45,
@@ -82,6 +85,7 @@ const BookMap = {
   },
   'DEU': {
     name  : 'Deuteronomy',
+    alts  : [ 'Dt' ],
     order : 5,
     loc   : 'Old Testament',
     verses: [ 0,  46, 37, 29, 49, 33, 25, 26, 20, 29, 22, 32, 32, 18, 29,
@@ -94,6 +98,7 @@ const BookMap = {
   },
   'JOS': {
     name  : 'Joshua',
+    alts  : [ 'Js' ],
     order : 6,
     loc   : 'Old Testament',
     verses: [ 0,  18, 24, 17, 24, 15, 27, 26, 35, 27, 43, 23, 24, 33, 15,
@@ -102,6 +107,7 @@ const BookMap = {
   },
   'JDG': {
     name  : 'Judges',
+    alts  : [ 'Jg', 'Jdg' ],
     order : 7,
     loc   : 'Old Testament',
     verses: [ 0,  36, 23, 31, 24, 31, 40, 25, 35, 57, 18, 40, 15, 25, 20,
@@ -110,12 +116,14 @@ const BookMap = {
   },
   'RUT': {
     name  : 'Ruth',
+    alts  : [ 'Rt' ],
     order : 8,
     loc   : 'Old Testament',
     verses: [ 0,  22, 23, 18, 22 ],
   },
   '1SA': {
     name  : '1 Samuel',
+    alts  : [ '1Sm' ],
     order : 9,
     loc   : 'Old Testament',
     verses: [ 0,  28, 36, 21, 22, 12, 21, 17, 22, 27, 27, 15, 25, 23, 52,
@@ -127,6 +135,7 @@ const BookMap = {
   },
   '2SA': {
     name  : '2 Samuel',
+    alts  : [ '2Sm' ],
     order : 10,
     loc   : 'Old Testament',
     verses: [ 0,  27, 32, 39, 12, 25, 23, 29, 18, 13, 19, 27, 31, 39, 33,
@@ -137,6 +146,7 @@ const BookMap = {
   },
   '1KI': {
     name  : '1 Kings',
+    alts  : [ '1 Kgs', '1Kg' ],
     order : 11,
     loc   : 'Old Testament',
     verses: [ 0,  53, 46, 28, 34, 18, 38, 51, 66, 28, 29, 43, 33, 34, 31,
@@ -148,6 +158,7 @@ const BookMap = {
   },
   '2KI': {
     name  : '2 Kings',
+    alts  : [ '2 Kgs', '2Kg' ],
     order : 12,
     loc   : 'Old Testament',
     verses: [ 0,  18, 25, 27, 44, 27, 33, 20, 29, 37, 36, 21, 21, 25, 29,
@@ -158,6 +169,7 @@ const BookMap = {
   },
   '1CH': {
     name  : '1 Chronicles',
+    alts  : [ '1Chr' ],
     order : 13,
     loc   : 'Old Testament',
     verses: [ 0,  54, 55, 24, 43, 26, 81, 40, 40, 44, 14, 47, 40, 14, 17,
@@ -168,6 +180,7 @@ const BookMap = {
   },
   '2CH': {
     name  : '2 Chronicles',
+    alts  : [ '2Chr' ],
     order : 14,
     loc   : 'Old Testament',
     verses: [ 0,  17, 18, 17, 22, 14, 42, 22, 18, 31, 19, 23, 16, 22, 15,
@@ -180,12 +193,14 @@ const BookMap = {
   },
   'EZR': {
     name  : 'Ezra',
+    alts  : [ 'Er' ],
     order : 15,
     loc   : 'Old Testament',
     verses: [ 0,  11, 70, 13, 24, 17, 22, 28, 36, 15, 44 ],
   },
   'NEH': {
     name  : 'Nehemiah',
+    alts  : [ 'Nh' ],
     order : 16,
     loc   : 'Old Testament',
     verses: [ 0,  11, 20, 32, 23, 19, 19, 73, 18, 38, 39, 36, 47, 31 ],
@@ -202,6 +217,7 @@ const BookMap = {
   },
   'JOB': {
     name  : 'Job',
+    alts  : [ 'Jb' ],
     order : 18,
     loc   : 'Old Testament',
     verses: [ 0,  22, 13, 26, 21, 27, 30, 21, 22, 35, 22, 20, 25, 28, 22,
@@ -259,7 +275,7 @@ const BookMap = {
   },
   'SNG': {
     name  : 'Song of Songs',
-    alts  : [ 'Song of Solomon' ],
+    alts  : [ 'Song of Solomon', 'Sgs', 'Sg' ],
     order : 22,
     loc   : 'Old Testament',
     verses: [ 0,  17, 17, 11, 16, 16, 13, 13, 14 ],
@@ -282,6 +298,7 @@ const BookMap = {
   },
   'JER': {
     name  : 'Jeremiah',
+    alts  : [ 'Jr' ],
     order : 24,
     loc   : 'Old Testament',
     verses: [ 0,  19, 37, 25, 31, 31, 30, 34, 22, 26, 25, 23, 17, 27, 22,
@@ -294,12 +311,14 @@ const BookMap = {
   },
   'LAM': {
     name  : 'Lamentations',
+    alts  : [ 'Lm' ],
     order : 25,
     loc   : 'Old Testament',
     verses: [ 0,  22, 22, 66, 22, 22 ],
   },
   'EZK': {
     name  : 'Ezekiel',
+    //alts  : [ 'Ez' ],
     order : 26,
     loc   : 'Old Testament',
     verses: [ 0,  28, 10, 27, 17, 17, 14, 27, 18, 11, 22, 25, 28, 23, 23,
@@ -312,6 +331,7 @@ const BookMap = {
   },
   'DAN': {
     name  : 'Daniel',
+    alts  : [ 'Dn' ],
     order : 27,
     loc   : 'Old Testament',
     verses: [ 0,  21, 49, 30, 37, 31, 28, 28, 27, 27, 21, 45, 13 ],
@@ -321,6 +341,7 @@ const BookMap = {
   },
   'HOS': {
     name  : 'Hosea',
+    alts  : [ 'Hs' ],
     order : 28,
     loc   : 'Old Testament',
     verses: [ 0,  11, 23, 5,  19, 15, 11, 16, 14, 17, 15, 12, 14, 16, 9 ],
@@ -329,6 +350,7 @@ const BookMap = {
   },
   'JOL': {
     name  : 'Joel',
+    alts  : [ 'Jl' ],
     order : 29,
     loc   : 'Old Testament',
     verses: [ 0,  20, 32, 21 ],
@@ -350,6 +372,7 @@ const BookMap = {
   },
   'JON': {
     name  : 'Jonah',
+    alts  : [ 'Jnh' ],
     order : 32,
     loc   : 'Old Testament',
     verses: [ 0,  17, 10, 10, 11 ],
@@ -358,6 +381,7 @@ const BookMap = {
   },
   'MIC': {
     name  : 'Micah',
+    alts  : [ 'Mc' ],
     order : 33,
     loc   : 'Old Testament',
     verses: [ 0,  16, 13, 12, 13, 15, 16, 20 ],
@@ -374,24 +398,28 @@ const BookMap = {
   },
   'HAB': {
     name  : 'Habakkuk',
+    alts  : [ 'Hb' ],
     order : 35,
     loc   : 'Old Testament',
     verses: [ 0,  17, 20, 19 ],
   },
   'ZEP': {
     name  : 'Zephaniah',
+    alts  : [ 'Zp', 'Zph' ],
     order : 36,
     loc   : 'Old Testament',
     verses: [ 0,  18, 15, 20 ],
   },
   'HAG': {
     name  : 'Haggai',
+    alts  : [ 'Hg' ],
     order : 37,
     loc   : 'Old Testament',
     verses: [ 0,  15, 23 ],
   },
   'ZEC': {
     name  : 'Zechariah',
+    alts  : [ 'Zch' ],
     order : 38,
     loc   : 'Old Testament',
     verses: [ 0,  21, 13, 10, 14, 11, 15, 14, 23, 17, 12, 17, 14,  9, 21 ],
@@ -400,6 +428,7 @@ const BookMap = {
   },
   'MAL': {
     name  : 'Malachi',
+    alts  : [ 'Ml' ],
     order : 39,
     loc   : 'Old Testament',
     verses: [ 0,  14, 17, 18,  6 ],
@@ -411,6 +440,7 @@ const BookMap = {
   // New Testament (NT) {
   'MAT': {
     name  : 'Matthew',
+    alts  : [ 'Mt' ],
     order : 40,
     loc   : 'New Testament',
     verses: [ 0,  25, 23, 17, 25, 48, 34, 29, 34, 38, 42, 30, 50, 58, 36,
@@ -419,6 +449,7 @@ const BookMap = {
   },
   'MRK': {
     name  : 'Mark',
+    alts  : [ 'Mk' ],
     order : 41,
     loc   : 'New Testament',
     verses: [ 0,  45, 28, 35, 41, 43, 56, 37, 38, 50, 52, 33, 44, 37,
@@ -427,6 +458,7 @@ const BookMap = {
   },
   'LUK': {
     name  : 'Luke',
+    alts  : [ 'Lk' ],
     order : 42,
     loc   : 'New Testament',
     verses: [ 0,  80, 52, 38, 44, 39, 49, 50, 56, 62, 42, 54, 59, 35, 35,
@@ -435,6 +467,7 @@ const BookMap = {
   },
   'JHN': {
     name  : 'John',
+    alts  : [ 'Jn' ],
     order : 43,
     loc   : 'New Testament',
     verses: [ 0,  51, 25, 36, 54, 47, 71, 53, 59, 41, 42, 57, 50, 38, 31,
@@ -453,6 +486,7 @@ const BookMap = {
   },
   'ROM': {
     name  : 'Romans',
+    alts  : [ 'Rm' ],
     order : 45,
     loc   : 'New Testament',
     verses: [ 0,  32, 29, 31, 25, 21, 23, 25, 39, 33, 21, 36, 21, 14,
@@ -495,6 +529,7 @@ const BookMap = {
   },
   'COL': {
     name  : 'Colossians',
+    alts  : [ 'Cl' ],
     order : 51,
     loc   : 'New Testament',
     verses: [ 0,  29, 23, 25, 18 ],
@@ -513,78 +548,91 @@ const BookMap = {
   },
   '1TI': {
     name  : '1 Timothy',
+    alts  : [ '1Tm' ],
     order : 54,
     loc   : 'New Testament',
     verses: [ 0,  20, 15, 16, 16, 25, 21 ],
   },
   '2TI': {
     name  : '2 Timothy',
+    alts  : [ '2Tm' ],
     order : 55,
     loc   : 'New Testament',
     verses: [ 0,  18, 26, 17, 22 ],
   },
   'TIT': {
     name  : 'Titus',
+    alts  : [ 'Tt' ],
     order : 56,
     loc   : 'New Testament',
     verses: [ 0,  16, 15, 15 ],
   },
   'PHM': {
     name  : 'Philemon',
+    alts  : [ 'Pm', 'Phm' ],
     order : 57,
     loc   : 'New Testament',
     verses: [ 0,  25 ],
   },
   'HEB': {
     name  : 'Hebrews',
+    //alts  : [ 'He' ],
     order : 58,
     loc   : 'New Testament',
     verses: [ 0,  14, 18, 19, 16, 14, 20, 28, 13, 28, 39, 40, 29, 25 ],
   },
   'JAS': {
     name  : 'James',
+    alts  : [ 'Jms' ],
     order : 59,
     loc   : 'New Testament',
     verses: [ 0,  27, 26, 18, 17, 20 ],
   },
   '1PE': {
     name  : '1 Peter',
+    alts  : [ '1Pt' ],
     order : 60,
     loc   : 'New Testament',
     verses: [ 0,  25, 25, 22, 19, 14 ],
   },
   '2PE': {
     name  : '2 Peter',
+    alts  : [ '2Pt' ],
     order : 61,
     loc   : 'New Testament',
     verses: [ 0,  21, 22, 18 ],
   },
   '1JN': {
     name  : '1 John',
+    alts  : [ '1 Jn', '1Jn' ],
     order : 62,
     loc   : 'New Testament',
     verses: [ 0,  10, 29, 24, 21, 21 ],
   },
   '2JN': {
     name  : '2 John',
+    alts  : [ '2 Jn', '2Jn' ],
     order : 63,
     loc   : 'New Testament',
     verses: [ 0, 13 ],
   },
   '3JN': {
     name  : '3 John',
+    alts  : [ '3 Jn', '3Jn' ],
     order : 64,
     loc   : 'New Testament',
     verses: [ 0, 15 ],
   },
   'JUD': {
     name  : 'Jude',
+    alts  : [ 'Jd' ],
     order : 65,
     loc   : 'New Testament',
     verses: [ 0,  25 ],
   },
   'REV': {
     name  : 'Revelation',
+    alts  : [ 'Rv' ],
     order : 66,
     loc   : 'New Testament',
     verses: [ 0,  20, 29, 22, 11, 14, 17, 17, 13, 21, 11, 19, 17, 18, 20,  8,
@@ -596,6 +644,7 @@ const BookMap = {
   //  :XXX: Don't currently have information about chapters/verses
   'TOB': {
     name  : 'Tobit',
+    alts  : [ 'Tb' ],
     order : 16.1,             // Between: Nehemiah (16) and Ester (17)
     loc   : 'Deuterocanon',
     verses: [ 0,  22, 14, 17, 21, 22, 18, 17, 21, 6, 14, 18, 22, 18, 15 ],
@@ -608,6 +657,7 @@ const BookMap = {
   },
   'WIS': {
     name  : 'Wisdom of Solomon',
+    alts  : [ 'Ws' ],
     order : 22.1,             // Between: Song of Songs (22) and Isaiah (23)
     loc   : 'Deuterocanon',
     verses: [ 0,  16, 24, 19, 20, 23, 25, 30, 21, 18, 21, 26, 27, 19, 31,
