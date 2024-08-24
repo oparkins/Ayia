@@ -3,6 +3,7 @@
 Ayia makes use of a number of Biblical sources:
 - YouVersion
 - [Berean Standard Bible (interlinear)](versions/interlinear/bsb)
+- [NIV-1984](versions/pdf/niv84)
 - Strongs : source [openscriptures/strongs](https://github.com/openscriptures/strongs);
 
 These all need to be fetched, extracted, prepared and loaded into the Ayia
@@ -123,7 +124,7 @@ version list and will have the form:
 }
 ```
 
-#### Type `yvers` and `pdf` markup
+#### <a name='yvers-markup'></a>Type `yvers` and `pdf` markup
 Versions with a type of `yvers` (and `pdf` which uses the same format) will
 have markup based on [USX](https://ubsicap.github.io/usx/index.html) /
 [USFM](https://ubsicap.github.io/usfm/).
@@ -142,8 +143,8 @@ Verse entries will be of the form:
 }
 ```
 
-For these entries, the `%type%` values will begin with either `#` (new item) or
-`+` (continued item).
+For these entries, the `%type%` will begin with either `#` (new item) or `+`
+(continued item).
 
 When a `%type%` value is an Array, it often begins with a label followed by a
 set of strings that define the content, for example:
@@ -162,6 +163,46 @@ set of strings that define the content, for example:
   }
 }
 ```
+
+Following [USX](https://ubsicap.github.io/usx/index.html) /
+[USFM](https://ubsicap.github.io/usfm/), the base `%type%` will be strings
+like:
+- [p](https://ubsicap.github.io/usx/parastyles.html#p) : normal paragraph;
+- [pi#](https://ubsicap.github.io/usx/parastyles.html#pi) : indented
+  paragraph;
+- [s#](https://ubsicap.github.io/usx/parastyles.html#s) : section header;
+- [note.f](https://ubsicap.github.io/usx/notes.html#footnote-note) :
+  footnote;
+- [note.x](https://ubsicap.github.io/usx/notes.html#cross-reference-note) :
+  cross-reference;
+
+In addition, we:
+- add `label` to explicitly identify a verse or note label;
+- perform additional processing on `note.x` elements, converting the simple
+  text of references into a set of normalized references. For example:
+  - 'See Matt. 25:1' is converted to:
+    ```yaml
+    { verses: [ 'MAT.025.001' ] }
+    ```
+  - 'Judg. 14:20; Song 5:1':
+    ```yaml
+    { verses: [ 'JDG.014.020', 'SNG.005.001' ] }
+    ```
+  - '[ver. 19; ch. 1:11; 5:43; 12:37]' (from John 3:32):
+    ```yaml
+    { verses: [ 'JHN.003.019', 'JHN.001.011', 'JHN.005.043', 'JHN.012.037' ] }
+    ```
+  - '[ch. 6:27; 2 Cor. 1:22; Eph. 1:13; Rev. 7:3-8]' (from John 3:33):
+    ```yaml
+    { verses: [
+        'JHN.006.027', '2CO.001.022', 'EPH.001.013', 'REV.007.003-008'
+      ]
+    }
+    ```
+  - '[Ezek. 4:11, 16]':
+    ```yaml
+    { verses: [ 'EZK.004.011', 'EZK.004.016' ] }
+    ```
 
 
 #### Type `interlinear` markup
