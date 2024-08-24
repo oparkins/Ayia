@@ -8,11 +8,14 @@ These PDFs are fetched, text extracted, paying attention to chapter and verse
 references, and used to generate a JSON representation that is a simplified
 version of the [yvers format](/README.md#yvers-markup).
 
-The primary extraction work is handled via a custom
-[pdf-parse](https://gitlab.com/autokent/pdf-parse) based parser:
-[niv84-pdf-parse.js](/lib/niv84-pdf-parse.js)
+Extraction and JSON generation is handled by our custom
+[pdf-parse](https://gitlab.com/autokent/pdf-parse) based parser: the PDF to our
+JSON representation: [niv84-pdf2json](/web-admin/lib/niv84-pdf2json.js)
 
 The simplified markup for this version is limited to single entry per verse.
 Each verse entry consists of a single
 [#p](https://ubsicap.github.io/usx/parastyles.html#p) element with a `label`
 item followed by one or more enntries of verse text.
+
+Chapter and verse labels are identified via heuristics primarily based upon
+font color, size, and whether the content ends with a numeric value.
