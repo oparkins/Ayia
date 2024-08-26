@@ -13,9 +13,22 @@ const FsUtils         = require('../../lib/fs_utils');
 const { PATH_CACHE }  = require('./constants');
 const Extract         = require('./extract');
 
-/*
+// /*
 const { inspect }     = require('../../lib/inspect');
 // */
+
+/* Support various HTML dashes for separator
+ *                  character   Unicode (hexadecimal)   HTML entity
+ *  Hyphen          -           U+002d  (&#x0045);      -
+ *  Unicode hyphen  ‐           U+2010  (&#x2010);      &dash; | &hyphen;
+ *  Figure dash     ‒           U+2012  (&#x2012);
+ *  En dash         –           U+2013  (&#x2013);      &ndash;
+ *  Em dash         —           U+2014  (&#x2014);      &mdash;
+ *  Horizontal bar  ―           U+2015  (&#x2015);      &horbar;
+ *  minus sign      −           U+2212  (&#x2212);      &minus;
+ */
+const Dashes      =  [ '‐', '‒', '–', '—', '―', '\−', '\-' ];
+const DashesRegex = new RegExp( `[${Dashes.join('')}]`, 'g' );
 
 /**
  *  Convert a Bible version fetched and extracted via `Yvers.extract()` to a
@@ -900,6 +913,7 @@ function _normalizeXrefs( state, texts ) {
   const loc     = state.usfm; //`${state.book}.${state.label}`;
   const norm    = [];
   let   [ cur_book, cur_chap, cur_vers ]  = loc.split('.');
+  let   prv_book;
 
   /* Examples:
    *  CEV 1CH.2.7
@@ -928,12 +942,8 @@ function _normalizeXrefs( state, texts ) {
 
     /* Clean-up the text and then split it into potential reference items.
      *
-     *                   First, remove unneeded text
      */
-    const items = text.replace(/\s*(Cited( from)?|See|cp|gk|above|below|with)\s*/gi,
-                               '')
-                      // Remove all braces and parens
-                      .replace(/\s*[\[\(\)\]]\s*/g, '')
+    const items = text
                       /* Handle cases where references are NOT delimited by ;
                        *  e.g. HCSB: HAB.2.5:
                        *        Is 13:4; 43:9 66:18; Jr 3:17; Hs 10:10; ...
@@ -944,18 +954,34 @@ function _normalizeXrefs( state, texts ) {
                        */
                       .replace(/([0-9]):?\s+([0-9])/, '$1;$2')
                       // Remove '.' from the end of the string
-                      .replace(/\s*\.\s*$/, '')
                       /* Space out 'for' when immediately followed by a
                        * reference.
                        */
                       .replace(/for([0-9:]+)/gi, 'For $1')
+                      /* :XXX: Do NOT normalize dashes here.
+                       *       Explicit cross-references seem to use
+                       *       a long-dash (e.g. &mdash;) to identify ranges
+                       *       that cross chapter boundaries. These we do NOT
+                       *       want to treat as a range since we don't support
+                       *       cross-chapter ranges.
+                       */
                       // Finally, split on separators (,;)
                       .split(/\s*[,;]\s*/);
 
-    norm.push( text );
-
-    const refs  = [];
+    let firstRef  = true;
     items.forEach( (item,idex) => {
+      /* Cleanup the item text
+       *                First, remove unneeded text */
+      const norm_item = item.replace(
+                          /\s*(Cited( from)?|See|cp|gk|above|below|with)\s*/gi,
+                          '')
+                      // Remove all braces and parens
+                      .replace(/\s*[\[\(\)\]]\s*/g, '')
+                      // Remove '.' from the end of the string
+                      .replace(/\s*\.\s*$/, '')
+                      // Remove '.' as a book abbreviation
+                      .replace(/([a-z])\.\s+/gi, '$1 ');
+
       /* For ...            : Multiverse cross-reference (applies to multiple
        *                      verses)
        * [0-9]+             : Verse
@@ -963,24 +989,25 @@ function _normalizeXrefs( state, texts ) {
        *
        * Book [0-9]+:[0-9]+ : Book/chapter/verse
        */
-      const isFor       = (item.startsWith('For '));
-      const isCh        = (item.startsWith('ch'));
-      const isVer       = (item.startsWith('ver'));
-      const hasBook     = (!isCh && !isVer && item.indexOf(' ') >= 0);
-      const hasChapter  = (item.indexOf(':') > 0 || item.indexOf('.') > 0);
-      const hasRange    = (item.indexOf('-') > 0);
+      const isFor       = (norm_item.startsWith('For '));
+      const isCh        = (norm_item.startsWith('ch'));
+      const isVer       = (norm_item.startsWith('ver'));
+      const hasBook     = (!isCh && !isVer && norm_item.indexOf(' ') >= 0);
+      const hasChapter  = (norm_item.indexOf(':') > 0 ||
+                           norm_item.indexOf('.') > 0);
+      const hasRange    = (norm_item.indexOf('-') > 0);
       let   ref;
 
       /*
-      console.log('_normalizeXrefs(): loc[ %s ] #%d:',
-                  loc, idex, item);
+      console.log('_normalizeXrefs(): loc[ %s ] #%d: item[ %s ], norm[ %s ]',
+                  loc, idex, item, norm_item);
       // */
 
       if (isFor) {
-        return;
+        ref = null;
 
       } else if (hasBook) {
-        const parts = item.split(/[ :.]/);
+        const parts = norm_item.split(/[ :.]/);
 
         let [ book, chap, vers ]  = parts;
         if (book.length < 3 && book[0] >= '1' && book[0] <= '3') {
@@ -996,9 +1023,9 @@ function _normalizeXrefs( state, texts ) {
 
         if (abbr == null) {
           // /*
-          console.log('*** _normalizeXrefs():%s: note.x[ %s ]: '
+          console.log('*** _normalizeXrefs():%s: note.x[ %s ], norm[ %s ]: '
                         +       'Cannot identify book[ %s ]',
-                        loc, item, book);
+                        loc, item, norm_item, book);
           // */
 
         } else {
@@ -1011,13 +1038,13 @@ function _normalizeXrefs( state, texts ) {
 
 
       } else if (hasChapter) {
-        [ cur_chap, cur_vers ]  = item.replace(/^ch[a-z.]*\s+/, '')
+        [ cur_chap, cur_vers ]  = norm_item.replace(/^ch[a-z.]*\s+/, '')
                                       .split(/[:.]/);
 
         ref = Refs.sortable( cur_book, cur_chap, cur_vers );
 
       } else {
-        cur_vers = item.replace(/^ver[a-z.]*\s+/, '');
+        cur_vers = norm_item.replace(/^ver[a-z.]*\s+/, '');
 
         ref = Refs.sortable( cur_book, cur_chap, cur_vers );
 
@@ -1025,9 +1052,18 @@ function _normalizeXrefs( state, texts ) {
 
       if (ref) {
         // Add a new reference
+        if (firstRef) {
+          firstRef = false;
+        } else {
+          // Include a separator character
+          if (cur_book === prv_book)  { norm.push(', ') }
+          else                        { norm.push('; ') }
+        }
 
-        if (hasRange) {
-          // Update the reference with the end of a verse range
+        if (hasRange && cur_vers) {
+          /* Update the reference with the end of a verse range
+           * (ignore chapter ranges)
+           */
           const [ fr, to ]  = cur_vers.split(/\s*-\s*/);
 
           if (to != null) {
@@ -1037,21 +1073,37 @@ function _normalizeXrefs( state, texts ) {
           }
         }
 
+        const record  = {
+          xt: {
+            text  : item,
+            ref   : ref,
+          }
+        };
+
         /*
-        console.log('_normalizeXrefs():%s: note.x[ %s ]: '
-                    + 'new book[ %s ], chap[ %s ], vers[ %s ] => %s',
-                    loc, item, cur_book, cur_chap, cur_vers, ref);
+        console.log('_normalizeXrefs():%s: note.x[ %s ], norm[ %s ] ...',
+                    loc, item, norm_item);
+        console.log('    new book[ %s ], chap[ %s ], vers[ %s ] ...',
+                    cur_book, cur_chap, cur_vers);
+        console.log('    ref:', inspect(record));
         // */
 
-        refs.push( ref );
+        norm.push( record );
+
+      } else {
+        norm.push( item );
+
       }
 
+      prv_book = cur_book;
     });
-
-    if (refs.length > 0) {
-      norm.push( {refs} );
-    }
   });
+
+  /*
+  console.log('_normalizeXrefs():%s:', loc);
+  console.log('    texts:', inspect( texts ));
+  console.log('    norm :', inspect( norm ));
+  // */
 
   return norm;
 }

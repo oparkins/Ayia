@@ -186,28 +186,41 @@ In addition, we:
     ```yaml
     { note.x: [
         { label: '#' },
-        'See Matt. 25:1',
-        { refs: [ 'MAT.025.001' ] }
+        { xt: { text: 'See Matt. 25:1', ref: 'MAT.025.001' } },
       ]
     }
     ```
   - `Judg. 14:20; Song 5:1`:
     ```yaml
-        { refs: [ 'JDG.014.020', 'SNG.005.001' ] }
+        { xt: { text: 'Judg. 14:20', ref: 'JDG.014.020' } },
+        '; ',
+        { xt: { text: 'Song 5:1', ref: 'SNG.005.001' } },
     ```
   - `[ver. 19; ch. 1:11; 5:43; 12:37]` (from John 3:32):
     ```yaml
-        { refs: [ 'JHN.003.019', 'JHN.001.011',
-                  'JHN.005.043', 'JHN.012.037' ] }
+        { xt: { text: '[ver. 19', ref: 'JHN.003.019' } },
+        ', ',
+        { xt: { text: 'ch. 1:11', ref: 'JHN.001.011' } },
+        ', ',
+        { xt: { text: '5:43', ref: 'JHN.005.043' } },
+        ', ',
+        { xt: { text: '12:37]', ref: 'JHN.012.037' } },
     ```
   - `[ch. 6:27; 2 Cor. 1:22; Eph. 1:13; Rev. 7:3-8]` (from John 3:33):
     ```yaml
-        { refs: [ 'JHN.006.027', '2CO.001.022',
-                  'EPH.001.013', 'REV.007.003-008' ] }
+        { xt: { text: '[ch. 6:27', ref: 'JHN.006.027' } },
+        '; ',
+        { xt: { text: '2 Cor. 1:22', ref: '2CO.001.022' } },
+        '; ',
+        { xt: { text: 'Eph. 1:13', ref: 'EPH.001.013' } },
+        '; ',
+        { xt: { text: 'Rev. 7:3-8]', ref: 'REV.007.003-008' } },
     ```
   - `[Ezek. 4:11, 16]`:
     ```yaml
-        { refs: [ 'EZK.004.011', 'EZK.004.016' ] }
+        { xt: { text: '[Ezek. 4:11', ref: 'EZK.004.011' } },
+        ', ',
+        { xt: { text: '16]', ref: 'EZK.004.016' } },
     ```
 
 
