@@ -9,7 +9,8 @@ const BookMap = {
   // Old Testament (OT) {
   'GEN': {
     name  : 'Genesis',        // full name
-    alts  : [ 'Gn' ],
+    alts  : [ 'Gn' ],         // alternate name matches
+    // defeat: [ ... ],       // matches that should be ignored/defeated
     order : 1,                // cannoical order (null == not in cannon)
     loc   : 'Old Testament',  // location/section
     /*
@@ -107,7 +108,7 @@ const BookMap = {
   },
   'JDG': {
     name  : 'Judges',
-    alts  : [ 'Jg', 'Jdg' ],
+    alts  : [ 'Jg' ],
     order : 7,
     loc   : 'Old Testament',
     verses: [ 0,  36, 23, 31, 24, 31, 40, 25, 35, 57, 18, 40, 15, 25, 20,
@@ -123,7 +124,7 @@ const BookMap = {
   },
   '1SA': {
     name  : '1 Samuel',
-    alts  : [ '1Sm' ],
+    alts  : [ '1Sm', '1 Sm' ],
     order : 9,
     loc   : 'Old Testament',
     verses: [ 0,  28, 36, 21, 22, 12, 21, 17, 22, 27, 27, 15, 25, 23, 52,
@@ -135,7 +136,7 @@ const BookMap = {
   },
   '2SA': {
     name  : '2 Samuel',
-    alts  : [ '2Sm' ],
+    alts  : [ '2Sm', '2 Sm' ],
     order : 10,
     loc   : 'Old Testament',
     verses: [ 0,  27, 32, 39, 12, 25, 23, 29, 18, 13, 19, 27, 31, 39, 33,
@@ -146,7 +147,7 @@ const BookMap = {
   },
   '1KI': {
     name  : '1 Kings',
-    alts  : [ '1 Kgs', '1Kg' ],
+    alts  : [ '1Kg', '1 Kg', '1Kgs', '1 Kgs' ],
     order : 11,
     loc   : 'Old Testament',
     verses: [ 0,  53, 46, 28, 34, 18, 38, 51, 66, 28, 29, 43, 33, 34, 31,
@@ -158,7 +159,7 @@ const BookMap = {
   },
   '2KI': {
     name  : '2 Kings',
-    alts  : [ '2 Kgs', '2Kg' ],
+    alts  : [ '2Kg', '2 Kg', '2Kgs', '2 Kgs' ],
     order : 12,
     loc   : 'Old Testament',
     verses: [ 0,  18, 25, 27, 44, 27, 33, 20, 29, 37, 36, 21, 21, 25, 29,
@@ -169,7 +170,7 @@ const BookMap = {
   },
   '1CH': {
     name  : '1 Chronicles',
-    alts  : [ '1Chr' ],
+    alts  : [ '1Chr', '1 Chr' ],
     order : 13,
     loc   : 'Old Testament',
     verses: [ 0,  54, 55, 24, 43, 26, 81, 40, 40, 44, 14, 47, 40, 14, 17,
@@ -180,7 +181,7 @@ const BookMap = {
   },
   '2CH': {
     name  : '2 Chronicles',
-    alts  : [ '2Chr' ],
+    alts  : [ '2Chr', '2 Chr' ],
     order : 14,
     loc   : 'Old Testament',
     verses: [ 0,  17, 18, 17, 22, 14, 42, 22, 18, 31, 19, 23, 16, 22, 15,
@@ -194,6 +195,7 @@ const BookMap = {
   'EZR': {
     name  : 'Ezra',
     alts  : [ 'Er' ],
+    defeat: [ 'Ez' ],
     order : 15,
     loc   : 'Old Testament',
     verses: [ 0,  11, 70, 13, 24, 17, 22, 28, 36, 15, 44 ],
@@ -209,6 +211,7 @@ const BookMap = {
   },
   'EST': {
     name  : 'Esther',
+    alts  : [ 'Esther (Hebrew)' ],
     order : 17,
     loc   : 'Old Testament',
     verses: [ 0,  22, 23, 15, 17, 14, 14, 10, 17, 32, 3 ],
@@ -318,7 +321,7 @@ const BookMap = {
   },
   'EZK': {
     name  : 'Ezekiel',
-    //alts  : [ 'Ez' ],
+    alts  : [ 'Ez' ],
     order : 26,
     loc   : 'Old Testament',
     verses: [ 0,  28, 10, 27, 17, 17, 14, 27, 18, 11, 22, 25, 28, 23, 23,
@@ -331,7 +334,7 @@ const BookMap = {
   },
   'DAN': {
     name  : 'Daniel',
-    alts  : [ 'Dn' ],
+    alts  : [ 'Daniel (Hebrew)', 'Dn' ],
     order : 27,
     loc   : 'Old Testament',
     verses: [ 0,  21, 49, 30, 37, 31, 28, 28, 27, 27, 21, 45, 13 ],
@@ -419,7 +422,7 @@ const BookMap = {
   },
   'ZEC': {
     name  : 'Zechariah',
-    alts  : [ 'Zch' ],
+    alts  : [ 'Zc', 'Zch' ],
     order : 38,
     loc   : 'Old Testament',
     verses: [ 0,  21, 13, 10, 14, 11, 15, 14, 23, 17, 12, 17, 14,  9, 21 ],
@@ -548,14 +551,14 @@ const BookMap = {
   },
   '1TI': {
     name  : '1 Timothy',
-    alts  : [ '1Tm' ],
+    alts  : [ '1Tm', '1 Tm' ],
     order : 54,
     loc   : 'New Testament',
     verses: [ 0,  20, 15, 16, 16, 25, 21 ],
   },
   '2TI': {
     name  : '2 Timothy',
-    alts  : [ '2Tm' ],
+    alts  : [ '2Tm', '2 Tm' ],
     order : 55,
     loc   : 'New Testament',
     verses: [ 0,  18, 26, 17, 22 ],
@@ -569,7 +572,7 @@ const BookMap = {
   },
   'PHM': {
     name  : 'Philemon',
-    alts  : [ 'Pm', 'Phm' ],
+    alts  : [ 'Pm' ],
     order : 57,
     loc   : 'New Testament',
     verses: [ 0,  25 ],
@@ -590,35 +593,35 @@ const BookMap = {
   },
   '1PE': {
     name  : '1 Peter',
-    alts  : [ '1Pt' ],
+    alts  : [ '1Pt', '1 Pt' ],
     order : 60,
     loc   : 'New Testament',
     verses: [ 0,  25, 25, 22, 19, 14 ],
   },
   '2PE': {
     name  : '2 Peter',
-    alts  : [ '2Pt' ],
+    alts  : [ '2Pt', '2 Pt' ],
     order : 61,
     loc   : 'New Testament',
     verses: [ 0,  21, 22, 18 ],
   },
   '1JN': {
     name  : '1 John',
-    alts  : [ '1 Jn', '1Jn' ],
+    alts  : [ '1 Jn' ],
     order : 62,
     loc   : 'New Testament',
     verses: [ 0,  10, 29, 24, 21, 21 ],
   },
   '2JN': {
     name  : '2 John',
-    alts  : [ '2 Jn', '2Jn' ],
+    alts  : [ '2 Jn' ],
     order : 63,
     loc   : 'New Testament',
     verses: [ 0, 13 ],
   },
   '3JN': {
     name  : '3 John',
-    alts  : [ '3 Jn', '3Jn' ],
+    alts  : [ '3 Jn' ],
     order : 64,
     loc   : 'New Testament',
     verses: [ 0, 15 ],
@@ -873,6 +876,9 @@ function nameToABBR( name ) {
   let   keyMatch;
 
   Object.entries( BookMap ).find( ([key, entry]) => {
+    if (Array.isArray(entry.defeat) && entry.defeat.includes( name )) {
+      return;
+    }
     if (key === ABBR || entry.name.startsWith( name )) {
       keyMatch = key;
       return true;
