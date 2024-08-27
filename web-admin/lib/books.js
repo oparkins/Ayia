@@ -124,7 +124,7 @@ const BookMap = {
   },
   '1SA': {
     name  : '1 Samuel',
-    alts  : [ '1Sm', '1 Sm' ],
+    alts  : [ '1 S', '1Sm', '1 Sm' ],
     order : 9,
     loc   : 'Old Testament',
     verses: [ 0,  28, 36, 21, 22, 12, 21, 17, 22, 27, 27, 15, 25, 23, 52,
@@ -136,7 +136,7 @@ const BookMap = {
   },
   '2SA': {
     name  : '2 Samuel',
-    alts  : [ '2Sm', '2 Sm' ],
+    alts  : [ '2 S', '2Sm', '2 Sm' ],
     order : 10,
     loc   : 'Old Testament',
     verses: [ 0,  27, 32, 39, 12, 25, 23, 29, 18, 13, 19, 27, 31, 39, 33,
@@ -147,7 +147,7 @@ const BookMap = {
   },
   '1KI': {
     name  : '1 Kings',
-    alts  : [ '1Kg', '1 Kg', '1Kgs', '1 Kgs' ],
+    alts  : [ '1 K', '1Kg', '1 Kg', '1Kgs', '1 Kgs' ],
     order : 11,
     loc   : 'Old Testament',
     verses: [ 0,  53, 46, 28, 34, 18, 38, 51, 66, 28, 29, 43, 33, 34, 31,
@@ -159,7 +159,7 @@ const BookMap = {
   },
   '2KI': {
     name  : '2 Kings',
-    alts  : [ '2Kg', '2 Kg', '2Kgs', '2 Kgs' ],
+    alts  : [ '2 K', '2Kg', '2 Kg', '2Kgs', '2 Kgs' ],
     order : 12,
     loc   : 'Old Testament',
     verses: [ 0,  18, 25, 27, 44, 27, 33, 20, 29, 37, 36, 21, 21, 25, 29,
