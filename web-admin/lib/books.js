@@ -879,7 +879,7 @@ function nameToABBR( name ) {
     if (Array.isArray(entry.defeat) && entry.defeat.includes( name )) {
       return;
     }
-    if (key === ABBR || entry.name.startsWith( name )) {
+    if (key === ABBR || (name.length > 2 && entry.name.startsWith( name ))) {
       keyMatch = key;
       return true;
     }
