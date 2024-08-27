@@ -123,13 +123,13 @@ export function _activate_one( $trigger, $target ) {
 
     /*
     onHide: () => {
-      console.log('popover %s: shown', id);
+      console.log('popover %s: onHide', id);
     },
     onShow: () => {
-      console.log('popover %s: hidden', id);
+      console.log('popover %s: onShow', id);
     },
     onToggle: () => {
-      console.log('popover %s: toggled', id);
+      console.log('popover %s: onToggle', id);
     },
     // */
   };
