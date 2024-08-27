@@ -904,15 +904,18 @@ function _jsonElement( state, el, depth=1 ) {
  *
  *  @return The set of texts along with new `refs` elements containing any
  *          normalized references for the preceeding text item {Array};
- *            [ text, {refs: [ normalized references ]},
- *              text, ...
+ *            [ text,
+ *              {xt: { text, ref }},
+ *              text,
+ *              {xt: { text, ref }},
+ *              ...
  *            ]
  *  @private
  */
 function _normalizeXrefs( state, texts ) {
-  const loc     = state.usfm; //`${state.book}.${state.label}`;
-  const norm    = [];
+  const loc                               = state.usfm;
   let   [ cur_book, cur_chap, cur_vers ]  = loc.split('.');
+  const norm                              = [];
   let   prv_book;
 
   /* Examples:
@@ -1127,77 +1130,24 @@ function _normalizeXrefs( state, texts ) {
  *
  *  @return The set of texts along with new `refs` elements containing any
  *          normalized references for the preceeding text item {Array};
- *            [ text, {refs: [ normalized references ]},
- *              text, ...
+ *            [ text,
+ *              {xt: { text, ref }},
+ *              text,
+ *              {xt: { text, ref }},
+ *              ...
  *            ]
  *  @private
  */
 function _extractFootnoteRefs( state, texts ) {
+  const loc                               = state.usfm;
+  let   [ cur_book, cur_chap, cur_vers ]  = loc.split('.');
+  const norm                              = [];
+
   /* :TODO: Extract and normalize any references
    *
    *  Examples:
-   *    NIV11: 1CH.1.6
-   *      [ 'Many Hebrew manuscripts and Vulgate
-   *         (see also Septuagint and Gen. 10:3); most Hebrew manuscripts' ]
-   *
-   *    NIV11: 1CH.1.17
-   *      [ 'One Hebrew manuscript and some Septuagint manuscripts
-   *         (see also Gen. 10:23); most Hebrew manuscripts do not have this
-   *         line.' ]
-   *
-   *    NIV11: 1CH.1.42
-   *      [ 'See Gen. 36:28; Hebrew' ]
-   *
-   *    NIV11: 1CH.3.6
-   *      [ 'Two Hebrew manuscripts (see also 2 Samuel 5:15 and 1 Chron. 14:5);
-   *         most Hebrew manuscripts' ]
-   *
-   *    NIV11: 1CH.6.77
-   *      [ 'See Septuagint and Joshua 21:34; Hebrew does not have' ]
-   *
-   *    NIV11: 1CH.8.30
-   *      [ 'Some Septuagint manuscripts (see also 9:36);
-   *         Hebrew does not have' ]
-   *
-   *    NIV11: EZR.7.26
-   *      [ 'The text of 7:12-26 is in Aramaic.' ]
-   *
-   *    NIV11: EZR.8.10
-   *      [ 'Some Septuagint manuscripts (also 1 Esdras 8:36);
-   *         Hebrew does not have' ]
-   *
-   *    NIV11: GAL.3.8
-   *      [ 'Gen. 12:3; 18:18; 22:18' ]
-   *
-   *    NIV11: HEB.1.12
-   *      [ 'Psalm 102:25-27' ]
-   *
-   *    NIV11: HEB.3.15
-   *      [ 'Psalm 95:7,8' ]
-   *
-   *    NIV11: HEB.4.3
-   *      [ 'Psalm 95:11; also in verse 5' ]
-   *
-   *    NIV11: HEB.10.30
-   *      [ 'Deut. 32:36; Psalm 135:14' ]
-   *
-   *    NIV11: HEB.12.21
-   *      [ 'See Deut. 9:19.' ]
-   *
-   *  ---
-   *    NASB1995: 1KI.4.26
-   *      [ 'One ms reads', { it: '4000,' }, 'cf 2 Chr 9:25' ]
-   *
-   *  ---
-   *    HCSB: HOS.4.18
-   *      [ 'Lit Her shields ; Ps 47:9; 89:18' ]
-   *
-   *    HCSB: HOS.11.12
-   *      [ 'Hs 12:1 in Hb' ]
-   *
-   *  ---
    *    AMP: 1CH.1.6
-   *      [ 'In Gen 10:3', { it: 'Riphath' }, '.' ] } ]
+   *      [ 'In Gen 10:3', { it: 'Riphath' }, '.' ]
    *
    *    AMP: GEN.32.24
    *      [ 'This was God Himself (as Jacob eventually realizes in
@@ -1252,6 +1202,66 @@ function _extractFootnoteRefs( state, texts ) {
    *
    *    CEV 2CH.35.1
    *      [ 'See the note at 29.3.' ]
+   *
+   *  ---
+   *    HCSB: HOS.4.18
+   *      [ 'Lit Her shields ; Ps 47:9; 89:18' ]
+   *
+   *    HCSB: HOS.11.12
+   *      [ 'Hs 12:1 in Hb' ]
+   *
+   *  ---
+   *    NASB1995: 1KI.4.26
+   *      [ 'One ms reads', { it: '4000,' }, 'cf 2 Chr 9:25' ]
+   *
+   *  ---
+   *    NIV11: 1CH.1.6
+   *      [ 'Many Hebrew manuscripts and Vulgate
+   *         (see also Septuagint and Gen. 10:3); most Hebrew manuscripts' ]
+   *
+   *    NIV11: 1CH.1.17
+   *      [ 'One Hebrew manuscript and some Septuagint manuscripts
+   *         (see also Gen. 10:23); most Hebrew manuscripts do not have this
+   *         line.' ]
+   *
+   *    NIV11: 1CH.1.42
+   *      [ 'See Gen. 36:28; Hebrew' ]
+   *
+   *    NIV11: 1CH.3.6
+   *      [ 'Two Hebrew manuscripts (see also 2 Samuel 5:15 and 1 Chron. 14:5);
+   *         most Hebrew manuscripts' ]
+   *
+   *    NIV11: 1CH.6.77
+   *      [ 'See Septuagint and Joshua 21:34; Hebrew does not have' ]
+   *
+   *    NIV11: 1CH.8.30
+   *      [ 'Some Septuagint manuscripts (see also 9:36);
+   *         Hebrew does not have' ]
+   *
+   *    NIV11: EZR.7.26
+   *      [ 'The text of 7:12-26 is in Aramaic.' ]
+   *
+   *    NIV11: EZR.8.10
+   *      [ 'Some Septuagint manuscripts (also 1 Esdras 8:36);
+   *         Hebrew does not have' ]
+   *
+   *    NIV11: GAL.3.8
+   *      [ 'Gen. 12:3; 18:18; 22:18' ]
+   *
+   *    NIV11: HEB.1.12
+   *      [ 'Psalm 102:25-27' ]
+   *
+   *    NIV11: HEB.3.15
+   *      [ 'Psalm 95:7,8' ]
+   *
+   *    NIV11: HEB.4.3
+   *      [ 'Psalm 95:11; also in verse 5' ]
+   *
+   *    NIV11: HEB.10.30
+   *      [ 'Deut. 32:36; Psalm 135:14' ]
+   *
+   *    NIV11: HEB.12.21
+   *      [ 'See Deut. 9:19.' ]
    *
    */
 
