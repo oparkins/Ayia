@@ -7,10 +7,12 @@
  */
 const BookMap = {
   // Old Testament (OT) {
-  'GEN': {
-    name  : 'Genesis',        // full name
-    alts  : [ 'Gn' ],         // alternate name matches
-    // defeat: [ ... ],       // matches that should be ignored/defeated
+  'GEN': {                            // Official abbreviation
+    name  : 'Genesis',                // Official full name
+
+    // Regular Expression match
+    match : /^(ge(n(esis)?)?|gn)$/i,                  // Ge | Gn
+
     order : 1,                // cannoical order (null == not in cannon)
     loc   : 'Old Testament',  // location/section
     /*
@@ -50,6 +52,7 @@ const BookMap = {
   },
   'EXO': {
     name  : 'Exodus',
+    match : /^ex(o(dus)?)?$/i,                        // Ex
     order : 2,
     loc   : 'Old Testament',
     verses: [ 0,  22, 25, 22, 31, 23, 30, 25, 32, 35, 29, 10, 51, 22, 31,
@@ -62,7 +65,7 @@ const BookMap = {
   },
   'LEV': {
     name  : 'Leviticus',
-    alts  : [ /* 'Le', */ 'Lv' ],
+    match : /^(le(v(iticus)?)?|lv)$/i,                // Le | Lv
     order : 3,
     loc   : 'Old Testament',
     verses: [ 0,  17, 16, 17, 35, 19, 30, 38, 36, 24, 20, 47,  8, 59, 57,
@@ -73,7 +76,7 @@ const BookMap = {
   },
   'NUM': {
     name  : 'Numbers',
-    alts  : [ 'Nm' ],
+    match : /^(nu(m(bers)?)?|nm)$/i,                  // Nu | Nm
     order : 4,
     loc   : 'Old Testament',
     verses: [ 0,  54, 34, 51, 49, 31, 27, 89, 26, 23, 36, 35, 16, 33, 45,
@@ -86,7 +89,7 @@ const BookMap = {
   },
   'DEU': {
     name  : 'Deuteronomy',
-    alts  : [ 'Dt' ],
+    match : /^(de(u(t(er(onomy)?)?)?)?|dt)$/i,           // De | Dt
     order : 5,
     loc   : 'Old Testament',
     verses: [ 0,  46, 37, 29, 49, 33, 25, 26, 20, 29, 22, 32, 32, 18, 29,
@@ -99,7 +102,7 @@ const BookMap = {
   },
   'JOS': {
     name  : 'Joshua',
-    alts  : [ 'Js' ],
+    match : /^(jo(s(h(ua)?)?)?|js)$/i,                // Jo | Js
     order : 6,
     loc   : 'Old Testament',
     verses: [ 0,  18, 24, 17, 24, 15, 27, 26, 35, 27, 43, 23, 24, 33, 15,
@@ -108,6 +111,7 @@ const BookMap = {
   },
   'JDG': {
     name  : 'Judges',
+    match : /^(ju(dg(es)?)?|jd?g)$/i,                 // Ju | Jg | Jdg
     alts  : [ 'Jg' ],
     order : 7,
     loc   : 'Old Testament',
@@ -117,14 +121,14 @@ const BookMap = {
   },
   'RUT': {
     name  : 'Ruth',
-    alts  : [ 'Rt' ],
+    match : /^(ru(t(h)?)?|rt)$/i,                     // Ru | Rt
     order : 8,
     loc   : 'Old Testament',
     verses: [ 0,  22, 23, 18, 22 ],
   },
   '1SA': {
     name  : '1 Samuel',
-    alts  : [ '1 S', '1Sm', '1 Sm' ],
+    match : /^(1(st )? ?s(a(m(uel)?)?|m)?)$/i,        // 1Sa | 1Sm
     order : 9,
     loc   : 'Old Testament',
     verses: [ 0,  28, 36, 21, 22, 12, 21, 17, 22, 27, 27, 15, 25, 23, 52,
@@ -136,7 +140,7 @@ const BookMap = {
   },
   '2SA': {
     name  : '2 Samuel',
-    alts  : [ '2 S', '2Sm', '2 Sm' ],
+    match : /^(2(nd )? ?s(a(m(uel)?)?|m)?)$/i,        // 2Sa | 2Sm
     order : 10,
     loc   : 'Old Testament',
     verses: [ 0,  27, 32, 39, 12, 25, 23, 29, 18, 13, 19, 27, 31, 39, 33,
@@ -147,7 +151,7 @@ const BookMap = {
   },
   '1KI': {
     name  : '1 Kings',
-    alts  : [ '1 K', '1Kg', '1 Kg', '1Kgs', '1 Kgs' ],
+    match : /^(1(st )? ?k(i(n(gs?)?)?|gs?)?)$/i,      // 1Ki | 1Kg
     order : 11,
     loc   : 'Old Testament',
     verses: [ 0,  53, 46, 28, 34, 18, 38, 51, 66, 28, 29, 43, 33, 34, 31,
@@ -159,7 +163,7 @@ const BookMap = {
   },
   '2KI': {
     name  : '2 Kings',
-    alts  : [ '2 K', '2Kg', '2 Kg', '2Kgs', '2 Kgs' ],
+    match : /^(2(nd )? ?k(i(n(gs?)?)?|gs?)?)$/i,      // 2Ki | 2Kg
     order : 12,
     loc   : 'Old Testament',
     verses: [ 0,  18, 25, 27, 44, 27, 33, 20, 29, 37, 36, 21, 21, 25, 29,
@@ -170,7 +174,7 @@ const BookMap = {
   },
   '1CH': {
     name  : '1 Chronicles',
-    alts  : [ '1Chr', '1 Chr' ],
+    match : /^(1(st )? ?ch(r(on(icles)?)?)?)$/i,      // 1Ch
     order : 13,
     loc   : 'Old Testament',
     verses: [ 0,  54, 55, 24, 43, 26, 81, 40, 40, 44, 14, 47, 40, 14, 17,
@@ -181,7 +185,7 @@ const BookMap = {
   },
   '2CH': {
     name  : '2 Chronicles',
-    alts  : [ '2Chr', '2 Chr' ],
+    match : /^(2(nd )? ?ch(r(on(icles)?)?)?)$/i,      // 2Ch
     order : 14,
     loc   : 'Old Testament',
     verses: [ 0,  17, 18, 17, 22, 14, 42, 22, 18, 31, 19, 23, 16, 22, 15,
@@ -194,15 +198,14 @@ const BookMap = {
   },
   'EZR': {
     name  : 'Ezra',
-    alts  : [ 'Er' ],
-    defeat: [ 'Ez' ],
+    match : /^(ezra?|er)$/i,                          // Ezr | Er
     order : 15,
     loc   : 'Old Testament',
     verses: [ 0,  11, 70, 13, 24, 17, 22, 28, 36, 15, 44 ],
   },
   'NEH': {
     name  : 'Nehemiah',
-    alts  : [ 'Nh' ],
+    match : /^(ne(h(emiah)?)?|nh)$/i,                 // Ne | Nh
     order : 16,
     loc   : 'Old Testament',
     verses: [ 0,  11, 20, 32, 23, 19, 19, 73, 18, 38, 39, 36, 47, 31 ],
@@ -211,7 +214,7 @@ const BookMap = {
   },
   'EST': {
     name  : 'Esther',
-    alts  : [ 'Esther (Hebrew)' ],
+    match : /^(es(t(her( \(hebrew\))?)?)?|esh)$/i,    // Es | Est | Esh
     order : 17,
     loc   : 'Old Testament',
     verses: [ 0,  22, 23, 15, 17, 14, 14, 10, 17, 32, 3 ],
@@ -220,7 +223,7 @@ const BookMap = {
   },
   'JOB': {
     name  : 'Job',
-    alts  : [ 'Jb' ],
+    match : /^(job|jb)$/i,                            // Job | Jb
     order : 18,
     loc   : 'Old Testament',
     verses: [ 0,  22, 13, 26, 21, 27, 30, 21, 22, 35, 22, 20, 25, 28, 22,
@@ -233,6 +236,7 @@ const BookMap = {
   },
   'PSA': {
     name  : 'Psalms',
+    match : /^(ps(a(lms?)?)?)$/i,                     // Ps | Psa
     order : 19,
     loc   : 'Old Testament',
     verses: [ 0,   6, 12,  8,  8, 12, 10, 17,  9, 20, 18,  7,  8,  6,  7,
@@ -261,6 +265,7 @@ const BookMap = {
   },
   'PRO': {
     name  : 'Proverbs',
+    match : /^(pr(o(v(erbs)??)?)?)$/i,                // Pr | Pro
     order : 20,
     loc   : 'Old Testament',
     verses: [ 0,  33, 22, 35, 27, 23, 35, 27, 36, 18, 32, 31, 28, 25, 35,
@@ -270,6 +275,7 @@ const BookMap = {
   },
   'ECC': {
     name  : 'Ecclesiastes',
+    match : /^(ec(c(lesiastes)?)?)$/i,                // Ec | Ecc
     order : 21,
     loc   : 'Old Testament',
     verses: [ 0,  18, 26, 22, 16, 20, 12, 29, 17, 18, 20, 10, 14 ],
@@ -277,8 +283,10 @@ const BookMap = {
         // === Ours is correct for NIV
   },
   'SNG': {
-    name  : 'Song of Songs',
-    alts  : [ 'Song of Solomon', 'Sgs', 'Sg' ],
+    name  : 'Song of Songs',                          /* Song of Songs
+                                                       * Song of Solomon
+                                                       * Song | Sng | Sgs */
+    match : /^(song( of (songs|sol(omon)?))?|sngs?|sgs?)$/i,
     order : 22,
     loc   : 'Old Testament',
     verses: [ 0,  17, 17, 11, 16, 16, 13, 13, 14 ],
@@ -287,6 +295,7 @@ const BookMap = {
   },
   'ISA': {
     name  : 'Isaiah',
+    match : /^(is(a(iah)?)?)$/i,                      // Is | Isa
     order : 23,
     loc   : 'Old Testament',
     verses: [ 0,  31, 22, 26, 6,  30, 13, 25, 22, 21, 34, 16, 6,  22, 32,
@@ -301,7 +310,7 @@ const BookMap = {
   },
   'JER': {
     name  : 'Jeremiah',
-    alts  : [ 'Jr' ],
+    match : /^(je(r(emiah)?)?|jr)$/i,                 // Je | Jr
     order : 24,
     loc   : 'Old Testament',
     verses: [ 0,  19, 37, 25, 31, 31, 30, 34, 22, 26, 25, 23, 17, 27, 22,
@@ -314,14 +323,14 @@ const BookMap = {
   },
   'LAM': {
     name  : 'Lamentations',
-    alts  : [ 'Lm' ],
+    match : /^(la(m(entations?)?)?|lm)$/i,            // La | Lm
     order : 25,
     loc   : 'Old Testament',
     verses: [ 0,  22, 22, 66, 22, 22 ],
   },
   'EZK': {
     name  : 'Ezekiel',
-    alts  : [ 'Ez' ],
+    match : /^(ez(e(kiel)?)?|ezk)$/i,                 // Ez | Ezk
     order : 26,
     loc   : 'Old Testament',
     verses: [ 0,  28, 10, 27, 17, 17, 14, 27, 18, 11, 22, 25, 28, 23, 23,
@@ -334,7 +343,7 @@ const BookMap = {
   },
   'DAN': {
     name  : 'Daniel',
-    alts  : [ 'Daniel (Hebrew)', 'Dn' ],
+    match : /^(da(n(iel( \(hebrew\))?)?)?|dn)$/i,     // Da | Dn
     order : 27,
     loc   : 'Old Testament',
     verses: [ 0,  21, 49, 30, 37, 31, 28, 28, 27, 27, 21, 45, 13 ],
@@ -344,7 +353,7 @@ const BookMap = {
   },
   'HOS': {
     name  : 'Hosea',
-    alts  : [ 'Hs' ],
+    match : /^(ho(s(ea)?)?|hs)$/i,                    // Ho | Hs
     order : 28,
     loc   : 'Old Testament',
     verses: [ 0,  11, 23, 5,  19, 15, 11, 16, 14, 17, 15, 12, 14, 16, 9 ],
@@ -353,7 +362,7 @@ const BookMap = {
   },
   'JOL': {
     name  : 'Joel',
-    alts  : [ 'Jl' ],
+    match : /^(joel?|jl)$/i,                          // Joe | Jl
     order : 29,
     loc   : 'Old Testament',
     verses: [ 0,  20, 32, 21 ],
@@ -363,19 +372,21 @@ const BookMap = {
   },
   'AMO': {
     name  : 'Amos',
+    match : /^(am(os)?)$/i,                           // Am | Amos
     order : 30,
     loc   : 'Old Testament',
     verses: [ 0,  15, 16, 15, 13, 27, 14, 17, 14, 15 ],
   },
   'OBA': {
     name  : 'Obadiah',
+    match : /^(ob(a(diah)?)?)$/i,                     // Ob | Oba
     order : 31,
     loc   : 'Old Testament',
     verses: [ 0,  21 ],
   },
   'JON': {
     name  : 'Jonah',
-    alts  : [ 'Jnh' ],
+    match : /^(jon(ah)?|jnh)$/i,                      // Jon | Jnh
     order : 32,
     loc   : 'Old Testament',
     verses: [ 0,  17, 10, 10, 11 ],
@@ -384,7 +395,7 @@ const BookMap = {
   },
   'MIC': {
     name  : 'Micah',
-    alts  : [ 'Mc' ],
+    match : /^(mi(c(ah)?)?|mc)$/i,                    // Mi | Mc
     order : 33,
     loc   : 'Old Testament',
     verses: [ 0,  16, 13, 12, 13, 15, 16, 20 ],
@@ -393,6 +404,7 @@ const BookMap = {
   },
   'NAM': {
     name  : 'Nahum',
+    match : /^(na(h(um)?)?|nam)$/i,                   // Na | Nah | Nam
     order : 34,
     loc   : 'Old Testament',
     verses: [ 0,  15, 13, 19 ],
@@ -401,28 +413,28 @@ const BookMap = {
   },
   'HAB': {
     name  : 'Habakkuk',
-    alts  : [ 'Hb' ],
+    match : /^(ha(b(akkuk)?)?|hb)$/i,                 // Ha | Hb
     order : 35,
     loc   : 'Old Testament',
     verses: [ 0,  17, 20, 19 ],
   },
   'ZEP': {
     name  : 'Zephaniah',
-    alts  : [ 'Zp', 'Zph' ],
+    match : /^(zep(h(aniah)?)?|zph?)$/i,              // Zep | Zp | Zph
     order : 36,
     loc   : 'Old Testament',
     verses: [ 0,  18, 15, 20 ],
   },
   'HAG': {
     name  : 'Haggai',
-    alts  : [ 'Hg' ],
+    match : /^(hag(gai)|hg)$/i,                       // Hag | Hg
     order : 37,
     loc   : 'Old Testament',
     verses: [ 0,  15, 23 ],
   },
   'ZEC': {
     name  : 'Zechariah',
-    alts  : [ 'Zc', 'Zch' ],
+    match : /^(zec(h(ariah)?)?|zch?)$/i,              // Zec | Zc | Zch
     order : 38,
     loc   : 'Old Testament',
     verses: [ 0,  21, 13, 10, 14, 11, 15, 14, 23, 17, 12, 17, 14,  9, 21 ],
@@ -431,7 +443,7 @@ const BookMap = {
   },
   'MAL': {
     name  : 'Malachi',
-    alts  : [ 'Ml' ],
+    match : /^(mal(achi)?|ml)$/i,                     // Mal | Ml
     order : 39,
     loc   : 'Old Testament',
     verses: [ 0,  14, 17, 18,  6 ],
@@ -443,7 +455,7 @@ const BookMap = {
   // New Testament (NT) {
   'MAT': {
     name  : 'Matthew',
-    alts  : [ 'Mt' ],
+    match : /^(mat(t(hew)?)?|mt)$/i,                  // Mat | Mt
     order : 40,
     loc   : 'New Testament',
     verses: [ 0,  25, 23, 17, 25, 48, 34, 29, 34, 38, 42, 30, 50, 58, 36,
@@ -452,7 +464,7 @@ const BookMap = {
   },
   'MRK': {
     name  : 'Mark',
-    alts  : [ 'Mk' ],
+    match : /^(mark?|mr?k)$/i,                        // Mar | Mrk | Mk
     order : 41,
     loc   : 'New Testament',
     verses: [ 0,  45, 28, 35, 41, 43, 56, 37, 38, 50, 52, 33, 44, 37,
@@ -461,7 +473,7 @@ const BookMap = {
   },
   'LUK': {
     name  : 'Luke',
-    alts  : [ 'Lk' ],
+    match : /^(lu?ke?|lu)$/i,                          // Luk | Lu | Lk
     order : 42,
     loc   : 'New Testament',
     verses: [ 0,  80, 52, 38, 44, 39, 49, 50, 56, 62, 42, 54, 59, 35, 35,
@@ -470,7 +482,7 @@ const BookMap = {
   },
   'JHN': {
     name  : 'John',
-    alts  : [ 'Jn' ],
+    match : /^(john?|jh?n)$/i,                        // Joh | Jhn | Jn
     order : 43,
     loc   : 'New Testament',
     verses: [ 0,  51, 25, 36, 54, 47, 71, 53, 59, 41, 42, 57, 50, 38, 31,
@@ -479,6 +491,7 @@ const BookMap = {
   },
   'ACT': {
     name  : 'Acts',
+    match : /^(acts?)$/i,                             // Act | Acts
     order : 44,
     loc   : 'New Testament',
     verses: [ 0,  26, 47, 26, 37, 42, 15, 60, 40, 43, 48, 30, 25, 52, 28,
@@ -489,7 +502,7 @@ const BookMap = {
   },
   'ROM': {
     name  : 'Romans',
-    alts  : [ 'Rm' ],
+    match : /^(ro?m(a?ns)?|ro)$/i,                    // Rom | Ro | Rm
     order : 45,
     loc   : 'New Testament',
     verses: [ 0,  32, 29, 31, 25, 21, 23, 25, 39, 33, 21, 36, 21, 14,
@@ -498,6 +511,7 @@ const BookMap = {
   },
   '1CO': {
     name  : '1 Corinthians',
+    match : /^(1(st )? ?co(r(inthians)?)?)$/i,        // 1Co | 1Cor | 1 Co 
     order : 46,
     loc   : 'New Testament',
     verses: [ 0,  31, 16, 23, 21, 13, 20, 40, 13, 27, 33, 34, 31, 13, 40,
@@ -506,6 +520,7 @@ const BookMap = {
   },
   '2CO': {
     name  : '2 Corinthians',
+    match : /^(2(nd )? ?co(r(inthians)?)?)$/i,        // 2Co | 2Cor | 2 Co 
     order : 47,
     loc   : 'New Testament',
     verses: [ 0,  24, 17, 18, 18, 21, 18, 16, 24, 15, 18, 33, 21, 14 ],
@@ -514,128 +529,133 @@ const BookMap = {
   },
   'GAL': {
     name  : 'Galatians',
+    match : /^(gal(atians)?)$/i,                      // Gal | Galantians
     order : 48,
     loc   : 'New Testament',
     verses: [ 0,  24, 21, 29, 31, 26, 18 ],
   },
   'EPH': {
     name  : 'Ephesians',
+    match : /^(eph(esians)?)$/i,                      // Eph | Ephesians
     order : 49,
     loc   : 'New Testament',
     verses: [ 0,  23, 22, 21, 32, 33, 24 ],
   },
   'PHP': {
     name  : 'Philippians',
+    match : /^(ph(ilippians)?|php)$/i,                // Ph | Php
     order : 50,
     loc   : 'New Testament',
     verses: [ 0,  30, 30, 21, 23 ],
   },
   'COL': {
     name  : 'Colossians',
-    alts  : [ 'Cl' ],
+    match : /^(col(ossians)?|cl)$/i,                  // Col | Cl
     order : 51,
     loc   : 'New Testament',
     verses: [ 0,  29, 23, 25, 18 ],
   },
   '1TH': {
     name  : '1 Thessalonians',
+    match : /^(1(st )? ?th(e(s(s(alonians)?)?)?)?)$/i,// 1Th | 1The | 1 Th 
     order : 52,
     loc   : 'New Testament',
     verses: [ 0,  10, 20, 13, 18, 28 ],
   },
   '2TH': {
     name  : '2 Thessalonians',
+    match : /^(2(nd )? ?th(e(s(s(alonians)?)?)?)?)$/i,// 2Th | 2The | 2 Th 
     order : 53,
     loc   : 'New Testament',
     verses: [ 0,  12, 17, 18 ],
   },
   '1TI': {
     name  : '1 Timothy',
-    alts  : [ '1Tm', '1 Tm' ],
+    match : /^(1(st )? ?ti?(m(othy)?)?)$/i,           // 1Ti | 1Tm | 1 Ti
     order : 54,
     loc   : 'New Testament',
     verses: [ 0,  20, 15, 16, 16, 25, 21 ],
   },
   '2TI': {
     name  : '2 Timothy',
-    alts  : [ '2Tm', '2 Tm' ],
+    match : /^(2(nd )? ?ti?(m(othy)?)?)$/i,           // 2Ti | 2Tm | 2 Ti
     order : 55,
     loc   : 'New Testament',
     verses: [ 0,  18, 26, 17, 22 ],
   },
   'TIT': {
     name  : 'Titus',
-    alts  : [ 'Tt' ],
+    match : /^(tit(us)?|tt)$/i,                       // Tit | Tt
     order : 56,
     loc   : 'New Testament',
     verses: [ 0,  16, 15, 15 ],
   },
   'PHM': {
     name  : 'Philemon',
-    alts  : [ 'Pm' ],
+    match : /^(philemon|ph?m)$/i,                     // Phm | Pm
     order : 57,
     loc   : 'New Testament',
     verses: [ 0,  25 ],
   },
   'HEB': {
     name  : 'Hebrews',
-    //alts  : [ 'He' ],
+    match : /^(heb?(rews)?)$/i,                       // Heb | He
     order : 58,
     loc   : 'New Testament',
     verses: [ 0,  14, 18, 19, 16, 14, 20, 28, 13, 28, 39, 40, 29, 25 ],
   },
   'JAS': {
     name  : 'James',
-    alts  : [ 'Jms' ],
+    match : /^(jam(es)?|jas|jms)$/i,                  // Jam | Jas | Jms
     order : 59,
     loc   : 'New Testament',
     verses: [ 0,  27, 26, 18, 17, 20 ],
   },
   '1PE': {
     name  : '1 Peter',
-    alts  : [ '1Pt', '1 Pt' ],
+    match : /^(1(st )? ?p(e(ter)?|tr?))$/i,           // 1Pe | 1Pt | 1Ptr
     order : 60,
     loc   : 'New Testament',
     verses: [ 0,  25, 25, 22, 19, 14 ],
   },
   '2PE': {
     name  : '2 Peter',
-    alts  : [ '2Pt', '2 Pt' ],
+    match : /^(2(nd )? ?p(e(ter)?|tr?))$/i,           // 2Pe | 2Pt | 2Ptr
     order : 61,
     loc   : 'New Testament',
     verses: [ 0,  21, 22, 18 ],
   },
   '1JN': {
     name  : '1 John',
-    alts  : [ '1 Jn' ],
+    match : /^(1(st )? ?j(ohn|o|n))$/i,               // 1John | 1Jn | 1 Jn
     order : 62,
     loc   : 'New Testament',
     verses: [ 0,  10, 29, 24, 21, 21 ],
   },
   '2JN': {
     name  : '2 John',
-    alts  : [ '2 Jn' ],
+    match : /^(2(nd )? ?j(ohn|o|n))$/i,               // 2John | 2Jn | 2 Jn
     order : 63,
     loc   : 'New Testament',
     verses: [ 0, 13 ],
   },
   '3JN': {
     name  : '3 John',
-    alts  : [ '3 Jn' ],
+    match : /^(3(rd )? ?j(ohn|o|n))$/i,               // 3John | 3Jn | 3 Jn
     order : 64,
     loc   : 'New Testament',
     verses: [ 0, 15 ],
   },
   'JUD': {
     name  : 'Jude',
-    alts  : [ 'Jd' ],
+    match : /^(jude?|jd)$/i,                          // Jud | Jd
     order : 65,
     loc   : 'New Testament',
     verses: [ 0,  25 ],
   },
   'REV': {
     name  : 'Revelation',
-    alts  : [ 'Rv' ],
+    match : /^(re?v(elations?)?)$/i,                  // Rev | Rv
     order : 66,
     loc   : 'New Testament',
     verses: [ 0,  20, 29, 22, 11, 14, 17, 17, 13, 21, 11, 19, 17, 18, 20,  8,
@@ -647,20 +667,21 @@ const BookMap = {
   //  :XXX: Don't currently have information about chapters/verses
   'TOB': {
     name  : 'Tobit',
-    alts  : [ 'Tb' ],
+    match : /^(to?b(it)?)$/i,                         // Tob | Tb
     order : 16.1,             // Between: Nehemiah (16) and Ester (17)
     loc   : 'Deuterocanon',
     verses: [ 0,  22, 14, 17, 21, 22, 18, 17, 21, 6, 14, 18, 22, 18, 15 ],
   },
   'JDT': {
     name  : 'Judith',
+    match : /^(judith|jdt)$/i,                        // Judith | Jdt
     order : 16.2,             // Between: Nehemiah (16) and Ester (17)
     loc   : 'Deuterocanon',
     verses: [ 0,  22, 14, 17, 21, 22, 18, 17, 21, 6, 14, 18, 22, 18, 15 ],
   },
   'WIS': {
-    name  : 'Wisdom of Solomon',
-    alts  : [ 'Ws' ],
+    name  : 'Wisdom of Solomon',                      // Wisdom of Solomon
+    match : /^(wi?s(dom( of solomon)?)?)$/i,          // Wisdom | Wis | Ws
     order : 22.1,             // Between: Song of Songs (22) and Isaiah (23)
     loc   : 'Deuterocanon',
     verses: [ 0,  16, 24, 19, 20, 23, 25, 30, 21, 18, 21, 26, 27, 19, 31,
@@ -668,6 +689,7 @@ const BookMap = {
   },
   'SIR': {
     name  : 'Sirach (Ecclesiasticus)',
+    match : /^(sir(ach( \(ecclesiasticus\))?)?)$/i,   // Sir | Sirach
     order : 22.2,             // Between: Song of Songs (22) and Isaiah (23)
     loc   : 'Deuterocanon',
     verses: [ 0,  29, 18, 30, 31, 17, 37, 36, 19, 18, 30, 34, 18, 25, 27,
@@ -677,13 +699,14 @@ const BookMap = {
   },
   'BAR': {
     name  : 'Baruch',
+    match : /^(bar(uch)?)$/i,                         // Bar | Baruch
     order : 25.1,             // Between: Lamentations (25) and Ezekiel (26)
     loc   : 'Deuterocanon',
     verses: [ 0,  22, 35, 38, 37, 9, 72 ],
   },
 
   // NOT in the cannon
-  'ESG': { name: 'Esther Greek',            order : 17.1,loc: 'Deuterocanon' },
+  'ESG': { name: 'Esther Greek',           order : 17.1,loc: 'Deuterocanon' },
   'LJE': { name: 'Letter of Jeremiah',                  loc: 'Deuterocanon' },
   'S3Y': { name: 'Song of 3 Young Men',                 loc: 'Deuterocanon' },
   'SUS': { name: 'Susanna',                             loc: 'Deuterocanon' },
@@ -748,16 +771,12 @@ function getBook( abbr ) {
   if (typeof(abbr) !== 'string')  { return }
 
   const ABBR  = abbr.toUpperCase();
-  // :XXX: On success, return the matching pair [key, entry]
-  const found = Object.entries( BookMap ).find( ([key, entry]) => {
-    return (key === ABBR);
-  });
+  const entry = BookMap[ ABBR ];
 
-  //console.log('abbr[ %s / %s ], entry:', abbr, ABBR, found);
+  //console.log('abbr[ %s / %s ], entry:', abbr, ABBR, entry);
 
-  if (found == null)  { return }
+  if (entry == null)  { return }
 
-  const entry = found[1];
   return { abbr: ABBR, ...entry };
 }
 
@@ -780,7 +799,7 @@ function getBooks( loc ) {
   const locMap  = {
     'Old Testament' : /ot|old.*test(ament)?/i,
     'New Testament' : /nt|new.*test(ament)?/i,
-    'Deuterocanon'  : /dc|deutero.*canon/i,
+    'Deuterocanon'  : /dc|deutero(.*canon)?/i,
     'Non scripture' : /ns|non.*script(ure)?/i,
   };
   let   locs    = null;
@@ -832,8 +851,7 @@ function getBooks( loc ) {
  *  @return The number of chapters (< 1 if no book) {Number};
  */
 function getChapters( book ) {
-  const entry = BookMap[ book ];
-
+  const entry = getBook( book );
   if (entry == null || ! Array.isArray(entry.verses))  { return -1 }
 
   return entry.verses.length - 1;
@@ -848,7 +866,7 @@ function getChapters( book ) {
  *  @return The number of verses (< 1 if no book/chapter) {Number};
  */
 function getVerses( book, chapter ) {
-  const entry = BookMap[ book ];
+  const entry = getBook( book );
   if (entry == null || ! Array.isArray(entry.verses))  { return -1 }
 
   const verses  = entry.verses[ chapter ];
@@ -868,22 +886,22 @@ function getVerses( book, chapter ) {
 function nameToABBR( name ) {
   if (typeof(name) !== 'string')  { return }
 
-  if (name.startsWith('1st')) { name = name.replace(/^1st/, '1') }
-  if (name.startsWith('2nd')) { name = name.replace(/^2nd/, '2') }
-  if (name.startsWith('3rd')) { name = name.replace(/^3rd/, '3') }
-
-  const ABBR  = name.toUpperCase();
+  const ABBR        = name.toUpperCase();
+  const localeOpts  = { sensitivity: 'base' };  // Caseless compare
   let   keyMatch;
 
   Object.entries( BookMap ).find( ([key, entry]) => {
-    if (Array.isArray(entry.defeat) && entry.defeat.includes( name )) {
-      return;
-    }
-    if (key === ABBR || (name.length > 2 && entry.name.startsWith( name ))) {
+    if (key === ABBR) {
       keyMatch = key;
       return true;
     }
-    if (Array.isArray(entry.alts) && entry.alts.includes( name )) {
+    if (entry.match && entry.match.test( name )) {
+      keyMatch = key;
+      return true;
+    }
+
+    // Perform a case-less compare
+    if (entry.name.localeCompare( name, undefined, localeOpts ) === 0) {
       keyMatch = key;
       return true;
     }
