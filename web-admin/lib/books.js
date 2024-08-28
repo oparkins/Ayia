@@ -715,8 +715,17 @@ const BookMap = {
   '2MA': { name: '2 Maccabees',                         loc: 'Deuterocanon' },
   '3MA': { name: '3 Maccabees',                         loc: 'Deuterocanon' },
   '4MA': { name: '4 Maccabees',                         loc: 'Deuterocanon' },
-  '1ES': { name: '1 Esdras (Greek)',                    loc: 'Deuterocanon' },
+  '1ES': {
+    name  : '1 Esdras (Greek)',
+    match : /^(1(st )? ?esdras( \(greek\))?)$/i,      // 1 Esdras
+    loc   : 'Deuterocanon',
+  },
   '2ES': { name: '2 Esdras (Latin)',                    loc: 'Deuterocanon' },
+  '2ES': {
+    name  : '2 Esdras (Latin)',
+    match : /^(2(nd )? ?esdras( \(latin\))?)$/i,      // 2 Esdras
+    loc   : 'Deuterocanon',
+  },
   'MAN': { name: 'Prayer of Manasseh',                  loc: 'Deuterocanon' },
   'PS2': { name: 'Psalm 151',                           loc: 'Deuterocanon' },
   'ODA': { name: 'Odes',                                loc: 'Deuterocanon' },
