@@ -12,23 +12,11 @@ const FsUtils         = require('../../lib/fs_utils');
 
 const { PATH_CACHE }  = require('./constants');
 const Extract         = require('./extract');
+const Xrefs           = require('./xrefs');
 
-// /*
+/*
 const { inspect }     = require('../../lib/inspect');
 // */
-
-/* Support various HTML dashes for separator
- *                  character   Unicode (hexadecimal)   HTML entity
- *  Hyphen          -           U+002d  (&#x0045);      -
- *  Unicode hyphen  ‐           U+2010  (&#x2010);      &dash; | &hyphen;
- *  Figure dash     ‒           U+2012  (&#x2012);
- *  En dash         –           U+2013  (&#x2013);      &ndash;
- *  Em dash         —           U+2014  (&#x2014);      &mdash;
- *  Horizontal bar  ―           U+2015  (&#x2015);      &horbar;
- *  minus sign      −           U+2212  (&#x2212);      &minus;
- */
-const Dashes      =  [ '‐', '‒', '–', '—', '―', '\−', '\-' ];
-const DashesRegex = new RegExp( `[${Dashes.join('')}]`, 'g' );
 
 /**
  *  Convert a Bible version fetched and extracted via `Yvers.extract()` to a
@@ -850,427 +838,79 @@ function _jsonElement( state, el, depth=1 ) {
   if (label === 'note.x') {
     /* Perform additional processing of reference notes to convert the
      * free-text references to a normalized form.
+     *
+     * The `ar` for a 'note.x' item from YVERS will have the simple form:
+     *    [
+     *      { label },
+     *      "text1",
+     *      ...
+     *    ]
      */
     const label = ar[0];
     const texts = ar.slice(1);
-    const refs  = _normalizeXrefs( state, texts );
-
-    /*
-    console.log('_jsonElement(): %s: note.x refs:',
-                state.usfm, inspect( refs ));
-    // */
-
+    const refs  = Xrefs.normalize( state, texts );
     const note  = [ label, ...refs ];
+    /*
+    console.log('_jsonElement(): %s: note.x with parsed refs:',
+                state.usfm, inspect( note ));
+    // */
 
     ar = note;
 
   } else if (label === 'note.f') {
-    /* note.f elements MAY also contain references in the
-     *        `ft` element
+    /* note.f elements MAY also contain references
+     *
+     * The `ar` for a 'note.f' item should be a set of object with tags like:
+     *    label     The note label
+     *    fr        Origin reference
+     *    ft        Footnote text
+     *    fq        Footnote quote
+     *
+     * We will normalize references from all `ft` elements.
      */
-    const idex  = ar.findIndex( item => Object.keys(item).includes('ft') );
+    const note  = [];
 
-    if ( idex >= 0 ) {
-      const ar_ft = (Array.isArray( ar[idex] ) ? ar[idex] : [ ar[idex] ]);
-      const res   = _extractFootnoteRefs( state, ar_ft );
+    ar.forEach( (item,idex) => {
+      if (item.ft == null) {
+        // Push this non-ft item and move on
+        note.push( item );
+        return;
+      }
 
-      if (res.length === 1) { ar[ idex ] = res[0] }
-      else                  { ar[ idex ] = res }
-    }
+      const ft_ar = (Array.isArray( item.ft ) ? item.ft : [ item.ft ]);
+      if (ft_ar.length < 1) {
+        // Prune empty ft items
+        return;
+      }
+
+      /* Process this footnote text.
+       *
+       * If there *are* cross-references in this text, they will be extracted
+       * and a single `ft` item will become one or more `ft` items intermixed
+       * with one or more `xt` items.
+       */
+      const res = Xrefs.normalize( state, ft_ar );
+
+      if (res.length === 1 && typeof(res[0]) === 'string') {
+        // No change
+        note.push( item );
+
+      } else {
+        // Expanded with possible new xt items
+        note.push( {ft: res} );
+      }
+    });
+
+    /*
+    console.log('_jsonElement(): %s: note.f with parsed refs:',
+                state.usfm, inspect( note ));
+    // */
+    ar = note;
   }
 
   return {
     [label]: ar,
   };
-}
-
-/**
- *  Given an array of cross-reference text, return a normalized version of each
- *  reference.
- *
- *  @method _normalizeXrefs
- *  @param  state           Chapter processing state {Object};
- *  @param  state.verbosity Verbosity level {Number};
- *  @param  state.$         The top-level Cheerio instance {Cheerio};
- *  @param  state.book      The book abbreviation {String};
- *  @param  state.label     The chapter label {String};
- *  @param  state.verses    A map of verses {Map};
- *  @param  state.verse     The current accumulating verse {Array};
- *  @param  state.block     The current block {String};
- *  @param  state.key       The key under which to gather content {String};
- *  @param  state.sub_key   The sub-key beneath `key` {String};
- *  @param  state.usfm      The reference of the current verse {String};
- *  @param  texts           The set of cross-reference text(s) {Array[String]};
- *
- *  @return The set of texts along with new `refs` elements containing any
- *          normalized references for the preceeding text item {Array};
- *            [ text,
- *              {xt: { text, ref }},
- *              text,
- *              {xt: { text, ref }},
- *              ...
- *            ]
- *  @private
- */
-function _normalizeXrefs( state, texts ) {
-  const loc                               = state.usfm;
-  let   [ cur_book, cur_chap, cur_vers ]  = loc.split('.');
-  const norm                              = [];
-  let   prv_book;
-
-  /* Examples:
-   *  CEV 1CH.2.7
-   *    [ 'Js 7.1.' ]
-   *
-   *  CEV 1CH.5.1
-   *    [ 'Gn 35.22; 49.3,4.' ]
-   *
-   *  CEV 1CH.3.5
-   *    [ '2 S 11.2-4.' ]
-   *
-   *  CEV 2CH.34.5
-   *    [ '1 K 13.2.' ]
-   *
-   *  CEV 2CH.35.4
-   *    [ '2 Ch 8.14.' ]
-   */
-  texts.forEach( (text, tdex) => {
-    if (typeof(text) !== 'string') {
-      /*
-      console.log('=== _normalizeXrefs():%s: text #%d NOT a string:',
-                  loc, tdex, text);
-      // */
-      return;
-    }
-
-    /* Clean-up the text and then split it into potential reference items.
-     *
-     */
-    const items = text
-                      /* Handle cases where references are NOT delimited by ;
-                       *  e.g. HCSB: HAB.2.5:
-                       *        Is 13:4; 43:9 66:18; Jr 3:17; Hs 10:10; ...
-                       *                     ^
-                       *       HCSB: JOB.9.4:
-                       *        Jb 11:6; 12:13: 36:5
-                       *                      ^
-                       */
-                      .replace(/([0-9]):?\s+([0-9])/, '$1;$2')
-                      // Remove '.' from the end of the string
-                      /* Space out 'for' when immediately followed by a
-                       * reference.
-                       */
-                      .replace(/for([0-9:]+)/gi, 'For $1')
-                      /* :XXX: Do NOT normalize dashes here.
-                       *       Explicit cross-references seem to use
-                       *       a long-dash (e.g. &mdash;) to identify ranges
-                       *       that cross chapter boundaries. These we do NOT
-                       *       want to treat as a range since we don't support
-                       *       cross-chapter ranges.
-                       */
-                      // Finally, split on separators (,;)
-                      .split(/\s*[,;]\s*/);
-
-    let firstRef  = true;
-    items.forEach( (item,idex) => {
-      /* Cleanup the item text
-       *                First, remove unneeded text */
-      const norm_item = item.replace(
-                          /\s*(Cited( from)?|See|cp|gk|above|below|with)\s*/gi,
-                          '')
-                      // Remove all braces and parens
-                      .replace(/\s*[\[\(\)\]]\s*/g, '')
-                      // Remove '.' from the end of the string
-                      .replace(/\s*\.\s*$/, '')
-                      // Remove '.' as a book abbreviation
-                      .replace(/([a-z])\.\s+/gi, '$1 ');
-
-      /* For ...            : Multiverse cross-reference (applies to multiple
-       *                      verses)
-       * [0-9]+             : Verse
-       * [0-9]+:[0-9]+      : Chapter/Verse
-       *
-       * Book [0-9]+:[0-9]+ : Book/chapter/verse
-       */
-      const isFor       = (norm_item.startsWith('For '));
-      const isCh        = (norm_item.startsWith('ch'));
-      const isVer       = (norm_item.startsWith('ver'));
-      const hasBook     = (!isCh && !isVer && norm_item.indexOf(' ') >= 0);
-      const hasChapter  = (norm_item.indexOf(':') > 0 ||
-                           norm_item.indexOf('.') > 0);
-      const hasRange    = (norm_item.indexOf('-') > 0);
-      let   ref;
-
-      /*
-      console.log('_normalizeXrefs(): loc[ %s ] #%d: item[ %s ], norm[ %s ]',
-                  loc, idex, item, norm_item);
-      // */
-
-      if (isFor) {
-        ref = null;
-
-      } else if (hasBook) {
-        const parts = norm_item.split(/[ :.]/);
-
-        let [ book, chap, vers ]  = parts;
-        if (book.length < 3 && book[0] >= '1' && book[0] <= '3') {
-          // This is a numbered book
-          book = `${parts[0]} ${parts[1]}`;
-          chap = parts[2];
-          vers = parts[3];
-        }
-
-        book = book.replace(/[^A-Za-z0-9 ]+/g, '');
-
-        const abbr  = Books.nameToABBR( book );
-
-        if (abbr == null) {
-          // /*
-          console.log('*** _normalizeXrefs():%s: note.x[ %s ], norm[ %s ]: '
-                        +       'Cannot identify book[ %s ]',
-                        loc, item, norm_item, book);
-          // */
-
-        } else {
-          cur_book = abbr;
-          cur_chap = chap;
-          cur_vers = vers;
-
-          ref = Refs.sortable( cur_book, cur_chap, cur_vers );
-        }
-
-
-      } else if (hasChapter) {
-        [ cur_chap, cur_vers ]  = norm_item.replace(/^ch[a-z.]*\s+/, '')
-                                      .split(/[:.]/);
-
-        ref = Refs.sortable( cur_book, cur_chap, cur_vers );
-
-      } else {
-        cur_vers = norm_item.replace(/^ver[a-z.]*\s+/, '');
-
-        ref = Refs.sortable( cur_book, cur_chap, cur_vers );
-
-      }
-
-      if (ref) {
-        // Add a new reference
-        if (firstRef) {
-          firstRef = false;
-        } else {
-          // Include a separator character
-          if (cur_book === prv_book)  { norm.push(', ') }
-          else                        { norm.push('; ') }
-        }
-
-        if (hasRange && cur_vers) {
-          /* Update the reference with the end of a verse range
-           * (ignore chapter ranges)
-           */
-          const [ fr, to ]  = cur_vers.split(/\s*-\s*/);
-
-          if (to != null) {
-            const to_num  = Refs.num( to );
-
-            ref = `${ref}-${to_num}`;
-          }
-        }
-
-        const record  = {
-          xt: {
-            text  : item,
-            ref   : ref,
-          }
-        };
-
-        /*
-        console.log('_normalizeXrefs():%s: note.x[ %s ], norm[ %s ] ...',
-                    loc, item, norm_item);
-        console.log('    new book[ %s ], chap[ %s ], vers[ %s ] ...',
-                    cur_book, cur_chap, cur_vers);
-        console.log('    ref:', inspect(record));
-        // */
-
-        norm.push( record );
-
-      } else {
-        norm.push( item );
-
-      }
-
-      prv_book = cur_book;
-    });
-  });
-
-  /*
-  console.log('_normalizeXrefs():%s:', loc);
-  console.log('    texts:', inspect( texts ));
-  console.log('    norm :', inspect( norm ));
-  // */
-
-  return norm;
-}
-
-/**
- *  Given an array of footnote text, locate and normalize any cross-references.
- *
- *  @method _extractFootnoteRefs
- *  @param  state           Chapter processing state {Object};
- *  @param  state.verbosity Verbosity level {Number};
- *  @param  state.$         The top-level Cheerio instance {Cheerio};
- *  @param  state.book      The book abbreviation {String};
- *  @param  state.label     The chapter label {String};
- *  @param  state.verses    A map of verses {Map};
- *  @param  state.verse     The current accumulating verse {Array};
- *  @param  state.block     The current block {String};
- *  @param  state.key       The key under which to gather content {String};
- *  @param  state.sub_key   The sub-key beneath `key` {String};
- *  @param  state.usfm      The reference of the current verse {String};
- *  @param  texts           The set of footnote text(s) {Array[String]};
- *
- *  @return The set of texts along with new `refs` elements containing any
- *          normalized references for the preceeding text item {Array};
- *            [ text,
- *              {xt: { text, ref }},
- *              text,
- *              {xt: { text, ref }},
- *              ...
- *            ]
- *  @private
- */
-function _extractFootnoteRefs( state, texts ) {
-  const loc                               = state.usfm;
-  let   [ cur_book, cur_chap, cur_vers ]  = loc.split('.');
-  const norm                              = [];
-
-  /* :TODO: Extract and normalize any references
-   *
-   *  Examples:
-   *    AMP: 1CH.1.6
-   *      [ 'In Gen 10:3', { it: 'Riphath' }, '.' ]
-   *
-   *    AMP: GEN.32.24
-   *      [ 'This was God Himself (as Jacob eventually realizes in
-   *         Gen 32:30; see also v 29 and Hosea 12:4),
-   *         in the form of an angel.' ]
-   *
-   *    AMP: GEN.36.12
-   *      [ 'See note 22:24.' ]
-   *
-   *    AMP: GEN.36.39
-   *      [ 'In 1 Chr 1:50, Hadad.' ]
-   *
-   *    AMP: GEN.37.23
-   *      [ 'See note v 3.' ]
-   *
-   *    AMP: GEN.40.19
-   *      [ 'Notice the totally different usage of the words
-   *        “lift up your head.” In v 13, it is used idiomatically
-   *        as “present you i...' ]
-   *
-   *    AMP: GEN.42.7
-   *      [ 'Joseph was conversing with his brothers through an interpreter
-   *        (v 23).' ]
-   *
-   *    AMP: HAG.1.2
-   *      [ 'The people of Judah had completed seventy years of captivity in
-   *         Babylon (Jer 25:11, 12; Dan 9:2). In October 539',
-   *        { sc: 'b' },
-   *        '.',
-   *        { sc: 'c' },
-   *        '., the Medes and Persians conquered Babylon, whereupon Cyrus the
-   *         Great (founder of the Persian Empire, his reign extende ...',
-   *        { sc: 'b' },
-   *        '.',
-   *        { sc: 'c' },
-   *        '.) issued a decree permitting the Jews to return home and
-   *         mandating the rebuilding of the temple (Ezra 1:1-4).
-   *         Some 50,0 ...',
-   *        { sc: 'b' },
-   *        '.',
-   *        { sc: 'c' },
-   *        '.'
-   *      ]
-   *
-   *  ---
-   *    CEV 2CH.34.20
-   *      [ 'Also called “Achbor son of Micaiah” (see 2 Kings 22.12).' ]
-   *
-   *    CEV 2CH.34.30
-   *      [ "The Hebrew text has “The Book of God's Agreement,” which is the
-   *         same as “The Book of God's Law” in verses 15 and 19. In ..." ]
-   *
-   *    CEV 2CH.35.1
-   *      [ 'See the note at 29.3.' ]
-   *
-   *  ---
-   *    HCSB: HOS.4.18
-   *      [ 'Lit Her shields ; Ps 47:9; 89:18' ]
-   *
-   *    HCSB: HOS.11.12
-   *      [ 'Hs 12:1 in Hb' ]
-   *
-   *  ---
-   *    NASB1995: 1KI.4.26
-   *      [ 'One ms reads', { it: '4000,' }, 'cf 2 Chr 9:25' ]
-   *
-   *  ---
-   *    NIV11: 1CH.1.6
-   *      [ 'Many Hebrew manuscripts and Vulgate
-   *         (see also Septuagint and Gen. 10:3); most Hebrew manuscripts' ]
-   *
-   *    NIV11: 1CH.1.17
-   *      [ 'One Hebrew manuscript and some Septuagint manuscripts
-   *         (see also Gen. 10:23); most Hebrew manuscripts do not have this
-   *         line.' ]
-   *
-   *    NIV11: 1CH.1.42
-   *      [ 'See Gen. 36:28; Hebrew' ]
-   *
-   *    NIV11: 1CH.3.6
-   *      [ 'Two Hebrew manuscripts (see also 2 Samuel 5:15 and 1 Chron. 14:5);
-   *         most Hebrew manuscripts' ]
-   *
-   *    NIV11: 1CH.6.77
-   *      [ 'See Septuagint and Joshua 21:34; Hebrew does not have' ]
-   *
-   *    NIV11: 1CH.8.30
-   *      [ 'Some Septuagint manuscripts (see also 9:36);
-   *         Hebrew does not have' ]
-   *
-   *    NIV11: EZR.7.26
-   *      [ 'The text of 7:12-26 is in Aramaic.' ]
-   *
-   *    NIV11: EZR.8.10
-   *      [ 'Some Septuagint manuscripts (also 1 Esdras 8:36);
-   *         Hebrew does not have' ]
-   *
-   *    NIV11: GAL.3.8
-   *      [ 'Gen. 12:3; 18:18; 22:18' ]
-   *
-   *    NIV11: HEB.1.12
-   *      [ 'Psalm 102:25-27' ]
-   *
-   *    NIV11: HEB.3.15
-   *      [ 'Psalm 95:7,8' ]
-   *
-   *    NIV11: HEB.4.3
-   *      [ 'Psalm 95:11; also in verse 5' ]
-   *
-   *    NIV11: HEB.10.30
-   *      [ 'Deut. 32:36; Psalm 135:14' ]
-   *
-   *    NIV11: HEB.12.21
-   *      [ 'See Deut. 9:19.' ]
-   *
-   */
-
-  /*
-  console.log('_extraFootnoteRefs(): %s:',
-              state.usfm, inspect( texts ));
-  // */
-
-  return texts;
 }
 
 /**

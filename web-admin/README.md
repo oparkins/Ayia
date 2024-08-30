@@ -179,49 +179,88 @@ like:
 In addition, we:
 - add `label` to explicitly identify a verse or note label;
 - perform additional processing on `note.x` and `note.f` elements, parsing any
-  simple text of references and augmenting the node with `refs` containing
+  simple text of references and augmenting the note with `xt` items containing
   normalized verse references. For example:
-  - A `note.x` with text `See Matt. 25:1` is augmented with `refs` for a final
-    `note.x` object of the form:
-    ```yaml
-    { note.x: [
-        { label: '#' },
-        { xt: { text: 'See Matt. 25:1', ref: 'MAT.025.001' } },
-      ]
-    }
-    ```
-  - `Judg. 14:20; Song 5:1`:
-    ```yaml
-        { xt: { text: 'Judg. 14:20', ref: 'JDG.014.020' } },
-        '; ',
-        { xt: { text: 'Song 5:1', ref: 'SNG.005.001' } },
-    ```
-  - `[ver. 19; ch. 1:11; 5:43; 12:37]` (from John 3:32):
-    ```yaml
-        { xt: { text: '[ver. 19', ref: 'JHN.003.019' } },
-        ', ',
-        { xt: { text: 'ch. 1:11', ref: 'JHN.001.011' } },
-        ', ',
-        { xt: { text: '5:43', ref: 'JHN.005.043' } },
-        ', ',
-        { xt: { text: '12:37]', ref: 'JHN.012.037' } },
-    ```
-  - `[ch. 6:27; 2 Cor. 1:22; Eph. 1:13; Rev. 7:3-8]` (from John 3:33):
-    ```yaml
-        { xt: { text: '[ch. 6:27', ref: 'JHN.006.027' } },
-        '; ',
-        { xt: { text: '2 Cor. 1:22', ref: '2CO.001.022' } },
-        '; ',
-        { xt: { text: 'Eph. 1:13', ref: 'EPH.001.013' } },
-        '; ',
-        { xt: { text: 'Rev. 7:3-8]', ref: 'REV.007.003-008' } },
-    ```
-  - `[Ezek. 4:11, 16]`:
-    ```yaml
-        { xt: { text: '[Ezek. 4:11', ref: 'EZK.004.011' } },
-        ', ',
-        { xt: { text: '16]', ref: 'EZK.004.016' } },
-    ```
+  - A `note.x` with:
+    - text `See Matt. 25:1` is augmented with `xt` for a final `note.x` object
+      of the form:
+      ```yaml
+      { note.x: [
+          { label: '#' },
+          { xt: { text: 'See Matt. 25:1', usfm: 'MAT.025.001' } },
+        ]
+      }
+      ```
+    - `Judg. 14:20; Song 5:1`:
+      ```yaml
+          { xt: { text: 'Judg. 14:20', usfm: 'JDG.014.020' } },
+          '; ',
+          { xt: { text: 'Song 5:1', usfm: 'SNG.005.001' } },
+      ```
+    - `[ver. 19; ch. 1:11; 5:43; 12:37]` (from John 3:32):
+      ```yaml
+          '[ver. ',
+          { xt: { text: '19', usfm: 'JHN.003.019' } },
+          ', ch. ',
+          { xt: { text: '1:11', usfm: 'JHN.001.011' } },
+          ', ',
+          { xt: { text: '5:43', usfm: 'JHN.005.043' } },
+          ', ',
+          { xt: { text: '12:37', usfm: 'JHN.012.037' } },
+          ']'
+      ```
+    - `[ch. 6:27; 2 Cor. 1:22; Eph. 1:13; Rev. 7:3-8]` (from John 3:33):
+      ```yaml
+          '[ch. ',
+          { xt: { text: '6:27', usfm: 'JHN.006.027' } },
+          '; ',
+          { xt: { text: '2 Cor. 1:22', usfm: '2CO.001.022' } },
+          '; ',
+          { xt: { text: 'Eph. 1:13', usfm: 'EPH.001.013' } },
+          '; ',
+          { xt: { text: 'Rev. 7:3-8', usfm: 'REV.007.003-008' } },
+          ']'
+      ```
+    - `[Ezek. 4:11, 16]`:
+      ```yaml
+          '[',
+          { xt: { text: 'Ezek. 4:11', usfm: 'EZK.004.011' } },
+          ', ',
+          { xt: { text: '16', usfm: 'EZK.004.016' } },
+          ']'
+      ```
+  - `note.f` items will have any `ft` portion parsed:
+    - Example from NIV11 GEN.004.016:
+      ```yaml
+      { note.f: [
+          { label : '#' },
+          { fr    : '4:16' },
+          { fq    : 'Nod' },
+          { ft    : 'means' },
+          { fqa   : 'wandering' },
+          { ft    : '(see verses 12 and 14).' }
+        ]
+      }
+      ```
+      will be parsed to:
+      ```yaml
+      { note.f: [
+          { label : '#' },
+          { fr    : '4:16' },
+          { fq    : 'Nod' },
+          { ft    : 'means' },
+          { fqa   : 'wandering' },
+          { ft    : [
+              '(see verses ',
+              { xt: { text: '12', usfm: 'GEN.004.012' } },
+              ' and ',
+              { xt: { text: '14', usfm: 'GEN.004.014' } },
+              ').'
+            ]
+          }
+        ]
+      }
+      ```
 
 
 #### Type `interlinear` markup
