@@ -1,4 +1,29 @@
 /**
+ *  Generate a simple id for the given book, chapter, and verse.
+ *  @method simple_ref
+ *  @param  book          The name of the book {String};
+ *  @param  chapter       The chapter id {Number | String};
+ *  @param  [verse=null]  Optional verse id {Number | String};
+ *
+ *  These references have the form:
+ *    BOK.c.v
+ *
+ *    e.g. MAT.1.3
+ *
+ *  @return The simple id {String};
+ *  @private
+ */
+function simple_ref( book, chapter, verse=null ) {
+  const ids = [ book, chapter ];
+
+  if (verse != null) {
+    ids.push( verse );
+  }
+
+  return ids.join('.');
+}
+
+/**
  *  Generate a sortable id for the given book, chapter, and verse.
  *  @method sortable_ref
  *  @param  book          The name of the book {String};
@@ -6,7 +31,7 @@
  *  @param  [verse=null]  Optional verse id {Number | String};
  *
  *  These references have the form:
- *    BOK.ccc,vvv
+ *    BOK.ccc.vvv
  *
  *    e.g. MAT.001.003
  *
@@ -19,7 +44,7 @@ function sortable_ref( book, chapter, verse=null ) {
     ref_num(chapter),
   ];
 
-  if (verse != null) { 
+  if (verse != null) {
     ids.push( ref_num( verse ) );
   }
 
@@ -49,6 +74,7 @@ function ref_num( val ) {
 }
 
 module.exports = {
+  simple  : simple_ref,
   sortable: sortable_ref,
   num     : ref_num,
 };
