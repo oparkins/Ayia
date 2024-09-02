@@ -44,20 +44,6 @@ const tests  = [
       'a (',
     ],
   },
-  { version: 'AMP', usfm: '1CH.1.1', type: 'note.f',
-    texts: [
-      'Saul’s son, Ish-bosheth, ruled over the tribes of Israel for '
-      + 'two tumultuous years after his father’s death. His '
-      + 'assassination (2 Sam 4) triggered Israel’s appeal to David.'
-    ],
-    expect: [
-      'Saul’s son, Ish-bosheth, ruled over the tribes of Israel for '
-      + 'two tumultuous years after his father’s death. His '
-      + 'assassination (',
-      { xt: { text: '2 Sam 4', usfm: '2SA.4' } },
-      ') triggered Israel’s appeal to David.'
-    ],
-  },
   { version: 'AMP', usfm: '1CH.1.6', type: 'note.f',
     texts: [ 'In Gen 10:3', { it: 'Riphath' }, '.' ],
     expect: [
@@ -73,6 +59,20 @@ const tests  = [
       'In Hebrew this is the first verse in ',
       { xt: { text: 'ch 6', usfm: '1CH.6' } },
       '.'
+    ],
+  },
+  { version: 'AMP', usfm: '1CH.11.1', type: 'note.f',
+    texts: [
+      'Saul’s son, Ish-bosheth, ruled over the tribes of Israel for '
+      + 'two tumultuous years after his father’s death. His '
+      + 'assassination (2 Sam 4) triggered Israel’s appeal to David.'
+    ],
+    expect: [
+      'Saul’s son, Ish-bosheth, ruled over the tribes of Israel for '
+      + 'two tumultuous years after his father’s death. His '
+      + 'assassination (',
+      { xt: { text: '2 Sam 4', usfm: '2SA.4' } },
+      ') triggered Israel’s appeal to David.'
     ],
   },
   { version: 'AMP', usfm: 'HAG.1.2', type: 'note.f',
@@ -148,7 +148,7 @@ const tests  = [
       '). However, the sense of ',
     ],
   },
-  { version: 'AMP', usfm: 'MRK.2.11', type: 'note.f',
+  { version: 'AMP', usfm: 'MRK.2.10', type: 'note.f',
     texts: [
       '). It appears over eighty times in the Gospels. Especially notable is its use in 8:31.',
     ],
@@ -169,7 +169,7 @@ const tests  = [
       '. See especially v 29.',
     ],
   },
-  { version: 'AMP', usfm: 'REV.12.4', type: 'note.f (cf)',
+  { version: 'AMP', usfm: 'REV.12.3', type: 'note.f (cf)',
     texts: [
       ' ff as well. Daniel’s description reveals that the ten horns are ten kings who temporarily reign with the Antichrist during the Great Tribulation (cf 17:12).',
     ],
@@ -669,6 +669,29 @@ const tests  = [
       'There is occasionally a debate over the identities of Sheshbazzar and Zerubbabel. Sheshbazzar was an older Jewish official who was appointed by Cyrus and served in Judah (5:24). Zerubbabel was a younger man who was recognized as a political leader among the Jews. He was the son of Shealtiel and an ancestor of Jesus (5:2; ',
       { xt: { text: 'Matt 1:12, 13', usfm: 'MAT.1.12,13' } },
       ').',
+    ],
+  },
+  { version: 'AMP', usfm: 'REV.12.10', type: 'note.f (chapter-range)',
+    texts: [
+      'This is the activity of Satan from which he has earned his name '
+      + '(see note v 9). The activity is most clearly seen in Job 1-2 and '
+      + 'in Zech 3.',
+    ],
+    expect: [
+      'This is the activity of Satan from which he has earned his name (see note v 9). The activity is most clearly seen in ',
+      { xt: { text: 'Job 1', usfm: 'JOB.1' } },
+      '-',
+      { xt: { text: '2', usfm: 'JOB.2' } },
+      ' and in ',
+      { xt: { text: 'Zech 3', usfm: 'ZEC.3' } },
+      '.'
+    ],
+    actual: [
+      'This is the activity of Satan from which he has earned his name (see note v 9). The activity is most clearly seen in ',
+      { xt: { text: 'Job 1', usfm: 'JOB.1' } },
+      '-2 and in ',
+      { xt: { text: 'Zech 3', usfm: 'ZEC.3' } },
+      '.',
     ],
   },
   /* AMP }
