@@ -408,7 +408,7 @@ function _generate_Ref_RE() {
   const vr      = `${vs}(${Dashes} ?${vs})?(, ?${vs}(${Dashes} ?${vs})?)*`
   const chvs    = `${ch}(([.:]${vr})?(; ?${ch}([.:]${vr})?)*)`;
   const bk      = `(${book})[. ]+${chvs}`;
-  const alt     = ` (${Alts.join('|')}) ${ch}[.:]${vr}`;
+  const alt     = `(${Alts.join('|')}) ${ch}[.:]${vr}`;
   const ref     = `${bk}(; ?(${bk}|${chvs}))*|${alt}`;
   //const verses  = `(v\.?|ver\.?|verses?) ${vr}((, ?)?and ${vr})*`;
   //const ref     = `${bk}(; ?(${bk}|${chvs}))*|${alt}|${verses}`;

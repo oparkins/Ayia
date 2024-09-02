@@ -130,6 +130,16 @@ const tests  = [
       ' for information about a similar fulfillment of Bible prophecy with regard to Tyre.',
     ],
   },
+  { version: 'AMP', usfm: 'MAT.26.39', type: 'note.f (see)',
+    texts: [
+      '). Others think that the request related to the time of separation from the Father, which He would have to endure in death (see 27:46). However, the sense of ',
+    ],
+    expect: [
+      '). Others think that the request related to the time of separation from the Father, which He would have to endure in death (see ',
+      { xt: { text: '27:46', usfm: 'MAT.27.46' } },
+      '). However, the sense of ',
+    ],
+  },
   { version: 'AMP', usfm: 'MRK.2.11', type: 'note.f',
     texts: [
       '). It appears over eighty times in the Gospels. Especially notable is its use in 8:31.',
@@ -149,6 +159,16 @@ const tests  = [
       'An exception to this is recorded in ',
       { 'xt': { 'text': 'Acts 5:27-29', 'usfm': 'ACT.5.27-29' } },
       '. See especially v 29.',
+    ],
+  },
+  { version: 'AMP', usfm: 'REV.12.4', type: 'note.f (cf)',
+    texts: [
+      ' ff as well. Daniel’s description reveals that the ten horns are ten kings who temporarily reign with the Antichrist during the Great Tribulation (cf 17:12).',
+    ],
+    expect: [
+      ' ff as well. Daniel’s description reveals that the ten horns are ten kings who temporarily reign with the Antichrist during the Great Tribulation (cf ',
+      { xt: { text: '17:12', usfm: 'REV.17.12' } },
+      ').',
     ],
   },
   /* AMP }
@@ -613,32 +633,6 @@ const tests  = [
       '.'
     ],
     actual: [ 'In Hebrew this is the first verse in ch 6.' ],
-  },
-  { version: 'AMP', usfm: 'MAT.26.39', type: 'note.f (see)',
-    texts: [
-      '). Others think that the request related to the time of separation from the Father, which He would have to endure in death (see 27:46). However, the sense of ',
-    ],
-    expect: [
-      '). Others think that the request related to the time of separation from the Father, which He would have to endure in death (see ',
-      { xt: { text: '27:46', usfm: 'MAT.27.46' } },
-      '). However, the sense of ',
-    ],
-    actual: [
-      '). Others think that the request related to the time of separation from the Father, which He would have to endure in death (see 27:46). However, the sense of ',
-    ],
-  },
-  { version: 'AMP', usfm: 'REV.12.4', type: 'note.f (cf)',
-    texts: [
-      ' ff as well. Daniel’s description reveals that the ten horns are ten kings who temporarily reign with the Antichrist during the Great Tribulation (cf 17:12).',
-    ],
-    expect: [
-      ' ff as well. Daniel’s description reveals that the ten horns are ten kings who temporarily reign with the Antichrist during the Great Tribulation (cf ',
-      { xt: { text: '17:12', usfm: 'REV.17.12' } },
-      ').',
-    ],
-    actual: [
-      ' ff as well. Daniel’s description reveals that the ten horns are ten kings who temporarily reign with the Antichrist during the Great Tribulation (cf 17:12).',
-    ],
   },
   /* AMP }
    *************************************************************************
