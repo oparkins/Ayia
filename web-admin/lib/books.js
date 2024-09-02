@@ -214,7 +214,7 @@ const BookMap = {
   },
   'EST': {
     name  : 'Esther',
-    match : /^(es(t(her( \(hebrew\))?)?)?|esh)$/i,    // Es | Est | Esh
+    match : /^(est(her( \(hebrew\))?)?|esh)$/i,       // Est | Esh
     order : 17,
     loc   : 'Old Testament',
     verses: [ 0,  22, 23, 15, 17, 14, 14, 10, 17, 32, 3 ],
@@ -330,7 +330,7 @@ const BookMap = {
   },
   'EZK': {
     name  : 'Ezekiel',
-    match : /^(ez(e(kiel)?)?|ezk)$/i,                 // Ez | Ezk
+    match : /^(ez(e(k(iel)?)?)?|ezk)$/i,              // Ez | Ezk | Ezek
     order : 26,
     loc   : 'Old Testament',
     verses: [ 0,  28, 10, 27, 17, 17, 14, 27, 18, 11, 22, 25, 28, 23, 23,

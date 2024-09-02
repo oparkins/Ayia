@@ -160,7 +160,6 @@ const tests = [
   { str:'Nh', expect:'NEH' },
 
   { str:'EST', expect:'EST' },
-  { str:'Es', expect:'EST' },
   { str:'Esh', expect:'EST' },
   { str:'Esther', expect:'EST' },
   { str:'Esther (Hebrew)', expect:'EST' },
@@ -208,6 +207,7 @@ const tests = [
   { str:'EZK', expect:'EZK' },
   { str:'Ez', expect:'EZK' },
   { str:'Eze', expect:'EZK' },
+  { str:'Ezek', expect:'EZK' },
   { str:'Ezekiel', expect:'EZK' },
 
   { str:'DAN', expect:'DAN' },
