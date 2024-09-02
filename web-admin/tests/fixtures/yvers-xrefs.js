@@ -67,6 +67,14 @@ const tests  = [
       '.'
     ],
   },
+  { version: 'AMP', usfm: '1CH.6.16', type: 'note.f (chapter)',
+    texts: [ 'In Hebrew this is the first verse in ch 6.' ],
+    expect: [
+      'In Hebrew this is the first verse in ',
+      { xt: { text: 'ch 6', usfm: '1CH.6' } },
+      '.'
+    ],
+  },
   { version: 'AMP', usfm: 'HAG.1.2', type: 'note.f',
     texts: [
       'The people of Judah had completed seventy years of captivity in '
@@ -181,6 +189,22 @@ const tests  = [
       'Not the same town as in ',
       { xt: { text: '10.38,39', usfm: 'JOS.10.38,39' } },
       '.'
+    ],
+  },
+  { version: 'CEV', usfm: '1CH.12.1', type: 'note.f (chapter)',
+    texts: [
+      'Ziklag was the Philistine town that King Achish of Gath gave David '
+      + 'in return for his loyalty (see 1 Samuel 27.6). This happened during '
+      + 'the time that David was living as an outlaw, so the events in this '
+      + 'chapter actually took place before chapter 11 '
+      + 'when David became king of Israel.'
+    ],
+    expect: [
+      'Ziklag was the Philistine town that King Achish of Gath gave David in return for his loyalty (see ',
+      { xt: { text: '1 Samuel 27.6', usfm: '1SA.27.6' } },
+      '). This happened during the time that David was living as an outlaw, so the events in this chapter actually took place before ',
+      { xt: { text: "chapter 11", usfm: "1CH.11" } },
+      ' when David became king of Israel.'
     ],
   },
   { version: 'CEV', usfm: '2CH.34.20', type: 'note.f',
@@ -446,6 +470,28 @@ const tests  = [
       + 'about 24.5 pounds or 11.1 kilograms of flour).'
     ],
   },
+  { version: 'BSB', usfm: 'NUM.22.22', type: 'note.f (chapter)',
+    texts: [
+      'Or Angel; here through the rest of chapter 22; corresponding pronouns '
+      + 'may also be capitalized.'
+    ],
+    expect: [
+      'Or Angel; here through the rest of ',
+      { xt: { text: 'chapter 22', usfm: 'NUM.22' } },
+      '; corresponding pronouns may also be capitalized.'
+    ],
+  },
+  { version: 'BSB', usfm: 'JDG.13.3', type: 'note.f (chapter)',
+    texts: [
+      'Or Angel; here and throughout chapter 13; corresponding pronouns '
+      + 'may also be capitalized.'
+    ],
+    expect: [
+      'Or Angel; here and throughout ',
+      { xt: { text: 'chapter 13', usfm: 'JDG.13' } },
+      '; corresponding pronouns may also be capitalized.'
+    ],
+  },
   { version: 'BSB', usfm: 'DAN.7.13', type: 'note.f',
     texts: [
       'See Matthew 24:30, Matthew 26:64, Mark 13:26, Mark 14:62, Luke 21:27, Revelation 1:13, and Revelation 14:14.',
@@ -624,15 +670,6 @@ const tests  = [
       { xt: { text: 'Matt 1:12, 13', usfm: 'MAT.1.12,13' } },
       ').',
     ],
-  },
-  { version: 'AMP', usfm: '1CH.6.16', type: 'note.f (chapter)',
-    texts: [ 'In Hebrew this is the first verse in ch 6.' ],
-    expect: [
-      'In Hebrew this is the first verse in ',
-      { xt: { text: 'ch 6', usfm: '1CH.6' } },
-      '.'
-    ],
-    actual: [ 'In Hebrew this is the first verse in ch 6.' ],
   },
   /* AMP }
    *************************************************************************

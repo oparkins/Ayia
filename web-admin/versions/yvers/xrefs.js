@@ -15,7 +15,10 @@ const Dashes      = '[\u2010\u2012-\u2015\u2212-]';
 const Dashes_RE   = new RegExp( Dashes, 'g' );
 
 // Alternates that indicate chapter/verse within the source book
-const Alts        = [ 'at', 'in', 'see', 'note', 'cf', 'also', 'of' ];
+const Alts        = [ 'also', 'note',
+                      'see',
+                      'at', 'cf', 'in', 'of',
+                    ];
 
 /* Generate the shared string representation of the Regular Expression to match
  * a valid book name/abbreviation.
@@ -240,8 +243,51 @@ function _extract_xrefs( state, re_match ) {
     }
 
     matches.forEach( (match, mdex) => {
-      let   text    = match[0];
-      const groups  = match.groups;
+      let   text      = match[0];
+      const lc_input  = match.input.toLowerCase();
+      const groups    = match.groups;
+
+      /*
+      console.log('>>>> match %d[ %s : %s ]: text[ %s ], groups: %O',
+                  mdex, norm_match, match.input, text, groups);
+      // */
+
+      /* First, handle any book name dealing with special cases like:
+       *    - 'chapter' | 'ch.?'
+       *    - Alternatives
+       */
+      if (groups.book) {
+        const lc_book = groups.book.toLowerCase();
+
+        if (lc_book.startsWith('ch')) {
+          // Chapter
+          text = lc_input;
+          book = state.book;
+
+          /*
+          console.log('===== Chapter[ %s ] => text[ %s ], book[ %s ]',
+                      groups.book, text, book);
+          // */
+
+        } else if (Alts.includes( lc_book )) {
+          // Alternative (non-book)
+          const alt = groups.book + ' ';  // Include trailing white-space
+          text = text.slice( alt.length );
+
+          book = state.book;
+
+        } else {
+          // Book : see if it is a valid book name
+          const ABBR  = Books.nameToABBR( groups.book );
+          if (ABBR) { book = ABBR }
+          else      {
+            console.log('*** Normalize Xrefs: book[ %s ] NOT recognized',
+                        groups.book);
+
+            book = groups.book;
+          }
+        }
+      }
 
       // Include any interveening text
       const start = remain.indexOf( text );
@@ -255,29 +301,9 @@ function _extract_xrefs( state, re_match ) {
       // Remove this text from `remain`
       remain = remain.slice( text.length );
 
-      /*
-      console.log('>>>> match %d[ %s : %s ]: text[ %s ], groups: %O',
-                  mdex, norm_match, match.input, text, groups);
-      // */
-
-      if (groups.book) {
-        if (Alts.includes( groups.book.toLowerCase() )) {
-          const alt = groups.book + ' ';  // Include trailing white-space
-          text = text.slice( alt.length );
-
-          _push_item( state, alt );
-
-          book = state.book;
-
-        } else {
-          const ABBR  = Books.nameToABBR( groups.book );
-          if (ABBR) { book = ABBR }
-          else      { book = groups.book }
-        }
-      }
-
-      if (groups.ch)    { ch   = groups.ch.replaceAll(/\s+/g,'') }
-      if (groups.vs)    { vs   = groups.vs.replaceAll(/\s+/g,'') }
+      // Handle updated to chapter and verse
+      if (groups.ch)    { ch = groups.ch.replaceAll(/\s+/g,'') }
+      if (groups.vs)    { vs = groups.vs.replaceAll(/\s+/g,'') }
 
       let ref = `${book}.${ch}`;
       if (vs) { ref += `.${vs}` }
@@ -397,10 +423,10 @@ function _generate_Ref_RE() {
    * CHVS   = CH((:VR)?(; CH(:VR)?)*)
    *
    * BK     = BOOK CHVS
-   * ALT    = (at|in|see|note|cf|also|of) CH:VR
-   * #VERSES = (v|ver|verse|verses) VR(and VR)?
+   * ALT    = (also|note|see|at|cf|in|of) CH:VR
+   * CHAP   = (ch.?|chapter) CH
    *
-   * REF    = BK(; (BK|CHVS))*|ALT        #|VERSES
+   * REF    = BK(; (BK|CHVS))*|ALT|CHAP
    */
   const book    = Book_or_str;
   const ch      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 150
@@ -409,9 +435,8 @@ function _generate_Ref_RE() {
   const chvs    = `${ch}(([.:]${vr})?(; ?${ch}([.:]${vr})?)*)`;
   const bk      = `(${book})[. ]+${chvs}`;
   const alt     = `(${Alts.join('|')}) ${ch}[.:]${vr}`;
-  const ref     = `${bk}(; ?(${bk}|${chvs}))*|${alt}`;
-  //const verses  = `(v\.?|ver\.?|verses?) ${vr}((, ?)?and ${vr})*`;
-  //const ref     = `${bk}(; ?(${bk}|${chvs}))*|${alt}|${verses}`;
+  const chap    = `(ch\\.?|chapter) ${ch}`;
+  const ref     = `${bk}(; ?(${bk}|${chvs}))*|${alt}|${chap}`;
 
   return new RegExp( ref, 'ig' );
 }
@@ -438,12 +463,12 @@ function _generate_Group_RE() {
    * CHVS   = CH((:VR)?
    *
    * BK     = BOOK CHVS
-   * ALT    = (at|in|see|note|cf|also|of) CH:VR
+   * ALT    = (also|note|see|at|cf|in|of) CH:VR
    *
-   * REF    = BOOK CHVS|ALT
+   * REF    = BOOK CHVS|ALT|ch.|chapter
    */
   const alt     = `(${Alts.join('|')})`;
-  const book    = `${Book_or_str}|${alt}`;
+  const book    = `${Book_or_str}|${alt}|ch\.?|chapter`;
   const ch      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 150
   const vs      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 119:176
   const vr      = `${vs}(${Dashes} ?${vs})?(, ?${vs}(${Dashes} ?${vs})?)*`
