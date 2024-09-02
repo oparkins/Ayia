@@ -294,6 +294,7 @@ const tests = [
   { str:'Jn', expect:'JHN' },
 
   { str:'ACT', expect:'ACT' },
+  { str:'Ac', expect:'ACT' },
   { str:'Acts', expect:'ACT' },
 
   { str:'ROM', expect:'ROM' },

@@ -491,7 +491,7 @@ const BookMap = {
   },
   'ACT': {
     name  : 'Acts',
-    match : /^(acts?)$/i,                             // Act | Acts
+    match : /^(ac(ts?)?)$/i,                         // Ac | Act | Acts
     order : 44,
     loc   : 'New Testament',
     verses: [ 0,  26, 47, 26, 37, 42, 15, 60, 40, 43, 48, 30, 25, 52, 28,
