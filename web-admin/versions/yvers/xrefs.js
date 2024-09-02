@@ -1,7 +1,32 @@
 const Books   = require('../../lib/books');
 const Refs    = require('../../lib/refs');
 
-const Ref_RE  = _generate_Ref_RE();
+/* The set of Unicode Characters that may be used for a dash:
+ *  character           Unicode (hexadecimal) HTML entity
+ *  hyphen  ‐           U+2010  (&#x2010;) ‐  &dash; ‐
+ *                                            &hyphen; ‐
+ *  Figure dash ‒       U+2012  (&#x2012;) ‒
+ *  En dash –           U+2013  (&#x2013;) –  &ndash; –
+ *  Em dash —           U+2014  (&#x2014;) —  &mdash; —
+ *  Horizontal bar  ―   U+2015  (&#x2015;) ―  &horbar; ―
+ *  minus sign  −       U+2212  (&#x2212;) −  &minus; −
+ */
+const Dashes      = '[\u2010\u2012-\u2015\u2212-]';
+const Dashes_RE   = new RegExp( Dashes, 'g' );
+
+// Alternates that indicate chapter/verse within the source book
+const Alts        = [ 'at', 'in', 'see', 'note', 'cf', 'also', 'of' ];
+
+/* Generate the shared string representation of the Regular Expression to match
+ * a valid book name/abbreviation.
+ */
+const Book_or_str = _generate_Book_or_str();
+
+/* Generate shared regular expressions for matching a full reference set and
+ * a second to perform grouping within a single reference.
+ */
+const Ref_RE      = _generate_Ref_RE();
+const Group_RE    = _generate_Group_RE();
 
 /**
  *  Given an array of note.x or note.f text (cross-references or footnote),
@@ -100,8 +125,8 @@ function normalize_xrefs( state, texts ) {
 
   // Walk through all text elements extracting any references from each
   texts.forEach( (text, tdex) => {
-    if (typeof(text) !== 'string') {
-      // Push this non-text item directly to the normalized set
+    if (typeof(text) !== 'string' || text.length < 4) {
+      // Push this non-text/short-text item directly to the normalized set
       _push_item( ref_state, text );
       return;
     }
@@ -115,234 +140,43 @@ function normalize_xrefs( state, texts ) {
       console.log('>>> Normalize Xrefs: matches:', matches );
     }
 
-    if (matches) {
-      // Extract references
-      ref_state.remain = norm_text;
+    if (matches.length < 1) {
+      _push_item( ref_state, text );
+      return;
+    }
 
-      matches.forEach( (match, mdex) => {
-        const text  = match[0];
-        const book  = match.groups.book;
-        let   fr_ch = match.groups.fr_ch;
-        let   fr_vs = match.groups.fr_vs;
-        const sep   = match.groups.sep;
-        const to    = match.groups.to;
-        const first = ref_state.remain.indexOf( text );
-        let   ref   = ':TODO:';
+    /************************************************************************
+     * Extract references
+     *
+     */
+    ref_state.remain = norm_text;
 
-        if (ref_state.skip && text === ref_state.skip) {
-          if (state.verbosity > 1) {
-            console.log('=== Normalize Xrefs: match %d: SKIP [%s] ...',
-                        mdex, text);
-          }
+    matches.forEach( (match, mdex) => {
+      const match_text  = match[0];
 
-          ref_state.skip = null;
-          return;
-        }
-
-        if (state.verbosity > 1) {
-          console.log('>>> Normalize Xrefs: match %d: text [%s] ...',
-                      mdex, text);
-        }
-
-        /* Remove this reference match from the source text, ensuring any
-         * interveening text is not lost.
-         */
-        if (first === 0) {
-          /* No interveening text -- simply remove this match from the
-           * remaining text.
-           */
-          const orig  = ref_state.remain;
-          ref_state.remain = ref_state.remain.slice( text.length );
-
-        } else if (first > 0) {
-          // Add interveening text as raw text
-          const len   = first;
-          const orig  = ref_state.remain;
-          const str   = ref_state.remain.slice( 0, len );
-
-          _push_item( ref_state, str );
-
-          /* Remove the interveening text AND this match from the remaining
-           * text.
-           */
-          ref_state.remain = ref_state.remain.slice( len + text.length );
-        }
-
-        /******************************************************
-         * Process any identified book
-         *
-         */
-        if (book && (book[0] === 'v' || book[0] === 'V')) {
-          /* This is a "verse" item with no book or chapter identification that
-           * is in relation to the source reference so reset book and chapter
-           * state.
-           */
-          ref_state._reset();
-
-        } else if (book && (book[0] === 'c' || book[0] === 'C')) {
-          /* This is a "chapter" item with no book or verse identification that
-           * is in relation to the source reference so reset book and verse
-           * state.
-           *
-           */
-          ref_state._reset();
-
-          // Ensure 'fr_ch' is populated and 'fr_vs' is empty.
-          if (fr_ch == null && fr_vs != null) {
-            if (state.verbosity > 1) {
-              console.log('=== Normalize Xrefs: Chapter reference: '
-                          +         'move fr_vs[ %s ] to fr_ch',
-                          fr_vs);
-            }
-
-            fr_ch = fr_vs;
-            fr_vs = null;
-
-            // Reset the current verse
-            ref_state.vers = null;
-          }
-
-        } else if (book) {
-          // New book -- validate the book identification
-          const abbr      = Books.nameToABBR( book );
-          const full_book = Books.getBook( abbr );
-          if (full_book) {
-            // Valid book
-            const verses = (Array.isArray( full_book.verses ) &&
-                            full_book.verses);
-
-            /* If we have a book and verse but no chapter then we've
-             * mis-identified the target chapter as a verse so adjust.
-             */
-            if (fr_ch == null && fr_vs != null) {
-              if (state.verbosity > 1) {
-                console.log('=== Normalize Xrefs: Book/chapter, no verse: '
-                            +         'move fr_vs[ %s ] to fr_ch',
-                            fr_vs);
-              }
-
-              fr_ch = fr_vs;
-              fr_vs = null;
-
-              // Reset the current verse
-              ref_state.vers = null;
-            }
-
-            // Reset our chapter and verse counts
-            ref_state.book      = full_book.abbr;
-            ref_state.verses    = verses;
-            ref_state.num_chaps = (verses ? verses.length - 1        : -1);
-            ref_state.num_vers  = (verses ? verses[ ref_state.chap ] : -1);
-
-            if (state.verbosity > 2) {
-              console.log('>>> Normalize Xrefs: New book [ %s : %s ], '
-                          +       '%d chapters',
-                          book, abbr, ref_state.num_chaps);
-            }
-
-          } else if (state.verbosity > 1) {
-            console.warn('*** Normalize Xrefs: book [ %s : %s ] '
-                        +       'is NOT a valid book',
-                        book, abbr);
-          }
-        }
-
-        /******************************************************
-         * Process any identified chapter (from)
-         *
-         */
-        if (fr_ch) {
-          // New chapter -- validate the chapter number
-          const num = parseInt( fr_ch );
-
-          /* :XXX: For now, this will consider references to books that have no
-           *       chapter/verse counts as invalid.
-           *
-           *       To *allow* references to such books, change the final or
-           *       below to:
-           *        (ref_state.num_chaps > 0 && num > ref_state.num_chaps)
-           */
-          if (Number.isNaN( num ) || num < 0 || num > ref_state.num_chaps) {
-            if (state.verbosity > 1) {
-              console.warn('*** Normalize Xrefs: text[ %s ]: fr_ch[ %s ] '
-                            +         'NOT valid [1..%s]',
-                            text, fr_ch, ref_state.num_chaps);
-            }
-
-            /* Consume this text along wth any immediately following
-             * verse/range characters.
-             */
-            _consume_invalid_range( ref_state, text );
-            return;
-          }
-
-          // Update chapter number and verse count
-          ref_state.chap     = num;
-          ref_state.num_vers = (ref_state.verses
-                                  ? ref_state.verses[ num ]
-                                  : -1);
-
-          if (state.verbosity > 2) {
-            console.log('>>> Normalize Xrefs: New chapter [ %s : %s ], '
-                        +       '%d verses',
-                        fr_ch, num, ref_state.num_vers);
-          }
-        }
-
-        /******************************************************
-         * Process any identified verse (from)
-         *
-         */
-        if (fr_vs) {
-          // New verse -- validate the verse number
-          const num = parseInt( fr_vs );
-
-          /* :XXX: For now, this will consider references to books that have no
-           *       chapter/verse counts as invalid.
-           *
-           *       To *allow* references to such books, change the final or
-           *       below to:
-           *        (ref_state.num_vers > 0 && num > ref_state.num_vers)
-           */
-          if (Number.isNaN( num ) || num < 0 || num > ref_state.num_vers) {
-            if (state.verbosity > 1) {
-              console.warn('*** Normalize Xrefs: text[ %s ]: fr_vs[ %s ] '
-                            +         'NOT valid [1..%s]',
-                            text, fr_vs, ref_state.num_vers);
-            }
-
-            /* Consume this text along wth any immediately following
-             * verse/range characters.
-             */
-            _consume_invalid_range( ref_state, text );
-            return;
-          }
-
-          // Update verse number
-          ref_state.vers = num;
-        }
-
-        /******************************************************
-         * Pass along any identified separator and/or to_vers
-         *
-         */
-        ref_state.sep     = sep;
-        ref_state.to_vers = to;
-
-        if (state.verbosity > 2) {
-          console.log('>>> Normalize Xrefs: match %d "%s":',
-                      mdex, text, match.groups);
-        }
-
-        _push_ref( ref_state, text );
-      });
-
-      if (ref_state.remain.length > 0) {
-        _push_item( ref_state, ref_state.remain );
+      if (state.verbosity > 1) {
+        console.log('>>> Normalize Xrefs: match %d: text [%s] ...',
+                    mdex, match_text);
       }
 
-    } else {
-      _push_item( ref_state, text );
+      // Include any interveening text
+      const start = ref_state.remain.indexOf( match_text );
+      if (start > 0) {
+        const keep  = ref_state.remain.slice(0, start );
+
+        _push_item( ref_state, keep );
+
+        ref_state.remain = ref_state.remain.slice( start );
+      }
+
+      // Remove this text from `ref_state.remain`
+      ref_state.remain = ref_state.remain.slice( match_text.length );
+
+      _extract_xrefs( ref_state, match_text );
+    });
+
+    if (ref_state.remain.length > 0) {
+      _push_item( ref_state, ref_state.remain );
     }
   });
 
@@ -355,21 +189,160 @@ function normalize_xrefs( state, texts ) {
  */
 
 /**
- *  Consolidate the generation of the regular expression used to identify
- *  cross-references.
+ *  Given a match against the full reference regular expression, split into
+ *  individual book/chapter strings and extract references from each.
  *
- *  @method _generate_Ref_RE
+ *  @method _extract_xrefs
+ *  @param  state           The current reference state {Object};
+ *  @param  state.book      Current book abbreviation {String};
+ *  @param  state.chap      Current chapter {Number};
+ *  @param  state.vers      Current verse {Number};
+ *  @param  state.sep       Any range separator {String};
+ *  @param  state.to_vers   End of range {String};
+ *  @param  state.verses    The chapter array with verse counts
+ *                          {Array[Number]};
+ *  @param  state.num_chaps The number of chapters in the current book
+ *                          {Number};
+ *  @param  state.num_vers  The number of verses in the current book/chapter
+ *                          {Number};
+ *  @param  state.norm      The normalized set {Array};
+ *  @param  state.remain    The remaining text to be parsed {String};
+ *  @param  state.skip      Characters to skip in the next match {String};
+ *  @param  state.last_text The index of the previous text item {Number};
+ *  @param  re_match        A string matching the full reference regular
+ *                          expression {String};
  *
- *  @return The full cross-reference regular expression {RegExp};
+ *  @return The updated state {Object};
  *  @private
  */
-function _generate_Ref_RE() {
+function _extract_xrefs( state, re_match ) {
+  const norm_match  = re_match.replaceAll( Dashes_RE, '-' );
+  const parts       = norm_match.split(/;\s*/);
+  let   remain      = norm_match;
+  let   book, ch, vs;
+
+  parts.forEach( (part,pdex) => {
+    const matches   = [...part.matchAll( Group_RE )];
+
+    if (matches.length < 1) {
+      // Include any interveening text
+      const start = remain.indexOf( part );
+      if (start > 0) {
+        const keep  = remain.slice(0, start );
+        remain = remain.slice( start );
+
+        _push_item( state, keep );
+      }
+
+      // Remove this text from `remain`
+      remain = remain.slice( part.length );
+      return;
+    }
+
+    matches.forEach( (match, mdex) => {
+      let   text    = match[0];
+      const groups  = match.groups;
+
+      // Include any interveening text
+      const start = remain.indexOf( text );
+      if (start > 0) {
+        const keep  = remain.slice(0, start );
+        remain = remain.slice( start );
+
+        _push_item( state, keep );
+      }
+
+      // Remove this text from `remain`
+      remain = remain.slice( text.length );
+
+      /*
+      console.log('>>>> match %d[ %s : %s ]: text[ %s ], groups: %O',
+                  mdex, norm_match, match.input, text, groups);
+      // */
+
+      if (groups.book) {
+        if (Alts.includes( groups.book.toLowerCase() )) {
+          const alt = groups.book + ' ';  // Include trailing white-space
+          text = text.slice( alt.length );
+
+          _push_item( state, alt );
+
+          book = state.book;
+
+        } else {
+          const ABBR  = Books.nameToABBR( groups.book );
+          if (ABBR) { book = ABBR }
+          else      { book = groups.book }
+        }
+      }
+
+      if (groups.ch)    { ch   = groups.ch.replaceAll(/\s+/g,'') }
+      if (groups.vs)    { vs   = groups.vs.replaceAll(/\s+/g,'') }
+
+      let ref = `${book}.${ch}`;
+      if (vs) { ref += `.${vs}` }
+
+      _push_item( state, {xt: { text: text, usfm: ref }} );
+    });
+  });
+
+  if (remain.length > 0) {
+    _push_item( state, remain );
+  }
+
+  return state;
+}
+
+/**
+ *  Add a new item, possibly text, to the normalized set.
+ *
+ *  @method _push_item
+ *  @param  state           The current reference state {Object};
+ *  @param  state.norm      The normalized set {Array};
+ *  @param  state.last_text The index of the previous text item {Number};
+ *  @param  text            The text to add {String};
+ *
+ *  @return The updated `state` {Object};
+ *  @private
+ */
+function _push_item( state, text ) {
+  if (typeof(text) === 'string') {
+    if (state.last_text != null && state.last_text >= 0) {
+      // Append this to the previous text item
+      state.norm[ state.last_text ] += text;
+      return state;
+    }
+
+    // Remember the location of this text item
+    state.last_text = state.norm.length;
+
+  } else {
+    // Since this item is not text, clear the `last_text` index
+    state.last_text = null;
+  }
+
+  state.norm.push( text );
+
+  return state;
+}
+
+/********************************************************************
+ * Consolidate regular expression generation {
+ *
+ */
+
+/**
+ *  Generate a regular expression string that may be used to identify valid
+ *  books.
+ *
+ *  @method _generate_Book_or_str
+ *
+ *  @return The regular expression string {String};
+ *  @private
+ */
+function _generate_Book_or_str() {
   // Fetch all books from all locations (e.g. Old/New Testament)
   const book_map = Books.getBooks( '*' );
-
-  /*
-  console.log('book_map:', inspect(book_map));
-  // */
 
   // Generate regular expression strings to identify valid books
   const book_re  = book_map.reduce( (ar, book) => {
@@ -404,251 +377,86 @@ function _generate_Ref_RE() {
     return ar;
   }, []);
 
-  // Include entries to catch verse and chapter identifiers as a "book"
-  book_re.push( 'v', 'ver', 'verse', 'c', 'ch', 'chapter' );
-
-  // Generate the full, final reference regular expression
-  const ref_re  = new RegExp( [
-                                                // 1  : Book
-    `(?:(?:^|[ (])(?<book>${book_re.join('|')})(?:[. ]+))?`,
-    '(?:',
-      '(?:(?<fr_ch>[1]?[0-9]{1,2})[.: ]+)?',    // 2  : Chapter (from)
-      '(?<fr_vs>[1]?[0-9]{1,2})',               // 3  : Verse   (from)
-      '(?:',
-        '(?<sep>[-,])',                         // 4  : Separator
-        '(?<to>[0-9., ]+)',                     // 5  : Verse   (to)
-      ')?',
-    ')',
-  ].join(''), 'ig');
-
-  return ref_re;
+  return `${book_re.join('|')}`;
 }
 
 /**
- *  An invalid chapter/verse range has been detected. Move it along with any
- *  immediately following range characters to the previous text item and update
- *  state to ignore the next match that may be realted to this range.
+ *  Generate a full regular expression to identify all cross-reference sets
+ *  within raw text.
  *
- *  @method _consume_invalid_range
- *  @param  state           The current reference state {Object};
- *  @param  state.book      Current book abbreviation {String};
- *  @param  state.chap      Current chapter {Number};
- *  @param  state.vers      Current verse {Number};
- *  @param  state.sep       Any range separator {String};
- *  @param  state.to_vers   End of range {String};
- *  @param  state.verses    The chapter array with verse counts
- *                          {Array[Number]};
- *  @param  state.num_chaps The number of chapters in the current book
- *                          {Number};
- *  @param  state.num_vers  The number of verses in the current book/chapter
- *                          {Number};
+ *  @method _generate_Ref_RE
  *
- *  @param  state.norm      The normalized set {Array};
- *  @param  state.remain    The remaining text to be parsed {String};
- *  @param  state.skip      Characters to skip in the next match {String};
- *  @param  state.last_text The index of the previous text item {Number};
- *  @param  text            The text of the identified invalid range {String};
- *
- *  @return The sortable reference {String};
+ *  @return The full cross-reference regular expression {RegExp};
  *  @private
  */
-function _consume_invalid_range( state, text ) {
-  const re_range  = /^(?<range>[0-9,-]+)/;
-
-  /* Consume this text along wth any immediately following verse/range
-   * characters.
+function _generate_Ref_RE() {
+  /* CH     = 1[0-9]{2}|[1-9][0-9]|[1-9](?![0-9])   1## | 1# | 1-9 (![0-9])
+   * VS     = 1[0-9]{2}|[1-9][0-9]|[1-9](?![0-9])   1## | 1# | 1-9 (![0-9])
+   *
+   * VR     = VS(-VS)?(, VS(-VS)?)*
+   * CHVS   = CH((:VR)?(; CH(:VR)?)*)
+   *
+   * BK     = BOOK CHVS
+   * ALT    = (at|in|see|note|cf|also|of) CH:VR
+   * #VERSES = (v|ver|verse|verses) VR(and VR)?
+   *
+   * REF    = BK(; (BK|CHVS))*|ALT        #|VERSES
    */
-  let   append  = text;
-  const match   = state.remain.match( re_range );
-  const range   = (match && match.groups.range);
-  if (range) {
-    // Include additional verse/range characters from `remain`
-    append += range;
+  const book    = Book_or_str;
+  const ch      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 150
+  const vs      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 119:176
+  const vr      = `${vs}(${Dashes} ?${vs})?(, ?${vs}(${Dashes} ?${vs})?)*`
+  const chvs    = `${ch}(([.:]${vr})?(; ?${ch}([.:]${vr})?)*)`;
+  const bk      = `(${book})[. ]+${chvs}`;
+  const alt     = ` (${Alts.join('|')}) ${ch}[.:]${vr}`;
+  const ref     = `${bk}(; ?(${bk}|${chvs}))*|${alt}`;
+  //const verses  = `(v\.?|ver\.?|verses?) ${vr}((, ?)?and ${vr})*`;
+  //const ref     = `${bk}(; ?(${bk}|${chvs}))*|${alt}|${verses}`;
 
-    // Setup to skip any following match that uses `range`
-    state.skip = range;
-
-    // Remove the range from the remaining text to be parsed
-    state.remain = state.remain.slice( range.length );
-
-  } else {
-    // No additional verse/range characters (invalidates any existing skip)
-    state.skip = null;
-  }
-
-  // Append the range-related text
-  _push_item( state, append );
-
-  state._reset();
-
-  return state;
+  return new RegExp( ref, 'ig' );
 }
 
 /**
- *  Generate a sortable reference based upon the current reference state.
+ *  Generate a regular expression to perform grouping from the text of a single
+ *  cross-reference string.
  *
- *  @method _generate_ref
- *  @param  state           The current reference state {Object};
- *  @param  state.book      Current book abbreviation {String};
- *  @param  state.chap      Current chapter {Number};
- *  @param  state.vers      Current verse {Number};
- *  @param  state.sep       Any range separator {String};
- *  @param  state.to_vers   End of range {String};
- *  @param  state.verses    The chapter array with verse counts
- *                          {Array[Number]};
- *  @param  state.num_chaps The number of chapters in the current book
- *                          {Number};
- *  @param  state.num_vers  The number of verses in the current book/chapter
- *                          {Number};
+ *  @method _generate_Group_RE
  *
- *  @param  state.norm      The normalized set {Array};
- *  @param  state.remain    The remaining text to be parsed {String};
- *  @param  state.skip      Characters to skip in the next match {String};
- *  @param  state.last_text The index of the previous text item {Number};
+ *  The groups will be:
+ *    book      The name of the referenced book {String | undefined};
+ *    ch        The chapter {String | undefined};
+ *    vs        Any verse(es) {String | undefined};
  *
- *  @return The sortable reference {String};
+ *  @return The regular express {RegExp};
  *  @private
  */
-function _generate_ref( state ) {
-  let ref = Refs.sortable( state.book, state.chap, state.vers );
+function _generate_Group_RE() {
+  /* CH     = 1[0-9]{2}|[1-9][0-9]|[1-9](?![0-9])   1## | 1# | 1-9 (![0-9])
+   * VS     = 1[0-9]{2}|[1-9][0-9]|[1-9](?![0-9])   1## | 1# | 1-9 (![0-9])
+   *
+   * VR     = VS(-VS)?(, VS(-VS)?)*
+   * CHVS   = CH((:VR)?
+   *
+   * BK     = BOOK CHVS
+   * ALT    = (at|in|see|note|cf|also|of) CH:VR
+   *
+   * REF    = BOOK CHVS|ALT
+   */
+  const alt     = `(${Alts.join('|')})`;
+  const book    = `${Book_or_str}|${alt}`;
+  const ch      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 150
+  const vs      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 119:176
+  const vr      = `${vs}(${Dashes} ?${vs})?(, ?${vs}(${Dashes} ?${vs})?)*`
+  const chvs    = `((?<ch>${ch})(([.:](?<vs>${vr})))?)`;
+  const ref     = `((?<book>${book})[. ]+)?${chvs}`;
 
-  if (state.sep && state.to_vers) {
-    const trimmed = state.to_vers.trim();
-
-    if (trimmed) {
-      if (state.sep === '-') {
-        // Simple range
-        ref += '-'+ Refs.num( trimmed );
-
-      } else if (state.sep === ',') {
-        // CSV set of verses
-        const nums  = trimmed.split(/\s*,\s*/).map( str => Refs.num( str ));
-
-        ref += ','+ nums.join(',');
-      }
-    } else if (state.remain) {
-      // Move the 'to' text BACK to the remaining text
-      state.remain = state.to_vers + state.remain;
-    }
-  }
-
-  // Reset the separator/to_vers
-  state.sep     = null;
-  state.to_vers = null;
-
-  return ref;
+  return new RegExp( ref, 'ig' );
 }
 
-/**
- *  Add a new item, possibly text, to the normalized set.
+/* Consolidate regular expression generation }
+ ********************************************************************
  *
- *  @method _push_item
- *  @param  state           The current reference state {Object};
- *  @param  state.book      Current book abbreviation {String};
- *  @param  state.chap      Current chapter {Number};
- *  @param  state.vers      Current verse {Number};
- *  @param  state.sep       Any range separator {String};
- *  @param  state.to_vers   End of range {String};
- *  @param  state.verses    The chapter array with verse counts
- *                          {Array[Number]};
- *  @param  state.num_chaps The number of chapters in the current book
- *                          {Number};
- *  @param  state.num_vers  The number of verses in the current book/chapter
- *                          {Number};
- *
- *  @param  state.norm      The normalized set {Array};
- *  @param  state.remain    The remaining text to be parsed {String};
- *  @param  state.skip      Characters to skip in the next match {String};
- *  @param  state.last_text The index of the previous text item {Number};
- *  @param  text            The text to add {String};
- *
- *  @return The updated `state` {Object};
- *  @private
- */
-function _push_item( state, text ) {
-  if (typeof(text) === 'string') {
-    if (state.last_text != null && state.last_text >= 0) {
-      // Append this to the previous text item
-      state.norm[ state.last_text ] += text;
-      return state;
-    }
-
-    // Remember the location of this text item
-    state.last_text = state.norm.length;
-
-  } else {
-    // Since this item is not text, clear the `last_text` index
-    state.last_text = null;
-  }
-
-  state.norm.push( text );
-
-  return state;
-}
-
-/**
- *  Generate a new reference from the current state and push it onto the
- *  normalized set.
- *
- *  @method _push_ref
- *  @param  state           The current reference state {Object};
- *  @param  state.book      Current book abbreviation {String};
- *  @param  state.chap      Current chapter {Number};
- *  @param  state.vers      Current verse {Number};
- *  @param  state.sep       Any range separator {String};
- *  @param  state.to_vers   End of range {String};
- *  @param  state.verses    The chapter array with verse counts
- *                          {Array[Number]};
- *  @param  state.num_chaps The number of chapters in the current book
- *                          {Number};
- *  @param  state.num_vers  The number of verses in the current book/chapter
- *                          {Number};
- *
- *  @param  state.norm      The normalized set {Array};
- *  @param  state.remain    The remaining text to be parsed {String};
- *  @param  state.skip      Characters to skip in the next match {String};
- *  @param  state.last_text The index of the previous text item {Number};
- *  @param  text            The text of the reference {String};
- *
- *  @return The updated `state` {Object};
- *  @private
- */
-function _push_ref( state, text ) {
-  // RegExp to identify non-word prefix, word, and non-word suffix
-  const re    = /^(?<pre>[^\w]*)(?<word>.*?)(?<suf>[^\w]*)$/;
-  const match = text.match( re );
-  const pre   = (match && match.groups && match.groups.pre);
-  const word  = (match && match.groups && match.groups.word);
-  const suf   = (match && match.groups && match.groups.suf);
-
-
-  if (pre != null && pre.length > 0) {
-    // Move the non-word prefix to the previous text item, or create one.
-    _push_item( state, pre );
-  }
-
-  if (word != null && word != text) {
-    // Reduce the reference text to the word portion
-    text = word;
-  }
-
-  const usfm  = _generate_ref( state );
-  /*
-  console.log('_push_ref(): text[ %s ], usfm[ %s ] ...', text, usfm);
-  // */
-
-  state.norm.push( { xt: { text, usfm } } );
-
-  state.last_text = null;
-
-  if (suf != null && suf.length > 0) {
-    // Move the non-word suffix a new text item
-    _push_item( state, suf );
-  }
-
-  return state;
-}
-/* Private helpers }
+ * Private helpers }
  ****************************************************************************/
 
 module.exports  = {
