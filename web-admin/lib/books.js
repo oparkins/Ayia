@@ -198,7 +198,10 @@ const BookMap = {
   },
   'EZR': {
     name  : 'Ezra',
-    match : /^(ezra?|er)$/i,                          // Ezr | Er
+    /* :XXX: Need negative look behind to defeat matches on words ending with
+     *       'er' (e.g. 'chapter').
+     */
+    match:  /^(ezra?|(?<![a-z])er)$/i,                // Ezr | Er
     order : 15,
     loc   : 'Old Testament',
     verses: [ 0,  11, 70, 13, 24, 17, 22, 28, 36, 15, 44 ],
