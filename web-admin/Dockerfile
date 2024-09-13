@@ -14,8 +14,7 @@ ADD --chown=node:node versions/ /app/versions/
 
 WORKDIR /app
 
-RUN npm install && \
-    chown -R node:node .
+RUN npm install
 
 ###
 FROM node:21.6.1-alpine3.19
@@ -23,11 +22,11 @@ MAINTAINER D. Elmo Peele
 
 RUN apk add --no-cache bash make curl vim
 ADD sys/user.sh   /etc/bash/
+COPY --from=builder --chown=node:node /app /app
 
 USER node
 WORKDIR /app
 
-COPY --from=builder /app /app
 ADD sys/.bashrc     /home/node/
 
 # Expose:
