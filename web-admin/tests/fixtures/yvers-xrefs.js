@@ -696,57 +696,6 @@ const tests  = [
   },
   /* AMP }
    *************************************************************************
-   * CEV {
-   */
-  { version: 'CEV', usfm: '2CH.34.30', type: 'note.f (verses)',
-    texts: [
-      "The Hebrew text has “The Book of God's Agreement,” which is the "
-      + "same as “The Book of God's Law” in verses 15 and 19. In "
-      + "traditional translations this is called “The Book of the Covenant.”"
-    ],
-    expect: [
-      "The Hebrew text has “The Book of God's Agreement,” which is the same as “The Book of God's Law” in verses ",
-      { xt: { text: '15', usfm: '2CH.34.15' } },
-      ' and ',
-      { xt: { text: '19', usfm: '2CH.34.19' } },
-      '. In traditional translations this is called “The Book of the Covenant.”'
-    ],
-    actual: [
-      "The Hebrew text has “The Book of God's Agreement,” which is the "
-      + "same as “The Book of God's Law” in verses 15 and 19. In "
-      + "traditional translations this is called “The Book of the Covenant.”"
-    ],
-  },
-  /* CEV }
-   *************************************************************************
-   * NIV11 {
-   */
-  { version: 'NIV11', usfm: 'GEN.2.5', type: 'note.f (verse)',
-    texts: [ '; also in verse 6' ],
-    expect: [
-      '; also in ',
-      { xt: { text: 'verse 6', usfm: 'GEN.2.6' } }
-    ],
-    actual: [ '; also in verse 6' ],
-  },
-  { version: 'NIV11', usfm: 'EZK.48.16', type: 'note.f (verses)',
-    texts: [
-      'That is, about 1 1/2 miles or about 2.4 kilometers; also in verses '
-      + '30, 32, 33 and 34',
-    ],
-    expect: [
-      'That is, about 1 1/2 miles or about 2.4 kilometers; also in verses ',
-      { 'xt': { 'text': 'verses 30, 32, 33 and 34',
-                'usfm': 'EZK.48.30,32,33,34' }
-      },
-    ],
-    actual: [
-      'That is, about 1 1/2 miles or about 2.4 kilometers; also in verses '
-      + '30, 32, 33 and 34',
-    ],
-  },
-  /* NIV11 }
-   *************************************************************************
    * BSB {
    */
   { version: 'BSB', usfm: 'EZK.40.7', type: 'note.f (verses)',
@@ -796,6 +745,75 @@ const tests  = [
     ],
   },
   /* BSB }
+   *************************************************************************
+   * CEV {
+   */
+  { version: 'CEV', usfm: '2CH.34.30', type: 'note.f (verses)',
+    texts: [
+      "The Hebrew text has “The Book of God's Agreement,” which is the "
+      + "same as “The Book of God's Law” in verses 15 and 19. In "
+      + "traditional translations this is called “The Book of the Covenant.”"
+    ],
+    expect: [
+      "The Hebrew text has “The Book of God's Agreement,” which is the same as “The Book of God's Law” in verses ",
+      { xt: { text: '15', usfm: '2CH.34.15' } },
+      ' and ',
+      { xt: { text: '19', usfm: '2CH.34.19' } },
+      '. In traditional translations this is called “The Book of the Covenant.”'
+    ],
+    actual: [
+      "The Hebrew text has “The Book of God's Agreement,” which is the "
+      + "same as “The Book of God's Law” in verses 15 and 19. In "
+      + "traditional translations this is called “The Book of the Covenant.”"
+    ],
+  },
+  /* CEV }
+   *************************************************************************
+   * ESV {
+   */
+  { version: 'ESV', usfm: 'ROM.8.2', type: 'note.x',
+    texts: [ '1 Cor. 15:45; 2 Cor. 3:6' ],
+    expect: [
+      { xt: { text: '1 Cor. 15:45', usfm: '1CO.15.45' } },
+      '; ',
+      { xt: { text: '2 Cor. 3:6', usfm: '2CO.3.6' } },
+    ],
+    actual: [
+      { xt: { text: '1 Cor. 15:45', usfm: '1CO.15.45' } },
+      '; ',
+      { xt: { text: '2', usfm: '1CO.2.45'}},
+      ' Cor. 3:6',
+    ],
+  },
+  /* ESV }
+   *************************************************************************
+   * NIV11 {
+   */
+  { version: 'NIV11', usfm: 'GEN.2.5', type: 'note.f (verse)',
+    texts: [ '; also in verse 6' ],
+    expect: [
+      '; also in ',
+      { xt: { text: 'verse 6', usfm: 'GEN.2.6' } }
+    ],
+    actual: [ '; also in verse 6' ],
+  },
+  { version: 'NIV11', usfm: 'EZK.48.16', type: 'note.f (verses)',
+    texts: [
+      'That is, about 1 1/2 miles or about 2.4 kilometers; also in verses '
+      + '30, 32, 33 and 34',
+    ],
+    expect: [
+      'That is, about 1 1/2 miles or about 2.4 kilometers; also in verses ',
+      { 'xt': { 'text': 'verses 30, 32, 33 and 34',
+                'usfm': 'EZK.48.30,32,33,34' }
+      },
+    ],
+    actual: [
+      'That is, about 1 1/2 miles or about 2.4 kilometers; also in verses '
+      + '30, 32, 33 and 34',
+    ],
+  },
+  /* NIV11 }
    *
    * :TODO: Improperly parses }
    *************************************************************************/
