@@ -600,6 +600,69 @@ const tests  = [
     ],
   },
   /* CSB }
+   *************************************************************************
+   * ESV {
+   */
+  { version: 'ESV', usfm: 'ROM.8.2', type: 'note.x',
+    texts: [ '1 Cor. 15:45; 2 Cor. 3:6' ],
+    expect: [
+      { xt: { text: '1 Cor. 15:45', usfm: '1CO.15.45' } },
+      '; ',
+      { xt: { text: '2 Cor. 3:6', usfm: '2CO.3.6' } },
+    ],
+  },
+  { version: 'ESV', usfm: 'ROM.8.2', type: 'note.x',
+    texts: [ 'ver. 12; See ch. 6:14, 18; 7:4' ],
+    expect: [
+      'ver. 12; See ',
+      { xt: { text: 'ch. 6:14, 18', usfm: 'ROM.6.14,18' } },
+      '; ',
+      { xt: { text: '7:4', usfm: 'ROM.7.4' } },
+    ],
+    /*
+    actual: [
+      'ver. 12; See ',
+      {
+        xt: {
+          text: 'ch. 6',
+          usfm: 'ROM.6'
+        }
+      },
+      ':14, 18; 7:4'
+    ]
+    // */
+  },
+  { version: 'ESV', usfm: 'ROM.8.4', type: 'note.x',
+    texts: [ 'ch. 1:32; 2:26' ],
+    expect: [
+      { xt: { text: 'ch. 1:32', usfm: 'ROM.1.32' } },
+      '; ',
+      { xt: { text: '2:26', usfm: 'ROM.2.26' } },
+    ],
+  },
+  { version: 'ESV', usfm: 'ROM.8.6', type: 'note.x',
+    texts: [ 'ver. 13; [Col. 2:18]; See ch. 6:21' ],
+    expect: [
+      'ver. 13; [',
+      { xt: { text: 'Col. 2:18', usfm: 'COL.2.18' } },
+      ']; See ',
+      { xt: { text: 'ch. 6:21', usfm: 'ROM.6.21' } },
+    ],
+  },
+  { version: 'ESV', usfm: 'ROM.8.9', type: 'note.x',
+    texts: [ 'ver. 11; 1 Cor. 3:16; 6:19; 2 Cor. 6:16; 2 Tim. 1:14' ],
+    expect: [
+      'ver. 11; ',
+      { xt: { text: '1 Cor. 3:16', usfm: '1CO.3.16' } },
+      '; ',
+      { xt: { text: '6:19', usfm: '1CO.6.19' } },
+      '; ',
+      { xt: { text: '2 Cor. 6:16', usfm: '2CO.6.16' } },
+      '; ',
+      { xt: { text: '2 Tim. 1:14', usfm: '2TI.1.14' } },
+    ],
+  },
+  /* ESV }
    *
    * note.x }
    *************************************************************************
@@ -771,20 +834,6 @@ const tests  = [
    *************************************************************************
    * ESV {
    */
-  { version: 'ESV', usfm: 'ROM.8.2', type: 'note.x',
-    texts: [ '1 Cor. 15:45; 2 Cor. 3:6' ],
-    expect: [
-      { xt: { text: '1 Cor. 15:45', usfm: '1CO.15.45' } },
-      '; ',
-      { xt: { text: '2 Cor. 3:6', usfm: '2CO.3.6' } },
-    ],
-    actual: [
-      { xt: { text: '1 Cor. 15:45', usfm: '1CO.15.45' } },
-      '; ',
-      { xt: { text: '2', usfm: '1CO.2.45'}},
-      ' Cor. 3:6',
-    ],
-  },
   /* ESV }
    *************************************************************************
    * NIV11 {
