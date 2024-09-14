@@ -87,6 +87,7 @@ function normalize_xrefs( state, texts ) {
      * Non-resetable {
      *
      */
+    verbosity : state.verbosity,
     norm      : [],
     last_text : null,
     remain    : '',
@@ -138,12 +139,11 @@ function normalize_xrefs( state, texts ) {
     const norm_text = text.replaceAll(/\s+/g, ' ');
     const matches   = [...norm_text.matchAll( Ref_RE )];
 
-    if (state.verbosity > 1) {
-      console.log('>>> Normalize Xrefs: text   :', norm_text);
-      console.log('>>> Normalize Xrefs: matches:', matches );
-    }
-
     if (matches.length < 1) {
+      if (state.verbosity > 3) {
+        console.log('>>> Normalize Xrefs: no match for "%s"', text);
+      }
+
       _push_item( ref_state, text );
       return;
     }
@@ -157,8 +157,12 @@ function normalize_xrefs( state, texts ) {
     matches.forEach( (match, mdex) => {
       const match_text  = match[0];
 
+      if (state.verbosity > 2) {
+        console.log('>>> Normalize Xrefs: match %d: input "%s" ...',
+                    mdex, match.input);
+      }
       if (state.verbosity > 1) {
-        console.log('>>> Normalize Xrefs: match %d: text [%s] ...',
+        console.log('>>> Normalize Xrefs: match %d: match "%s" ...',
                     mdex, match_text);
       }
 
@@ -223,6 +227,11 @@ function _extract_xrefs( state, re_match ) {
   const parts       = norm_match.split(/;\s*/);
   let   remain      = norm_match;
   let   book, ch, vs;
+
+  if (state.verbosity > 2) {
+    console.log('>>> Normalize Xrefs: match "%s": parts:',
+                re_match, parts);
+  }
 
   parts.forEach( (part,pdex) => {
     const matches   = [...part.matchAll( Group_RE )];
@@ -403,7 +412,13 @@ function _generate_Book_or_str() {
     return ar;
   }, []);
 
-  return `${book_re.join('|')}`;
+  const re_str  = `${book_re.join('|')}|ch\.?|chapter`;
+
+  /*
+  console.log('>>> _generate_Book_or_str(): "%s"', re_str);
+  // */
+
+  return re_str;
 }
 
 /**
@@ -420,7 +435,7 @@ function _generate_Ref_RE() {
    * VS     = 1[0-9]{2}|[1-9][0-9]|[1-9](?![0-9])   1## | 1# | 1-9 (![0-9])
    *
    * VR     = VS(-VS)?(, VS(-VS)?)*
-   * CHVS   = CH((:VR)?(; CH(:VR)?)*)
+   * CHVS   = CH((:VR)?(; CH:VR)*)
    *
    * BK     = BOOK CHVS
    * ALT    = (also|note|see|at|cf|in|of) CH:VR
@@ -432,11 +447,14 @@ function _generate_Ref_RE() {
   const ch      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 150
   const vs      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 119:176
   const vr      = `${vs}(${Dashes} ?${vs})?(, ?${vs}(${Dashes} ?${vs})?)*`
-  const chvs    = `${ch}(([.:]${vr})?(; ?${ch}([.:]${vr})?)*)`;
+  const chvs    = `${ch}(([.:]${vr})?(; ?${ch}[.:]${vr})*)`;
   const bk      = `(${book})[. ]+${chvs}`;
   const alt     = `(${Alts.join('|')}) ${ch}[.:]${vr}`;
-  const chap    = `(ch\\.?|chapter) ${ch}`;
-  const ref     = `${bk}(; ?(${bk}|${chvs}))*|${alt}|${chap}`;
+  const ref     = `${bk}(; ?(${bk}|${chvs}))*|${alt}`;
+
+  /*
+  console.log('>>> _generate_Ref_RE(): "%s"', ref);
+  // */
 
   return new RegExp( ref, 'ig' );
 }
@@ -468,12 +486,16 @@ function _generate_Group_RE() {
    * REF    = BOOK CHVS|ALT|ch.|chapter
    */
   const alt     = `(${Alts.join('|')})`;
-  const book    = `${Book_or_str}|${alt}|ch\.?|chapter`;
+  const book    = `${Book_or_str}|${alt}`;
   const ch      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 150
   const vs      = '(1[0-9]{2}|[1-9][0-9]|[1-9])(?![0-9])';  // Psalm 119:176
   const vr      = `${vs}(${Dashes} ?${vs})?(, ?${vs}(${Dashes} ?${vs})?)*`
   const chvs    = `((?<ch>${ch})(([.:](?<vs>${vr})))?)`;
   const ref     = `((?<book>${book})[. ]+)?${chvs}`;
+
+  /*
+  console.log('>>> _generate_Group_RE(): "%s"', ref);
+  // */
 
   return new RegExp( ref, 'ig' );
 }
