@@ -340,6 +340,7 @@ const tests = [
   { str:'2Corinthians', expect:'2CO' },
 
   { str:'GAL', expect:'GAL' },
+  { str:'Gl', expect:'GAL' },
   { str:'Galatians', expect:'GAL' },
 
   { str:'EPH', expect:'EPH' },

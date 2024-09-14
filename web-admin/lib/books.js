@@ -532,7 +532,7 @@ const BookMap = {
   },
   'GAL': {
     name  : 'Galatians',
-    match : /^(gal(atians)?)$/i,                      // Gal | Galantians
+    match : /^(gal(atians)?|gl)$/i,                   // Gal | Gl
     order : 48,
     loc   : 'New Testament',
     verses: [ 0,  24, 21, 29, 31, 26, 18 ],
