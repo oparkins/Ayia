@@ -7,7 +7,7 @@ global: #{
 
 web_admin: #{
   image: #{
-    tag:        0.2.7
+    tag:        0.2.8
     #pullPolicy: IfNotPresent
   #} web_admin.image
   persistence: #{
