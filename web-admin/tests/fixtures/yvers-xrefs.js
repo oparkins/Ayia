@@ -243,6 +243,26 @@ const tests  = [
       ' in Hb'
     ],
   },
+  { version: 'HCSB', usfm: 'ROM.1.1', type: 'note.f',
+    texts: [ '1Co 1:1; 9:1; 2Co 1:1' ],
+    expect: [
+      { xt: { text: '1Co 1:1', usfm: '1CO.1.1' } },
+      '; ',
+      { xt: { text: '9:1', usfm: '1CO.9.1' } },
+      '; ',
+      { xt: { text: '2Co 1:1', usfm: '2CO.1.1' } },
+    ],
+  },
+  { version: 'HCSB', usfm: 'ROM.1.1', type: 'note.f',
+    texts: [ 'Ac 9:15; 13:2; Gl 1:15' ],
+    expect: [
+      { xt: { text: 'Ac 9:15', usfm: 'ACT.9.15' } },
+      '; ',
+      { xt: { text: '13:2', usfm: 'ACT.13.2' } },
+      '; ',
+      { xt: { text: 'Gl 1:15', usfm: 'GAL.1.15' } },
+    ],
+  },
   /* HCSB }
    *************************************************************************
    * NASB1995 {
