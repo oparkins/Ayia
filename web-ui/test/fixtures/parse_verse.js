@@ -124,6 +124,12 @@ export const tests  = [
               url_ref : 'JHN.003.016-018,020,022',
     },
   },
+  { val   : 'JUD.001',
+    expect: { book: 'JUD', chapter: 1, verse: '', verses : null,
+              ui_ref  : 'Jude 1',
+              url_ref : 'JUD.001',
+    },
+  },
   /*************************************************************************
    * For note-based references {
    *  ESV:

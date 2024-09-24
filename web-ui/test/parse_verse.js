@@ -24,16 +24,34 @@ describe('parse_verse', () => {
       Assert.notEqual( verse, null );
       Assert.notEqual( verse, undefined );
 
-      Assert.equal( verse.book,     test.expect.book,     'Book mismatch' );
-      Assert.equal( verse.chapter,  test.expect.chapter,  'Chapter mismatch' );
-      Assert.equal( verse.verse,    test.expect.verse,    'Verse mismatch' );
-      Assert.deepEqual( verse.verses, test.expect.verses, 'Verses mismatch' );
+      Assert.equal( verse.book,     test.expect.book,
+                    'Book mismatch: '
+                      + `${verse.book} !== ${test.expect.book}: `
+                      + JSON.stringify(verse, null, 2) );
+      Assert.equal( verse.chapter,  test.expect.chapter,
+                    'Chapter mismatch: '
+                      + `${verse.chapter} !== ${test.expect.chapter}: `
+                      + JSON.stringify(verse, null, 2) );
+      Assert.equal( verse.verse,    test.expect.verse,
+                    'Verse mismatch: '
+                      + `${verse.verse} !== ${test.expect.verse}: `
+                      + JSON.stringify(verse, null, 2) );
+      Assert.deepEqual( verse.verses, test.expect.verses,
+                    'Verses mismatch: '
+                      + `${verse.verses} !== ${test.expect.verses}: `
+                      + JSON.stringify(verse, null, 2) );
 
       if (test.expect.ui_ref) {
-        Assert.equal( verse.ui_ref, test.expect.ui_ref,   'ui_ref mismatch' );
+        Assert.equal( verse.ui_ref, test.expect.ui_ref,
+                      'ui_ref mismatch: '
+                        + `${verse.ui_ref} !== ${test.expect.ui_ref}: `
+                        + JSON.stringify(verse, null, 2) );
       }
       if (test.expect.url_ref) {
-        Assert.equal( verse.url_ref, test.expect.url_ref, 'url_ref mismatch' );
+        Assert.equal( verse.url_ref, test.expect.url_ref,
+                      'url_ref mismatch: '
+                        + `${verse.url_ref} !== ${test.expect.url_ref}: `
+                        + JSON.stringify(verse, null, 2) );
       }
     });
   });

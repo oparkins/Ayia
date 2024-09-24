@@ -274,10 +274,19 @@ export function find_book( name, versions ) {
 
   const name_no_ws  = name.replaceAll(/\s/g, '');
   const ABBR        = name.toUpperCase().slice(0,3);
-  const book        = books.find( entry => {
-    if (ABBR === entry.abbr)            { return true }
-    if (entry.name.startsWith( name ))  { return true }
+
+  // First, search by abbreviation or full name match.
+  let   book  = books.find( entry => {
+    if (ABBR === entry.abbr)  { return true }
+    if (entry.name === name)  { return true }
   });
+
+  if (book == null) {
+    // If not found, follup with a name prefix search
+    book = books.find( entry => {
+      if (entry.name.startsWith( name ))  { return true }
+    });
+  }
 
   return book;
 }

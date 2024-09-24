@@ -18,5 +18,11 @@ export const tests  = [
   { val: 'Phil. 2:6',       expect: 'PHP' },
   { val: 'Philippians 2:6', expect: 'PHP' },
 
+  { val: 'Jude',            expect: 'JUD' },
+  { val: 'JUD',             expect: 'JUD' },
+
+  { val: 'Judges',          expect: 'JDG' },
+  { val: 'JDG',             expect: 'JDG' },
+
   { val: 'Not a book',      expect: null },
 ];
