@@ -21,7 +21,16 @@
       //'!pb-14',
 
       'max-w-[100vw]',
+
+      'rounded-none',
+      'border-x-0',
+
+      /* On medium screen (> 768px), limit the width, round the corners and
+       * include left/right borders.
+       */
       'md:max-w-prose',
+      'md:rounded-lg',
+      'md:border-x',
     ],
   };
 </script>

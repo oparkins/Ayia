@@ -98,7 +98,21 @@
       'overflow-y-auto',
 
       'max-w-[100vw]',
+
+      'rounded-none',
+      'border-x-0',
+
+      /* On medium screen (> 768px), limit the width, round the corners and
+       * include left/right borders.
+       */
       'md:max-w-prose',
+      'md:border-x',
+
+      // Adjust the right radius so the scrollbar doesn't "spill out"
+      'md:rounded-tl-lg', // 0.5rem  == 8px
+      'md:rounded-tr',    // 0.25rem == 4px
+      'md:rounded-br',    // 0.25rem == 4px
+      'md:rounded-bl-lg', // 0.5rem  == 8px
     ],
 
     example_card: [
@@ -183,7 +197,7 @@
     console.log('do_toggle(): storeItem[ %s ], isChecked[ %s ]',
                 storeItem, String(isChecked));
 
-   stores[storeItem].set(isChecked); 
+   stores[storeItem].set(isChecked);
 
   }
 

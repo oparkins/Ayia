@@ -363,16 +363,28 @@
       'dark:bg-gray-900',
       'mx-auto',
       'h-full',
-      '!pb-14',
+
+      '!pe-0',
+      '!pb-16',
 
       'max-w-[100vw]',
+
+      'rounded-none',
+      'border-x-0',
+
+      /* On medium screen (> 768px), limit the width, round the corners and
+       * include left/right borders.
+       */
       'md:max-w-prose',
+      'md:rounded-lg',
+      'md:border-x',
     ],
 
     nav_outer: [
       //'h-10',
       //'bottom-3',
 
+      'pb-[1px]',     // Leave room for the bottom border
       'border-none',
 
       'bg-transparent',
@@ -384,6 +396,20 @@
       'gap-2',
       'p-1',
       'mw-unset',
+
+      /* Increase the max width slightly from max-w-lg (32rem) to provide
+       * just a bit more border to extend beyond the text above.
+       */
+      'max-w-[33rem]',
+
+      // Background to cover gaps
+      'bg-gray-100',
+      'dark:bg-gray-900',
+
+      // Top border here instead of bottom border on
+      'border-t',
+      'border-gray-200',
+      'dark:border-gray-600',
     ],
 
     // BottomNav buttons
