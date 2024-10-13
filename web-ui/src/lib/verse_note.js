@@ -57,6 +57,9 @@ export function html( id, type, label, content ) {
  *    - 'id'                    of `${id}-trigger`
  *    - 'data-popover-target'   of `${id}-target`
  *
+ *  Once activated, both targets and triggers will be given an attribute:
+ *    - 'popover-active'
+ *
  *  @return The set of activated popover instances {Array};
  */
 export function activate( parent ) {
@@ -79,7 +82,8 @@ export function activate( parent ) {
       return;
     }
 
-    const $target   = parent.querySelectorAll( `#${target_id}` );
+    const $targets  = parent.querySelectorAll( `#${target_id}` );
+    const $target   = ($targets && $targets[0]);
     if ($target == null) {
       console.error('verse_note.activate(): trigger[ %s ], cannot find '
                     +     'identified target[ %s ]',
@@ -87,11 +91,45 @@ export function activate( parent ) {
       return;
     }
 
-    const popover = _activate_one( $trigger, $target[0] );
+    const popover = _activate_one( $trigger, $target );
     popovers.push( popover );
   });
 
   return popovers;
+}
+
+/**
+ *  Check to see if dynamically rendered VerseNote items within the given DOM
+ *  element have been activated.
+ *
+ *  @method is_active
+ *  @param  parent    The container in which target VerseNote elements should
+ *                    be activated {DOMElement};
+ *
+ *  @return An indication of whether popovers are active {Boolean};
+ */
+export function is_active( parent ) {
+  if (parent == null) { return false }
+
+  let   num_active  = 0;
+  const $triggers   = parent.querySelectorAll('[data-popover-target]');
+  $triggers.forEach( $trigger => {
+    const id        = $trigger.getAttribute( 'id' );
+    const target_id = $trigger.getAttribute( 'data-popover-target' );
+    if (target_id == null) { return }
+
+    const $targets  = parent.querySelectorAll( `#${target_id}` );
+    const $target   = ($targets && $targets[0]);
+    if ($target == null) { return }
+
+    if ($trigger.hasAttribute('popover-active') &&
+        $target.hasAttribute('popover-active')) {
+
+      num_active++;
+    }
+  });
+
+  return (num_active === $triggers.length);
 }
 
 /****************************************************************************
@@ -139,6 +177,10 @@ export function _activate_one( $trigger, $target ) {
     id      : target_id,
     override: true
   };
+
+  // Mark this trigger and target "active'
+  $trigger.setAttribute( 'popover-active', '' );
+  $target.setAttribute(  'popover-active', '' );
 
   return new Popover($target, $trigger, options, instanceOptions);
 }
