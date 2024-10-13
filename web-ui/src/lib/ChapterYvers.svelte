@@ -48,6 +48,11 @@
    */
   import { afterUpdate }  from 'svelte';
   import { get, derived } from 'svelte/store';
+  import {
+    afterNavigate,
+    goto,
+    replaceState,
+  } from '$app/navigation';
 
   import {
     show_footnotes,
@@ -60,77 +65,136 @@
   }  from '$lib/stores';
 
   import { html_chapter }                 from '$lib/render/yvers';
-  import { activate  as activate_notes }  from '$lib/verse_note';
+  import {
+    activate  as activate_notes,
+    is_active as notes_are_active,
+  }  from '$lib/verse_note';
 
   /*  Imports }
    *************************************************************************
    *  Local state/methods {
    */
   let container_el  = null;
-  let activated     = false;
+  let need_scroll   = false;
 
   const version_store = version_stores[ column ];
   const is_selecting  = derived( selected_store, ( $selected_store ) => {
     return (Array.isArray( $selected_store ) && $selected_store.length > 0);
   });
 
-  // As soon as this component has been updated, activate all popovers
-  afterUpdate(async () => {
+  // After any navigation, reset is_loading and need_scroll
+  afterNavigate( ( navigation ) => {
     /*
-    console.log('ChapterYvers.afterUpdate(): '
-                +     'activated[ %s ], is_selecting[ %s : %s ], verse:',
-                String( activated ),
+    console.log('ChapterYvers.afterNavigate(): '
+                +   'is_loading[ %s ], need_scroll[ %s ]',
+                String( is_loading ),
+                String( need_scroll ) );
+    // */
+
+    is_loading  = true;
+    need_scroll = true;
+  });
+
+  // As soon as this component has been fully loaded,
+  afterUpdate(async () => {
+    const verses  = (container_el
+                        ? container_el.querySelectorAll( '[v]' )
+                        : []);
+    /*
+    console.log('ChapterYvers.afterUpdate(): %d verses, '
+                +     'have_content[ %s ], '
+                +     'is_loading[ %s ], '
+                +     'need_scroll[ %s ]',
+                verses.length,
+                String( content != null ),
+                String( is_loading ),
+                String( need_scroll ));
+    // */
+
+    if (verses.length < 1) {
+      /* Either we do not yet have access to our container element OR we do not
+       * yet have verse elements. In either case, force `is_loading` to true to
+       * indicate that we're still loading.
+       */
+      is_loading = true;
+      return;
+    }
+
+    /************************************************************************
+     * :XXX:
+     *    When activating notes, involved DOM elements are tagged with a
+     *    'popover-active' attribute. The active notes check scans all
+     *    note-related DOM elements within the current container element to see
+     *    if all have that attribute. If they do not, then notes have not been
+     *    activated.
+     *
+     *    We use the active notes check as an indication of whether or not
+     *    this is the first full rendering of this component.  If notes are
+     *    active, rendering has occurred previously, otherwise it has not and:
+     *      - notes need to be activated;
+     *      - if a verse is selected, we need to scroll to it;
+     */
+    const notes_active      = notes_are_active( container_el );
+
+    /*
+    console.log('ChapterYvers.afterUpdate(): %d verses, '
+                +     'notes_active[ %s ], '
+                +     'is_selecting[ %s : %s ], verse:',
+                verses.length,
+                String( notes_active ),
                 String( $is_selecting ),
                 ($is_selecting ? $selected_store.join(', ') : 'null'),
                 verse );
     // */
 
-    /* New target verse -- activate notes and, if a verse number was
-     * requested, select and scroll.
-     */
+    if ( ! notes_active ) {
+      // Activate notes
+      activate_notes( container_el );
+    }
+
+    // Ensure selection matches our selection state.
     if (! $is_selecting) {
       remove_selection();
-    }
 
-    const notes       = activate_notes( container_el );
-    const verse_nums  = ($is_selecting ? $selected_store : null);
-    if (Array.isArray( verse_nums ) && verse_nums.length > 0) {
-      // Locate all portions of all target verse(s)
-      const selector  = verse_nums.map( num => `[v="${num}"]` ).join(',');
-      const verses    = container_el.querySelectorAll( selector );
-      const first     = verses.item( 0 );
+    } else {
+      select_verses( $selected_store );
 
-      if (verses.length > 0) {
-        /*
-        console.log('ChapterYvers.afterUpdate(): verse_nums,verses:',
-                    verse_nums, verses);
-        // */
-
-        // Select all portions of the target verse(s)
-        verse_nums.forEach( num => select_verse( num, verses ) );
+      if ( need_scroll ) {
+        // On first full render, scroll the selected verse into view
+        scroll_into_view();
       }
-
-      if (first) {
-        /*
-        console.log('ChapterYvers.afterUpdate(): scrollIntoView:', first);
-        // */
-
-        // Scroll the first of the target verse(s) into view
-        first.scrollIntoView({ behavior: 'auto', block: 'center'});
-
-        activated = true;
-      }
-
-    } else if (notes.length > 0) {
-      activated = true;
     }
 
-    /*
-    if (activated) {
-      console.log('ChapterYvers.afterUpdate(): notes:', notes);
-    }
-    // */
+    // Update is_loading and need_scroll
+    is_loading  = false;
+    need_scroll = false;
   });
+
+  /**
+   *  Scroll the first of the selected verses into view.
+   *
+   *  @method scroll_into_view
+   */
+  function scroll_into_view() {
+    const verse_nums  = ($is_selecting && $selected_store);
+
+    console.log('ChapterYvers.scroll_into_view(): verse_nums:', verse_nums);
+
+    if (! Array.isArray( verse_nums) || verse_nums.length < 1) {
+      return;
+    }
+
+    // Locate all portions of all target verse(s)
+    const selector  = `[v="${verse_nums[0]}"]`;
+    const first     = container_el.querySelector( selector );
+
+    console.log('ChapterYvers.scroll_into_view(): first:', first);
+
+    if (first) {
+      // Scroll the first of the target verse(s) into view
+      first.scrollIntoView({ behavior: 'auto', block: 'center'});
+    }
+  }
 
   /**
    *  Triggered whenever $verse_store changes, determine whether we are moving
@@ -143,23 +207,26 @@
    *  @return void
    */
   function reset_selecting( new_version, new_verse ) {
-
     /*
     console.log('reset_selecting(): version/new:', version, new_version);
     console.log('reset_selecting(): verse/new  :', verse, new_verse);
-    console.log('reset_selecting(): activated[ %s ], is_selecting[ %s : %s ]',
-                String(activated),
+    console.log('reset_selecting(): is_selecting[ %s : %s ]',
                 String($is_selecting),
                 ($is_selecting ? $selected_store.join(', ') : 'null') );
     // */
 
     // Switching to a new version or verse so reset our local state
     selected_store.set( null )
-    activated = false;
 
     if (version !== new_version) {
       version = new_version;
+
+      // When changing versions, reset is_loading and need_scroll
+      is_loading  = true;
+      need_scroll = true;
+
     }
+
     if (verse !== new_verse) {
       verse = new_verse;
     }
@@ -167,10 +234,34 @@
     const verse_nums  = (verse && verse.verses);
     if (Array.isArray( verse_nums ) && verse_nums.length > 0) {
       // Update the set of selected verses
-      console.log('reset_selecting(): Update selected verses to:',
+      console.log('ChapterYvers.reset_selecting(): Update selected verses to:',
                   verse_nums.join(', '));
 
       selected_store.set( verse_nums );
+    }
+  }
+
+  /**
+   *  Select all verses in the current selection.
+   *
+   *  @method select_verses
+   *  @param  verse_nums  The set of verse numbers to select {Array};
+   */
+  function select_verses( verse_nums ) {
+    console.log('ChapterYvers.select_verses(): verse_nums:',
+                  verse_nums);
+
+    if (! Array.isArray( verse_nums) || verse_nums.length < 1) {
+      return;
+    }
+
+    // Locate all portions of all target verse(s)
+    const selector  = verse_nums.map( num => `[v="${num}"]` ).join(',');
+    const verses    = container_el.querySelectorAll( selector );
+
+    if (verses.length > 0) {
+      // Select all portions of the target verse(s)
+      verse_nums.forEach( num => select_verse( num, verses ) );
     }
   }
 
@@ -206,6 +297,17 @@
     });
 
     selected_store.set( selected );
+
+    /* :TODO: Determine if this changes the current URL and, if so,
+     *        perform a replaceState() with the new URL.
+     */
+    const verse = get( verse_store ) || null;
+    console.log('ChapterYvers.select_verse( %s ): [ %s ], '
+                +   'verse.verses[ %s ], verse.url_ref[ %s ]',
+                verse_num,
+                selected.join(', '),
+                (verse ? verse.verses.join(', ') : '???'),
+                (verse ? verse.url_ref           : '???'));
   }
 
   /**
@@ -223,6 +325,16 @@
 
     // Update 'is_selecting' (on the chapter container)
     selected_store.set( null );
+
+    /* :TODO: Determine if this changes the current URL and, if so,
+     *        perform a replaceState() with the new URL.
+     */
+    const verse = get( verse_store ) || null;
+    console.log('ChapterYvers.remove_selection(): [ %s ], '
+                +   'verse.verses[ %s ], verse.url_ref[ %s ]',
+                selected.join(', '),
+                (verse ? verse.verses.join(', ') : '???'),
+                (verse ? verse.url_ref           : '???'));
   }
 
   /**
