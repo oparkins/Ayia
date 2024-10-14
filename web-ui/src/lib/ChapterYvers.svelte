@@ -11,19 +11,7 @@
    *                          (primary | column#) {String};
    *  @prop     version       The current version ('yvers') {Version};
    *  @prop     book          The target book {Book};
-   *  @prop     verse         The target verse, via `parse_verse()`
-   *                          {VerseRef};
-   *                            { book      : Extracted book name {String},
-   *                              chapter   : Extracted chapter {Number},
-   *                              verse     : First extracted verse {Number},
-   *                              verses    : Full set of referenced verses
-   *                                          {Array};
-   *                              full_book : Full book information {Object};
-   *                              ui_ref    : A UI representation of this
-   *                                          reference {String};
-   *                              url_ref   : A URL representation of this
-   *                                          reference {String};
-   *                            }
+   *  @prop     verse         The target verse {VerseRef};
    *  @prop     content       Chapter content for the current `book` and
    *                          `verse` {Object};
    *

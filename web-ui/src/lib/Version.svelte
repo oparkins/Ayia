@@ -37,7 +37,7 @@
 
   import { goto } from  '$app/navigation';
 
-  import { find_book, parse_verse, ref_num } from '$lib/verse_ref';
+  import { find_book, VerseRef, ref_num } from '$lib/verse_ref';
 
   import SelectVersion    from '$lib/SelectVersion.svelte';
   import SelectVerse      from '$lib/SelectVerse.svelte';
@@ -78,8 +78,8 @@
   }
 
   if (verse) {
-    /*
-    console.log('Version.verse: passed-in ...');
+    // /*
+    console.log('Version.verse: passed-in, update verse_store:', verse);
     // */
 
     // Ensure our store is in-sync
@@ -113,7 +113,7 @@
    *
    *  @method update_dependents
    *  @param  version   Information about the target version {Object};
-   *  @param  verse     Information about the target verse {Object};
+   *  @param  verse     Information about the target verse {VerseRef};
    *
    *  Updates:
    *      prev_disabled
@@ -137,12 +137,10 @@
      */
     prev_disabled = (verse.chapter < 2);
 
-    // Check if we have `versions` meta-data to enable bounds checking by book.
-    book = find_book( verse.book, versions );
-    if (book) {
+    if (verse.book) {
       // Determine if we should disable the next chapter button
-      max_chapter = book.verses.length - 1;
-      max_verse   = book.verses[ verse.chapter ];
+      max_chapter = verse.book.verses.length - 1;
+      max_verse   = verse.book.verses[ verse.chapter ];
 
       next_disabled = (verse.chapter >= max_chapter);
 
@@ -157,8 +155,7 @@
    *  @method fetch_content
    *  @param  version   The selected version {Object};
    *                      { abbreviation, local_abbreviation, ... }
-   *  @param  verse     The verse reference {Objecct};
-   *                      { book, chapter, verse, verses, ui_ref, url_ref }
+   *  @param  verse     The verse reference {VerseRef};
    *
    *  This sets the `contoent_loading` flag and, upon completion, the `content`
    *  value.
@@ -168,7 +165,7 @@
   function fetch_content( version, verse ) {
     if (content_loading) { return }
 
-    if (version == null || verse == null || verse.full_book == null) {
+    if (version == null || verse == null || verse.is_valid !== true) {
       return;
     }
     //const path  = `/versions/${version.abbreviation}/${verse.url_ref}`;
@@ -176,7 +173,7 @@
     /* :XXX: Don't use `verse.url_ref` directly since we really want to
      *       ensure we fetch an entire chapter.
      */
-    const api_ref = `${verse.full_book.abbr}.${ref_num(verse.chapter)}`;
+    const api_ref = `${verse.book.abbr}.${ref_num(verse.chapter)}`;
     const path    = `/versions/${version.abbreviation}/${api_ref}`;
 
     // /*
@@ -284,14 +281,14 @@
 
     const ch_cur    = parseInt( verse.chapter );
     const new_ref   = `${verse.book}.${ch_cur - 1}`;
-    const new_verse = parse_verse( new_ref, versions );
+    const new_verse = new VerseRef( new_ref, versions );
 
     /*
     console.log('Version.chapter_prev(): %s => %s:',
                 verse.url_ref, new_ref, new_verse);
     // */
 
-    if (new_verse) {
+    if (new_verse && new_verse.is_valid) {
       const path  = `/${ version.abbreviation}/${new_verse.url_ref}`;
       goto( path );
     }
@@ -315,14 +312,14 @@
 
     const ch_cur    = parseInt( verse.chapter );
     const new_ref   = `${verse.book}.${ch_cur + 1}`;
-    const new_verse = parse_verse( new_ref, versions );
+    const new_verse = new VerseRef( new_ref, versions );
 
     /*
     console.log('Version.chapter_next(): %s => %s:',
                 verse.url_ref, new_ref, new_verse);
     // */
 
-    if (new_verse) {
+    if (new_verse && new_verse.is_valid) {
       const path  = `/${ version.abbreviation}/${new_verse.url_ref}`;
       goto( path );
     }

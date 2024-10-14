@@ -28,7 +28,7 @@
     verse     as verse_store,
   }  from '$lib/stores';
 
-  import { parse_verse }  from '$lib/verse_ref';
+  import { VerseRef } from '$lib/verse_ref';
 
   // Adapt fitty so we don't get a server-side error
   const fitty = (typeof(Fitty) === 'function' ? Fitty : () => {} );
@@ -66,7 +66,7 @@
   function verse_change( event ) {
     const versions      = get( versions_store );
     const verse_ref_ro  = get( verse_ref );
-    const new_verse     = parse_verse( verse_ref_ro, versions );
+    const new_verse     = new VerseRef( verse_ref_ro, versions );
 
     // assert( event.target.value === verse_ref_ro );
 
@@ -75,7 +75,7 @@
                 event.target.value, verse_ref_ro, new_verse);
     // */
 
-    if (new_verse) {
+    if (new_verse && new_verse.is_valid) {
       const new_ref = new_verse.ui_ref;
 
       verse_ref.set( new_ref );
