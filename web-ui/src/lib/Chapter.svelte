@@ -92,7 +92,7 @@
   afterNavigate( ( navigation ) => {
     /*
     console.log('Chapter.afterNavigate(): '
-                +   'is_loading[ %s ], need_scroll[ %s ]',
+                +   'is_loading[ %s => true ], need_scroll[ %s => true ]',
                 String( is_loading ),
                 String( need_scroll ) );
     // */
@@ -124,7 +124,15 @@
        * yet have verse elements. In either case, force `is_loading` to true to
        * indicate that we're still loading.
        */
-      is_loading = true;
+      /*
+      console.log('Chapter.afterUpdate(): no verses, '
+                  +   'is_loading[ %s => true ], need_scroll[ %s => true ]',
+                  String( is_loading ),
+                  String( need_scroll ) );
+      // */
+
+      is_loading  = true;
+      need_scroll = true;
       return;
     }
 
@@ -172,7 +180,9 @@
   function scroll_into_view() {
     const verse_nums  = ($is_selecting && $selected_store);
 
+    // /*
     console.log('Chapter.scroll_into_view(): verse_nums:', verse_nums);
+    // */
 
     if (! Array.isArray( verse_nums) || verse_nums.length < 1) {
       return;
@@ -182,7 +192,9 @@
     const selector  = `[v="${verse_nums[0]}"]`;
     const first     = container_el.querySelector( selector );
 
+    /*
     console.log('Chapter.scroll_into_view(): first:', first);
+    // */
 
     if (first) {
       // Scroll the first of the target verse(s) into view
@@ -201,18 +213,20 @@
    *  @return void
    */
   function reset_selecting( new_version, new_verse ) {
+    const version_changed = (version !== new_version);
+    const verse_changed   = (verse !== new_verse);
+
     /*
-    console.log('reset_selecting(): version/new:', version, new_version);
-    console.log('reset_selecting(): verse/new  :', verse, new_verse);
-    console.log('reset_selecting(): is_selecting[ %s : %s ]',
-                String($is_selecting),
-                ($is_selecting ? $selected_store.join(', ') : 'null') );
+    console.log('Chapter.reset_selecting(): version_changed[ %s ]:',
+                String(version_changed), new_version);
+    console.log('Chapter.reset_selecting(): verse_changed[ %s ]:',
+                String(verse_changed), new_verse);
     // */
 
     // Switching to a new version or verse so reset our local state
     selected_store.set( null )
 
-    if (version !== new_version) {
+    if (version_changed) {
       version = new_version;
 
       // When changing versions, reset is_loading and need_scroll
@@ -221,15 +235,17 @@
 
     }
 
-    if (verse !== new_verse) {
+    if (verse_changed) {
       verse = new_verse;
     }
 
     const verse_nums  = (verse && verse.verses);
     if (Array.isArray( verse_nums ) && verse_nums.length > 0) {
       // Update the set of selected verses
-      console.log('reset_selecting(): Update selected verses to:',
+      /*
+      console.log('Chapter.reset_selecting(): Set selected verses to:',
                   verse_nums.join(', '));
+      // */
 
       selected_store.set( verse_nums );
     }
@@ -242,8 +258,10 @@
    *  @param  verse_nums  The set of verse numbers to select {Array};
    */
   function select_verses( verse_nums ) {
+    /*
     console.log('Chapter.select_verses(): verse_nums:',
                   verse_nums);
+    // */
 
     if (! Array.isArray( verse_nums) || verse_nums.length < 1) {
       return;
@@ -327,8 +345,8 @@
     console.log('Chapter.remove_selection(): [ %s ], '
                 +   'verse.verses[ %s ], verse.url_ref[ %s ]',
                 selected.join(', '),
-                (verse ? verse.verses.join(', ') : '???'),
-                (verse ? verse.url_ref           : '???'));
+                (verse && verse.verses ? verse.verses.join(', ') : '???'),
+                (verse ? verse.url_ref : '???'));
   }
 
   /**
