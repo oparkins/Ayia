@@ -9,9 +9,10 @@ export const ssr = false;
 // Only include on the client side }
 
 import { get }            from "svelte/store";
-import { user, errors }   from '$lib/stores';
 
 import {
+  users,
+  errors,
   config    as config_store,
 }  from '$lib/stores';
 
