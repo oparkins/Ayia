@@ -348,11 +348,11 @@
      *        perform a replaceState() with the new URL.
      */
     const verse = get( verse_store ) || null;
-    console.log('ChapterYvers.remove_selection(): [ %s ], '
+    console.log('ChapterYvers.remove_selection(): %d verse elements, '
                 +   'verse.verses[ %s ], verse.url_ref[ %s ]',
-                selected.join(', '),
-                (verse && verse.verses ? verse.verses.join(', ') : '???'),
-                (verse ? verse.url_ref : '???'));
+                selected.length,
+                (verse ? verse.verses.join(', ') : '???'),
+                (verse ? verse.url_ref           : '???'));
   }
 
   /**
