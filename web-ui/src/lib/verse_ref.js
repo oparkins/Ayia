@@ -52,6 +52,68 @@ const Book_RE = new RegExp( [
   ].join(''));
 
 /**
+ *  A validated verse reference
+ *
+ *  @class  VerseRef
+ */
+export class VerseRef {
+  verse_ref = null;   // The original verse reference {String};
+  is_valid  = false;  // Indicator of verse validity {Boolean};
+  book      = null;   // The full book reference {Book};
+  chapter   = null;   // The chapter number {Number};
+  verses    = [];     // The set of verses {Array[Number]]};
+  ui_ref    = null;   // A human readable UI reference {String};
+  url_ref   = null;   // The full URL for this reference {String};
+
+  /**
+   *  Create a new, validated instance.
+   *
+   *  @constructor
+   *  @param  verse_ref               The incoming verse reference {String};
+   *  @param  versions                The full set of versions {Object};
+   *  @param  [apply_bounds = true]   If truthy and the chapter or verse are
+   *                                  out-of-bounds, update them to be within
+   *                                  bounds. Otherwise, the reference is
+   *                                  invalid {Boolean};
+   */
+  constructor( verse_ref, version, apply_bounds = true ) {
+    this.verse_ref = verse_ref;
+
+    const data  = parse_verse( verse_ref, version, apply_bounds );
+
+    if (data) {
+      this.is_valid  = true;
+      this.book      = data.full_book;
+      this.chapter   = data.chapter;
+      this.verses    = data.verses;
+      this.ui_ref    = data.ui_ref;
+      this.url_ref   = data.url_ref;
+    }
+  }
+
+  /**
+   *  Update the verse(s) for this reference, modifying the necessary state.
+   *
+   *  @method update_verses
+   *  @param  verses    The new set of verses {Array[Number]};
+   *
+   *  @return void
+   */
+  update_verses( verses ) {
+    if (! Array.isArray( verses )) {
+      return;
+    }
+
+    // Ensure the incoming verses are sorted
+    verses.sort( (a,b) => a - b );
+
+    this.verses  = verses;
+    this.ui_ref  = generate_ui_ref(  this.book, this.chapter, verses );
+    this.url_ref = generate_url_ref( this.book, this.chapter, verses );
+  }
+}
+
+/**
  *  Parse a verse string into an object.
  *
  *  @method parse_verse
@@ -83,17 +145,20 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
     return;
   }
 
+  /* Parse the reference to book name, chapter, first verse, any dash
+   * separator, to verse(s) (possibly a CSV list)
+   */
   const match   = verse_ref.match( Ref_RE );
   if (! match) {
     return;
   }
 
-  const [ _all, bk, ch, vs, sep, vs2 ] = match;
+  const [ _all, bk, ch, from_vs, dash, to_vs ] = match;
 
   /*
-  console.log('parse_verse( %s ): bk[ %s ], ch[ %s ], vs[ %s ], '
-              +                     'sep[ %s ], vs2[ %s ]',
-              verse_ref, bk, ch, vs, sep, vs2);
+  console.log('parse_verse( %s ): bk[ %s ], ch[ %s ], from_vs[ %s ], '
+              +                     'dash[ %s ], to_vs[ %s ]',
+              verse_ref, bk, ch, from_vs, dash, to_vs);
   // */
 
   // Attempt to locate the book
@@ -110,89 +175,37 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
   // */
 
   // Validate chapter and verse bounds
-  const is_valid  = validate_ref( book, ch, vs );
+  const is_valid  = _validate_ref( book, ch, from_vs );
   if (! is_valid) { return }
 
   const ch_num  = is_valid.chapter;
-  const ch_str  = (ch_num ? String(ch_num) : '');
   let   vs_num  = is_valid.verse;
-  let   vs_str  = (vs_num ? String(vs_num) : '');
-  let   vs2_num = null;
-  let   vs2_str = null;
-  let   verses  = null;
-  let   verses2 = [];
+  let   verses  = (vs_num ? [ vs_num ] : []);
 
-  if (vs_num != null && vs2 != null) {
-    // Handle a verse set as a range and/or CSV list
-    verses2 = vs2.split( /\s*,\s*/ )
-                .map( vs => {
-                  const is_valid  = validate_ref( book, ch, vs );
-                  return (is_valid && is_valid.verse);
-                })
-                .filter( vs => (vs != null) );
+  if (vs_num != null && to_vs != null) {
+    const have_range  = Dashes.includes( dash );
 
-    verses = [];
-    if (Dashes.includes( sep )) {
-      // This is a range
-      vs2_num = verses2.shift();
-      vs2_str = String( vs2_num );
+    // Include a (set of) to verse(s)
+    to_vs.split( /\s*,\s*/ ).forEach( (str, idex) => {
+      const is_valid  = _validate_ref( book, ch, str );
 
-      if (vs2_num < vs_num) {
-        // Revere the verses
-        [ vs_num, vs2_num ] = [ vs2_num, vs_num ];
-        [ vs_str, vs2_str ] = [ vs2_str, vs_str ];
+      if (is_valid && is_valid.verse) {
+        if (idex === 0 && have_range) {
+          // Include verses between vs_num and this one.
+          for (let jdex = vs_num + 1; jdex < is_valid.verse; jdex++) {
+            verses.push( jdex );
+          }
+        }
+
+        verses.push( is_valid.verse );
       }
+    });
 
-      vs2_str = `-${vs2_str}`;
-      for (let verse = vs_num; verse <= vs2_num; verse++) {
-        verses.push( verse );
-      }
+    // Sort verses in ascending order
+    verses.sort( (a,b) => a - b );
 
-      if (verses2.length > 0) {
-        vs2_str += `,${verses2.join(',')}`;
-
-        verses = [ ...verses, ...verses2 ];
-      }
-
-    } else {
-      verses = [ vs_num, ...verses2 ];
-
-      vs2_str = `,${verses2.join(',')}`;
-    }
-
-  } else if (vs_num != null) {
-    verses = [ vs_num ];
+    vs_num = verses[0];
   }
-
-  // Generate both the ui and url reference strings
-  let ui_ref  = `${book.name} ${ch_str.trim()}`;
-  let url_ref = `${book.abbr}.${ref_num(ch_num)}`;
-  if (vs_num) {
-    ui_ref += `:${vs_str.trim()}`;
-    url_ref += `.${ref_num(vs_num)}`;
-
-    if (vs2_str) {
-      // Include the range/CSV list
-      ui_ref  += `${vs2_str.trim()}`;
-
-      if (Dashes.includes( sep )) {
-        url_ref += `-${ref_num(vs2_num)}`;
-      }
-
-      if (verses2.length > 0) {
-        url_ref += ',' + verses2.map( vs => ref_num( vs ) ).join(',');
-      }
-    }
-  }
-
-  /*
-  console.log('parse_verse( %s ): verses2[ %s ], verses[ %s ]',
-              verse_ref, verses2.join(', '), verses.join(', '));
-  console.log('parse_verse( %s ): ui_ref[ %s ]',
-              verse_ref, ui_ref);
-  console.log('parse_verse( %s ): url_ref[ %s ]',
-              verse_ref, url_ref);
-  // */
 
   const data  = {
     book      : bk,
@@ -201,8 +214,8 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
     verses,
 
     full_book : book,
-    ui_ref,
-    url_ref,
+    ui_ref    : generate_ui_ref(  book, ch_num, verses ),
+    url_ref   : generate_url_ref( book, ch_num, verses ),
   };
 
   /*
@@ -210,6 +223,108 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
   // */
 
   return data;
+}
+
+/**
+ *  Given a book, chapter number, and set of verses, generate a human readable
+ *  UI reference/label for the verse (range).
+ *
+ *  @method generate_ui_ref
+ *  @param  book    The full book information for the target book {Object};
+ *  @param  chapter The chapter number {Number};
+ *  @param  verses  The sorted set of verses {Array[Number]};
+ *
+ *  @return The human readable, UI reference {String};
+ */
+export function generate_ui_ref( book, chapter, verses ) {
+  /* Collapse verses into a first verse, any initial range, and a following CSV
+   * of additional verses.
+   */
+  const ch_str    = String( chapter ).trim();
+  let   ui_ref    = `${book.name} ${ch_str}`;
+
+  if (Array.isArray(verses) && verses.length > 0) {
+    const vs1       = verses[0];
+    let   range_end;
+    for (let idex = 1; idex < verses.length; idex++) {
+      const vs  = verses[idex];
+      if (vs !== vs1 + idex) {
+        // End of range
+        break;
+      }
+      range_end = idex;
+    }
+
+    let   csv_verses  = [];
+    const vs1_str     = String( vs1 ).trim();
+    ui_ref += `:${vs1_str}`;
+    if (range_end) {
+      const vs2_str = String( verses[range_end] ).trim();
+
+      ui_ref     += `-${vs2_str}`;
+      csv_verses  = verses.slice( range_end + 1 );
+
+    } else {
+      csv_verses = verses.slice( 1 );
+    }
+
+    if (csv_verses.length > 0) {
+      ui_ref += ',' + csv_verses.map( vs => String(vs).trim() ).join(',');
+    }
+  }
+
+  return ui_ref;
+}
+
+/**
+ *  Given a book, chapter number, and set of verses, generate a URL reference
+ *  for the verse (range).
+ *
+ *  @method generate_url_ref
+ *  @param  book    The full book information for the target book {Object};
+ *  @param  chapter The chapter number {Number};
+ *  @param  verses  The sorted set of verses {Array[Number]};
+ *
+ *  @return The human readable, UI reference {String};
+ */
+export function generate_url_ref( book, chapter, verses ) {
+  /* Collapse verses into a first verse, any initial range, and a following CSV
+   * of additional verses.
+   */
+  const ch_str    = ref_num( chapter );
+  let   url_ref   = `${book.abbr}.${ch_str}`;
+
+  if (Array.isArray(verses) && verses.length > 0) {
+    const vs1       = verses[0];
+    let   range_end;
+    for (let idex = 1; idex < verses.length; idex++) {
+      const vs  = verses[idex];
+      if (vs !== vs1 + idex) {
+        // End of range
+        break;
+      }
+      range_end = idex;
+    }
+
+    let   csv_verses  = [];
+    const vs1_str     = ref_num( vs1 );
+    url_ref += `.${vs1_str}`;
+    if (range_end) {
+      const vs2_str = ref_num( verses[range_end] );
+
+      url_ref    += `-${vs2_str}`;
+      csv_verses  = verses.slice( range_end + 1 );
+
+    } else {
+      csv_verses = verses.slice( 1 );
+    }
+
+    if (csv_verses.length > 0) {
+      url_ref += ',' + csv_verses.map( vs => ref_num( vs ) ).join(',');
+    }
+  }
+
+  return url_ref;
 }
 
 /**
@@ -348,11 +463,16 @@ export function ref_num( num ) {
   return String(num).trim().padStart(3, '0');
 }
 
+/****************************************************************************
+ * Private helpers {
+ *
+ */
+
 /**
  *  Given book metadata along with chapter, and verse, validate chapter and
  *  verse.
  *
- *  @method validate_ref
+ *  @method _validate_ref
  *  @param  book                    The book metadata {Object};
  *  @param  ch                      The target chapter
  *                                  {Number | Numeric String};
@@ -364,8 +484,9 @@ export function ref_num( num ) {
  *
  *  @return The validated chapter and verse | undefined if invalid {Object};
  *            { chapter: {Number}, verse: {Number} }
+ *  @private
  */
-function validate_ref( book, ch, vs, apply_bounds = true ) {
+function _validate_ref( book, ch, vs, apply_bounds = true ) {
   let   ch_num    = parseInt( ch );
   let   vs_num    = parseInt( vs );
   const max_chaps = book.verses.length - 1;
@@ -396,3 +517,6 @@ function validate_ref( book, ch, vs, apply_bounds = true ) {
 
   return { chapter: ch_num, verse: vs_num };
 }
+
+/* Private helpers }
+ ****************************************************************************/
