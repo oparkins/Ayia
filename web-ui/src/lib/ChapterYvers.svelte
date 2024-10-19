@@ -34,8 +34,8 @@
    *  Imports {
    *
    */
-  import { afterUpdate }  from 'svelte';
-  import { get, derived } from 'svelte/store';
+  import { getContext, afterUpdate, tick }  from 'svelte';
+  import { get, writable, derived } from 'svelte/store';
   import {
     afterNavigate,
     goto,
@@ -47,8 +47,6 @@
     show_xrefs,
     show_redletters,
 
-    version   as version_stores,
-    verse     as verse_store,
     selected  as selected_store,
   }  from '$lib/stores';
 
@@ -57,6 +55,11 @@
     activate  as activate_notes,
     is_active as notes_are_active,
   }  from '$lib/verse_note';
+
+  import scrollIntoView from 'scroll-into-view-if-needed'
+
+  const version_stores  = getContext( 'version' );
+  const verse_store     = getContext( 'verse' );
 
   /*  Imports }
    *************************************************************************

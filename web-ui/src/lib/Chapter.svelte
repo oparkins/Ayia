@@ -28,8 +28,8 @@
    *  Imports {
    *
    */
-  import { afterUpdate }  from 'svelte';
-  import { get, derived } from 'svelte/store';
+  import { getContext, afterUpdate, tick }  from 'svelte';
+  import { get, writable, derived }   from 'svelte/store';
   import {
     afterNavigate,
     goto,
@@ -37,14 +37,15 @@
   } from '$app/navigation';
 
   import {
-    version   as version_stores,
-    verse     as verse_store,
     selected  as selected_store,
   }  from '$lib/stores';
 
   import VerseText        from '$lib/VerseText.svelte';
   import VerseYvers       from '$lib/VerseYvers.svelte';
   import VerseInterlinear from '$lib/VerseInterlinear.svelte';
+
+  const version_stores  = getContext( 'version' );
+  const verse_store     = getContext( 'verse' );
 
   /*  Imports }
    *************************************************************************
@@ -411,7 +412,7 @@
   $: reset_selecting( $version_store, $verse_store );
 
   // When `version` changes, update the verse element
-  $: update_el( version );
+  $: update_el( $version_store );
 
   /*  Local state/Methods }
    *************************************************************************

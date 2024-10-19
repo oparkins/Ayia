@@ -1,10 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { get }      from "svelte/store";
 
-import {
-  version as version_stores,
-  verse,
-}  from '$lib/stores';
+import { version, verse }  from '$lib/stores';
 
 /**
  *  Check if we need to redirect to a deeper page.
@@ -14,9 +11,9 @@ import {
  *  @return void;
  */
 export function load() {
-  if (version_stores == null || verse == null) { return }
+  if (version == null || verse == null) { return }
 
-  const version_ro  = get( version_stores.primary );
+  const version_ro  = get( version.primary );
   const verse_ro    = get( verse );
                         
   if (version_ro && verse_ro) {
