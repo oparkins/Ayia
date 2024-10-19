@@ -425,6 +425,9 @@
       'text-gray-800',
       'dark:text-gray-200',
     ],
+
+    body: [
+    ],
   };
 
   /*  Styling }
@@ -439,19 +442,22 @@
   {#if $is_loading}
     Loading { verse.ui_ref } ...
   {/if}
-  {#if content}
-    {#if (book && verse) }
-      <div class='chapter header'>
-        <span class='chapter name'>{ book.name }</span>
-        <span class='chapter number'>{ verse.chapter }</span>
-      </div>
+  <div class='body { Css.body.join(' ') }'
+       style='{ `display: ${ $is_loading ? 'none' : 'block'}` }'>
+    {#if content}
+      {#if (book && verse) }
+        <div class='chapter header'>
+          <span class='chapter name'>{ book.name }</span>
+          <span class='chapter number'>{ verse.chapter }</span>
+        </div>
+      {/if}
+      {@html html_chapter( content, { footnotes : $show_footnotes,
+                                      xrefs     : $show_xrefs,
+                                      redletters: $show_redletters } ) }
+    {:else if verse}
+      Select the desired version below
+    {:else}
+      Select the desired verse below
     {/if}
-    {@html html_chapter( content, { footnotes : $show_footnotes,
-                                    xrefs     : $show_xrefs,
-                                    redletters: $show_redletters } ) }
-   {:else if verse}
-    Select the desired version below
-   {:else}
-    Select the desired verse below
-  {/if}
+  </div>
 </div>

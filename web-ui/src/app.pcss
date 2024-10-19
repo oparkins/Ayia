@@ -373,7 +373,7 @@
    *
    */
   /* Disable hover events on notes that are NOT within a selected verse */
-  .content.yvers[selecting="true"] > div :not([selected="true"]) .note {
+  .content.yvers[selecting="true"] .body > div :not([selected="true"]) .note {
     pointer-events: none;
   }
   .content:not(.yvers)[selecting="true"] .body > div:not([selected="true"]) .note,
@@ -419,12 +419,12 @@
    *      ...
    *    </div>
    */
-  .content.yvers[selecting="true"] > div span {
+  .content.yvers[selecting="true"] .body > div span {
     @apply  opacity-25;
   }
 
-  .content.yvers[selecting="true"] > div [selected="true"],
-  .content.yvers[selecting="true"] > div [selected="true"] span {
+  .content.yvers[selecting="true"] .body > div [selected="true"],
+  .content.yvers[selecting="true"] .body > div [selected="true"] span {
     @apply  opacity-100;
   }
 

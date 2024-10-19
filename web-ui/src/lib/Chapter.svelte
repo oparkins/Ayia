@@ -450,24 +450,24 @@
   {/if}
   <div class='body { Css.body.join(' ') }'
        style='{ `display: ${ $is_loading ? 'none' : 'block'}` }'>
-   {#if content && content.verses}
-    {#if (book && verse) }
-      <div class='chapter header'>
-        <span class='chapter name'>{ book.name }</span>
-        <span class='chapter number'>{ verse.chapter }</span>
-      </div>
+    {#if content && content.verses}
+      {#if (book && verse) }
+        <div class='chapter header'>
+          <span class='chapter name'>{ book.name }</span>
+          <span class='chapter number'>{ verse.chapter }</span>
+        </div>
+      {/if}
+      {#each Object.entries(content.verses) as [verse_ref, verse]}
+        <svelte:component
+            this={      verse_el }
+            verse_ref={ verse_ref }
+            verse={     verse }
+        />
+      {/each}
+    {:else if verse}
+      Select the desired version below
+    {:else}
+      Select the desired verse below
     {/if}
-    {#each Object.entries(content.verses) as [verse_ref, verse]}
-      <svelte:component
-          this={      verse_el }
-          verse_ref={ verse_ref }
-          verse={     verse }
-      />
-    {/each}
-   {:else if verse}
-    Select the desired version below
-   {:else}
-    Select the desired verse below
-   {/if}
   </div>
 </div>
