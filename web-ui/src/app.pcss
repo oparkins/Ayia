@@ -376,8 +376,8 @@
   .content.yvers[selecting="true"] > div :not([selected="true"]) .note {
     pointer-events: none;
   }
-  .content:not(.yvers)[selecting="true"] > div:not([selected="true"]) .note,
-  .content:not(.yvers)[selecting="true"] > div:not([selected="true"]) .hover-trigger {
+  .content:not(.yvers)[selecting="true"] .body > div:not([selected="true"]) .note,
+  .content:not(.yvers)[selecting="true"] .body > div:not([selected="true"]) .hover-trigger {
     pointer-events: none;
   }
 
@@ -438,11 +438,11 @@
    *      ...
    *    </div>
    */
-  .content:not(.yvers)[selecting="true"] > div {
+  .content:not(.yvers)[selecting="true"] .body > div {
     @apply  opacity-25;
   }
 
-  .content:not(.yvers)[selecting="true"] > div[selected="true"] {
+  .content:not(.yvers)[selecting="true"] .body > div[selected="true"] {
     @apply  opacity-100;
   }
 

@@ -431,6 +431,9 @@
       'text-gray-800',
       'dark:text-gray-200',
     ],
+
+    body: [
+    ],
   };
 
   /*  Styling }
@@ -444,7 +447,10 @@
       bind:this={container_el} >
   {#if $is_loading}
     Loading { verse.ui_ref } ...
-  {:else if content && content.verses}
+  {/if}
+  <div class='body { Css.body.join(' ') }'
+       style='{ `display: ${ $is_loading ? 'none' : 'block'}` }'>
+   {#if content && content.verses}
     {#if (book && verse) }
       <div class='chapter header'>
         <span class='chapter name'>{ book.name }</span>
@@ -458,9 +464,10 @@
           verse={     verse }
       />
     {/each}
-  {:else if verse}
+   {:else if verse}
     Select the desired version below
-  {:else}
+   {:else}
     Select the desired verse below
-  {/if}
+   {/if}
+  </div>
 </div>
