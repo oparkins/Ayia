@@ -34,6 +34,8 @@
    */
   import { getContext, afterUpdate, tick }  from 'svelte';
   import { get, writable, derived }   from 'svelte/store';
+  import scrollIntoView from 'scroll-into-view-if-needed'
+
   import {
     afterNavigate,
     goto,
@@ -206,7 +208,18 @@
 
     if (first) {
       // Scroll the first of the target verse(s) into view
-      first.scrollIntoView({ behavior: 'auto', block: 'center'});
+      const scrollOpts  = {
+        //behavior  : 'auto',         // default: auto
+        //block     : 'center',       // default: center
+        //inline    : 'nearest',      // default: nearest
+        //scrollMode: 'always',       // default: always
+
+        // node module
+        boundary                  : container_el,
+        skipOverflowHiddenElements: true, // default: false
+      };
+
+      scrollIntoView( first, scrollOpts );
     }
   }
 

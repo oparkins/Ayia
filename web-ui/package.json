@@ -31,6 +31,7 @@
     "fitty": "^2.4.2",
     "js-yaml": "^4.1.0",
     "nodemon": "^3.0.3",
+    "scroll-into-view-if-needed": "^3.1.0",
     "yargs": "^17.7.2"
   },
   "nodemonConfig": {
