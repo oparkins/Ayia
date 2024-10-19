@@ -79,7 +79,6 @@
    *************************************************************************
    *  Local state {
    */
-  let content_loading = false;
   let chapter_el      = Chapter;
   let book            = null;
   let max_chapter     = 0;
@@ -87,6 +86,7 @@
   let prev_disabled   = false;
   let next_disabled   = false;
 
+  const is_loading    = writable( false );
   const is_selecting  = derived( selected_store, ( $selected_store ) => {
     return (Array.isArray( $selected_store ) && $selected_store.length > 0);
   });
@@ -380,13 +380,13 @@
 <div class={ Css.container.join(' ') }>
   <Card class={ Css.card.join(' ') }>
     <svelte:component
-        this={        chapter_el }
-        is_loading={  content_loading }
-        column={      column }
-        version={     $version_store }
-        book={        book }
-        verse={       $verse_store }
-        content={     content }
+        this={            chapter_el }
+        content_loading={ $is_loading }
+        column={          column }
+        version={         $version_store }
+        book={            book }
+        verse={           $verse_store }
+        content={         content }
     />
 
     <BottomNav

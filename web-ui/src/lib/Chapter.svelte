@@ -4,24 +4,28 @@
    *  the target version, book, verse (ref), and chapter content.
    *
    *  @element  Chapter
-   *  @prop     is_loading    Indicates whether `content` is currently being
-   *                          loaded {Boolean};
-   *  @prop     column        The column in which this chapter is presented
-   *                          (primary | column#) {String};
-   *  @prop     version       The current version {Version};
-   *  @prop     book          The target book {Book};
-   *  @prop     verse         The target verse {VerseRef};
-   *  @prop     content       Chapter content for the current `version`,
-   *                          `book`, and `verse` {Object};
+   *  @prop     content_loading   Indicates whether `content` is currently
+   *                              being loaded {Boolean};
+   *  @prop     column            The column in which this chapter is presented
+   *                              (primary | column#) {String};
+   *  @prop     version           The current version {Version};
+   *  @prop     book              The target book {Book};
+   *  @prop     verse             The target verse {VerseRef};
+   *  @prop     content           Chapter content for the current `version`,
+   *                              `book`, and `verse` {Object};
+   *
+   *  Required contexts:
+   *    version
+   *    verse
    *
    *  External properties {
    */
-  export let is_loading = true;
-  export let column     = null;   // The column for this chapter
-  export let version    = null;   // The target version
-  export let book       = null;   // The target book
-  export let verse      = null;   // The target verse
-  export let content    = null;   // Chapter content
+  export let content_loading  = true;
+  export let column           = null;   // The column for this chapter
+  export let version          = null;   // The target version
+  export let book             = null;   // The target book
+  export let verse            = null;   // The target verse
+  export let content          = null;   // Chapter content
 
   /*  External properties }
    *************************************************************************
@@ -54,6 +58,7 @@
   let container_el  = null;
   let need_scroll   = false;
   let verse_el      = VerseText;
+  const is_loading    = writable( content_loading || true );
 
   const version_store = version_stores[ column ];
   const is_selecting  = derived( selected_store, ( $selected_store ) => {
@@ -94,11 +99,11 @@
     /*
     console.log('Chapter.afterNavigate(): '
                 +   'is_loading[ %s => true ], need_scroll[ %s => true ]',
-                String( is_loading ),
+                String( $is_loading ),
                 String( need_scroll ) );
     // */
 
-    is_loading  = true;
+    is_loading.set(  true );
     need_scroll = true;
   });
 
@@ -116,7 +121,7 @@
                 +     'need_scroll[ %s ]',
                 verses.length,
                 String( content != null ),
-                String( is_loading ),
+                String( $is_loading ),
                 String( need_scroll ));
     // */
 
@@ -128,11 +133,11 @@
       /*
       console.log('Chapter.afterUpdate(): no verses, '
                   +   'is_loading[ %s => true ], need_scroll[ %s => true ]',
-                  String( is_loading ),
+                  String( $is_loading ),
                   String( need_scroll ) );
       // */
 
-      is_loading  = true;
+      is_loading.set( true );
       need_scroll = true;
       return;
     }
@@ -440,7 +445,7 @@
       role='presentation'
       on:click={ click_verse }
       bind:this={container_el} >
-  {#if is_loading}
+  {#if $is_loading}
     Loading { verse.ui_ref } ...
   {:else if content && content.verses}
     {#if (book && verse) }

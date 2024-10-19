@@ -5,24 +5,28 @@
    *  chapter content.
    *
    *  @element  ChapterYvers
-   *  @prop     is_loading    Indicates whether `content` is currently being
-   *                          loaded {Boolean};
-   *  @prop     column        The column in which this chapter is presented
-   *                          (primary | column#) {String};
-   *  @prop     version       The current version ('yvers') {Version};
-   *  @prop     book          The target book {Book};
-   *  @prop     verse         The target verse {VerseRef};
-   *  @prop     content       Chapter content for the current `book` and
-   *                          `verse` {Object};
+   *  @prop     content_loading   Indicates whether `content` is currently
+   *                              being loaded {Boolean};
+   *  @prop     column            The column in which this chapter is presented
+   *                              (primary | column#) {String};
+   *  @prop     version           The current version {Version};
+   *  @prop     book              The target book {Book};
+   *  @prop     verse             The target verse {VerseRef};
+   *  @prop     content           Chapter content for the current `version`,
+   *                              `book`, and `verse` {Object};
+   *
+   *  Required contexts:
+   *    version
+   *    verse
    *
    *  External properties {
    */
-  export let is_loading = true;
-  export let column     = null;   // The column for this chapter
-  export let version    = null;   // The target version (yvers)
-  export let book       = null;   // The target book
-  export let verse      = null;   // The target verse
-  export let content    = null;   // Chapter content
+  export let content_loading  = true;
+  export let column           = null;   // The column for this chapter
+  export let version          = null;   // The target version (yvers)
+  export let book             = null;   // The target book
+  export let verse            = null;   // The target verse
+  export let content          = null;   // Chapter content
 
   /* :XXX: Make use of `version` to remove the svelte warning about an unused
    *       property.
