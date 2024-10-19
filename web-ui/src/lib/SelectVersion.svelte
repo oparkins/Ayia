@@ -11,6 +11,10 @@
    *                                  up against a companion SelectVerse
    *                                  element.
    *
+   *  Required contexts:
+   *    versions
+   *    version
+   *
    *  Dispatches event:
    *    'versionchanged'  { detail: {Version} }
    *
