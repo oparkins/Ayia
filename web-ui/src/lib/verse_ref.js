@@ -12,10 +12,6 @@
  *        ...
  *      ],
  *    }
- *
- *  import { get }              from 'svelte/store';
- *  import { versions, verse }  from "$lib/stores";
- *
  */
 
 /* Support various HTML dashes for separator
@@ -76,10 +72,10 @@ export class VerseRef {
    *                                  bounds. Otherwise, the reference is
    *                                  invalid {Boolean};
    */
-  constructor( verse_ref, version, apply_bounds = true ) {
+  constructor( verse_ref, versions, apply_bounds = true ) {
     this.verse_ref = verse_ref;
 
-    const data  = parse_verse( verse_ref, version, apply_bounds );
+    const data  = parse_verse( verse_ref, versions, apply_bounds );
 
     if (data) {
       this.is_valid  = true;
