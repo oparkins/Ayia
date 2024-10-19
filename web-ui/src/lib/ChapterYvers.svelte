@@ -69,25 +69,23 @@
    *************************************************************************
    *  Local state/methods {
    */
-  let container_el  = null;
-  let need_scroll   = false;
+  let   container_el  = null;
+  const is_loading    = writable( content_loading || true );
 
   const version_store = version_stores[ column ];
   const is_selecting  = derived( selected_store, ( $selected_store ) => {
     return (Array.isArray( $selected_store ) && $selected_store.length > 0);
   });
 
-  // After any navigation, reset is_loading and need_scroll
+  // After any navigation, reset is_loading
   afterNavigate( ( navigation ) => {
     /*
     console.log('ChapterYvers.afterNavigate(): '
-                +   'is_loading[ %s => true ], need_scroll[ %s => true ]',
-                String( is_loading ),
-                String( need_scroll ) );
+                +   'is_loading[ %s => true ]',
+                String( $is_loading ) );
     // */
 
-    is_loading  = true;
-    need_scroll = true;
+    is_loading.set(  true );
   });
 
   // As soon as this component has been fully loaded,
@@ -98,12 +96,10 @@
     /*
     console.log('ChapterYvers.afterUpdate(): %d verses, '
                 +     'have_content[ %s ], '
-                +     'is_loading[ %s ], '
-                +     'need_scroll[ %s ]',
+                +     'is_loading[ %s ]',
                 verses.length,
                 String( content != null ),
-                String( is_loading ),
-                String( need_scroll ));
+                String( $is_loading ) );
     // */
 
     if (verses.length < 1) {
@@ -113,13 +109,11 @@
        */
       /*
       console.log('ChapterYvers.afterUpdate(): no verses, '
-                  +   'is_loading[ %s => true ], need_scroll[ %s => true ]',
-                  String( is_loading ),
-                  String( need_scroll ) );
+                  +   'is_loading[ %s => true ]',
+                  String( $is_loading ) );
       // */
 
-      is_loading  = true;
-      need_scroll = true;
+      is_loading.set(  true );
       return;
     }
 
@@ -155,6 +149,21 @@
       activate_notes( container_el );
     }
 
+    // Update is_loading
+    is_loading.set(  false );
+  });
+
+  /**
+   *  When `is_loading` changes, perform final initialization.
+   *
+   *  @method loading_changed
+   *  @param  is_loading    The new value of `$is_loading` {Boolean};
+   */
+  async function loading_changed( is_loading ) {
+    if (is_loading) { return }
+
+    await tick();
+
     // Ensure selection matches our selection state.
     if (! $is_selecting) {
       remove_selection();
@@ -162,16 +171,10 @@
     } else {
       select_verses( $selected_store );
 
-      if ( need_scroll ) {
-        // On first full render, scroll the selected verse into view
-        scroll_into_view();
-      }
+      // On first full render, scroll the selected verse into view
+      scroll_into_view();
     }
-
-    // Update is_loading and need_scroll
-    is_loading  = false;
-    need_scroll = false;
-  });
+  }
 
   /**
    *  Scroll the first of the selected verses into view.
@@ -181,7 +184,7 @@
   function scroll_into_view() {
     const verse_nums  = ($is_selecting && $selected_store);
 
-    // /*
+    /*
     console.log('ChapterYvers.scroll_into_view(): verse_nums:', verse_nums);
     // */
 
@@ -230,10 +233,8 @@
     if (version_changed) {
       version = new_version;
 
-      // When changing versions, reset is_loading and need_scroll
-      is_loading  = true;
-      need_scroll = true;
-
+      // When changing versions, reset is_loading
+      is_loading.set(  true );
     }
 
     if (verse_changed) {
@@ -264,6 +265,9 @@
                   verse_nums);
     // */
 
+    // Deselect any currently selected verses
+    deselect_verses();
+
     if (! Array.isArray( verse_nums) || verse_nums.length < 1) {
       return;
     }
@@ -276,6 +280,20 @@
       // Select all portions of the target verse(s)
       verse_nums.forEach( num => select_verse( num, verses ) );
     }
+  }
+
+  /**
+   *  Remove 'selected' from all verses that currently have the attribute.
+   *
+   *  @method deselect_verses
+   */
+  function deselect_verses() {
+    const selected  = (container_el
+                        ? container_el.querySelectorAll('[selected="true"]')
+                        : []);
+    selected.forEach( el => {
+      el.removeAttribute( 'selected' );
+    });
   }
 
   /**
@@ -310,17 +328,6 @@
     });
 
     selected_store.set( selected );
-
-    /* :TODO: Determine if this changes the current URL and, if so,
-     *        perform a replaceState() with the new URL.
-     */
-    const verse = get( verse_store ) || null;
-    console.log('ChapterYvers.select_verse( %s ): [ %s ], '
-                +   'verse.verses[ %s ], verse.url_ref[ %s ]',
-                verse_num,
-                selected.join(', '),
-                (verse ? verse.verses.join(', ') : '???'),
-                (verse ? verse.url_ref           : '???'));
   }
 
   /**
@@ -331,23 +338,10 @@
    *  @return void
    */
   function remove_selection() {
-    const selected  = container_el.querySelectorAll('[selected="true"]');
-    selected.forEach( el => {
-      el.removeAttribute( 'selected' );
-    });
+    deselect_verses();
 
     // Update 'is_selecting' (on the chapter container)
     selected_store.set( null );
-
-    /* :TODO: Determine if this changes the current URL and, if so,
-     *        perform a replaceState() with the new URL.
-     */
-    const verse = get( verse_store ) || null;
-    console.log('ChapterYvers.remove_selection(): %d verse elements, '
-                +   'verse.verses[ %s ], verse.url_ref[ %s ]',
-                selected.length,
-                (verse ? verse.verses.join(', ') : '???'),
-                (verse ? verse.url_ref           : '???'));
   }
 
   /**
@@ -413,6 +407,9 @@
    */
   $: reset_selecting( $version_store, $verse_store );
 
+  // When `is_loading` changes, perform scrolling.
+  $: loading_changed( $is_loading );
+
   /*  Local state/Methods }
    *************************************************************************
    *  Styling {
@@ -439,23 +436,22 @@
       role='presentation'
       on:click={ click_verse }
       bind:this={container_el} >
-  {#if is_loading}
+  {#if $is_loading}
     Loading { verse.ui_ref } ...
-  {:else if content}
+  {/if}
+  {#if content}
     {#if (book && verse) }
       <div class='chapter header'>
         <span class='chapter name'>{ book.name }</span>
         <span class='chapter number'>{ verse.chapter }</span>
       </div>
     {/if}
-
     {@html html_chapter( content, { footnotes : $show_footnotes,
                                     xrefs     : $show_xrefs,
                                     redletters: $show_redletters } ) }
-
-  {:else if verse}
-    { verse.ui_ref } [ { verse.url_ref } ]
-  {:else}
-    Select the desired verse above
+   {:else if verse}
+    Select the desired version below
+   {:else}
+    Select the desired verse below
   {/if}
 </div>

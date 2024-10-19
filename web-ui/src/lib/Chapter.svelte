@@ -55,9 +55,8 @@
    *************************************************************************
    *  Local state/methods {
    */
-  let container_el  = null;
-  let need_scroll   = false;
-  let verse_el      = VerseText;
+  let   container_el  = null;
+  let   verse_el      = VerseText;
   const is_loading    = writable( content_loading || true );
 
   const version_store = version_stores[ column ];
@@ -94,17 +93,15 @@
     }
   }
 
-  // After any navigation, reset is_loading and need_scroll
+  // After any navigation, reset is_loading
   afterNavigate( ( navigation ) => {
     /*
     console.log('Chapter.afterNavigate(): '
-                +   'is_loading[ %s => true ], need_scroll[ %s => true ]',
-                String( $is_loading ),
-                String( need_scroll ) );
+                +   'is_loading[ %s => true ]',
+                String( $is_loading ) );
     // */
 
     is_loading.set(  true );
-    need_scroll = true;
   });
 
   /* As soon as this component has been updated, select and scroll to any
@@ -117,12 +114,10 @@
     /*
     console.log('Chapter.afterUpdate(): %d verses, '
                 +     'have_content[ %s ], '
-                +     'is_loading[ %s ], '
-                +     'need_scroll[ %s ]',
+                +     'is_loading[ %s ]',
                 verses.length,
                 String( content != null ),
-                String( $is_loading ),
-                String( need_scroll ));
+                String( $is_loading ) );
     // */
 
     if (verses.length < 1) {
@@ -132,13 +127,11 @@
        */
       /*
       console.log('Chapter.afterUpdate(): no verses, '
-                  +   'is_loading[ %s => true ], need_scroll[ %s => true ]',
-                  String( $is_loading ),
-                  String( need_scroll ) );
+                  +   'is_loading[ %s => true ]',
+                  String( $is_loading ) );
       // */
 
       is_loading.set( true );
-      need_scroll = true;
       return;
     }
 
@@ -160,6 +153,21 @@
                 verse );
     // */
 
+    // Update is_loading
+    is_loading.set( false );
+  });
+
+  /**
+   *  When `is_loading` changes, perform final initialization.
+   *
+   *  @method loading_changed
+   *  @param  is_loading    The new value of `$is_loading` {Boolean};
+   */
+  async function loading_changed( is_loading ) {
+    if (is_loading) { return }
+
+    await tick();
+
     // Ensure selection matches our selection state.
     if (! $is_selecting) {
       remove_selection();
@@ -167,16 +175,10 @@
     } else {
       select_verses( $selected_store );
 
-      if ( need_scroll ) {
-        // On first full render, scroll the selected verse into view
-        scroll_into_view();
-      }
+      // On first full render, scroll the selected verse into view
+      scroll_into_view();
     }
-
-    // Update is_loading and need_scroll
-    is_loading  = false;
-    need_scroll = false;
-  });
+  }
 
   /**
    *  Scroll the first of the selected verses into view.
@@ -186,7 +188,7 @@
   function scroll_into_view() {
     const verse_nums  = ($is_selecting && $selected_store);
 
-    // /*
+    /*
     console.log('Chapter.scroll_into_view(): verse_nums:', verse_nums);
     // */
 
@@ -235,9 +237,8 @@
     if (version_changed) {
       version = new_version;
 
-      // When changing versions, reset is_loading and need_scroll
-      is_loading  = true;
-      need_scroll = true;
+      // When changing versions, reset is_loading
+      is_loading.set( true );
 
     }
 
@@ -269,6 +270,9 @@
                   verse_nums);
     // */
 
+    // Deselect any currently selected verses
+    deselect_verses();
+
     if (! Array.isArray( verse_nums) || verse_nums.length < 1) {
       return;
     }
@@ -281,6 +285,20 @@
       // Select all portions of the target verse(s)
       verse_nums.forEach( num => select_verse( num, verses ) );
     }
+  }
+
+  /**
+   *  Remove 'selected' from all verses that currently have the attribute.
+   *
+   *  @method deselect_verses
+   */
+  function deselect_verses() {
+    const selected  = (container_el
+                        ? container_el.querySelectorAll('[selected="true"]')
+                        : []);
+    selected.forEach( el => {
+      el.removeAttribute( 'selected' );
+    });
   }
 
   /**
@@ -315,17 +333,6 @@
     });
 
     selected_store.set( selected );
-
-    /* :TODO: Determine if this changes the current URL and, if so,
-     *        perform a replaceState() with the new URL.
-     */
-    const verse = get( verse_store ) || null;
-    console.log('Chapter.select_verse( %s ): [ %s ], '
-                +   'verse.verses[ %s ], verse.url_ref[ %s ]',
-                verse_num,
-                selected.join(', '),
-                (verse ? verse.verses.join(', ') : '???'),
-                (verse ? verse.url_ref           : '???'));
   }
 
   /**
@@ -336,23 +343,10 @@
    *  @return void
    */
   function remove_selection() {
-    const selected  = container_el.querySelectorAll('[selected="true"]');
-    selected.forEach( el => {
-      el.removeAttribute( 'selected' );
-    });
+    deselect_verses();
 
     // Update 'is_selecting' (on the chapter container)
     selected_store.set( null );
-
-    /* :TODO: Determine if this changes the current URL and, if so,
-     *        perform a replaceState() with the new URL.
-     */
-    const verse = get( verse_store ) || null;
-    console.log('Chapter.remove_selection(): %d verse elements, '
-                +   'verse.verses[ %s ], verse.url_ref[ %s ]',
-                selected.length,
-                (verse ? verse.verses.join(', ') : '???'),
-                (verse ? verse.url_ref           : '???'));
   }
 
   /**
@@ -418,6 +412,9 @@
 
   // When `version` changes, update the verse element
   $: update_el( $version_store );
+
+  // When `is_loading` changes, perform scrolling.
+  $: loading_changed( $is_loading );
 
   /*  Local state/Methods }
    *************************************************************************
