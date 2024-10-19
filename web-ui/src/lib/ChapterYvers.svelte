@@ -356,7 +356,9 @@
   }
 
   /**
-   *  Handle a click on a verse.
+   *  Handle a click within the chapter element:
+   *  - on a verse: highlight, extend, or remove highlight;
+   *  - on a link : navigate to the target href;
    *
    *  @method click_verse
    *  @param  event     The triggering event {Event};
@@ -365,6 +367,27 @@
    */
   function click_verse( event ) {
     const target  = event.target;
+
+    /*
+    console.log('ChapterYvers.click_verse(): target:', target);
+    // */
+
+    const $xt = target.closest('.xt[target="_self"]');
+    if ($xt) {
+      // Handle a click on a cross-reference anchor
+      const href  = $xt.getAttribute('href');
+
+      /*
+      console.log('ChapterYvers.click_verse(): xt.href[ %s ]', href);
+      // */
+
+      if (href) {
+        event.preventDefault();
+
+        goto( href );
+        return;
+      }
+    }
 
     /* Do NOT respond to clicks if:
      *  1. A tool-tip is visible;
