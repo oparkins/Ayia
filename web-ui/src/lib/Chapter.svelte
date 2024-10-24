@@ -212,11 +212,11 @@
         //behavior  : 'auto',         // default: auto
         //block     : 'center',       // default: center
         //inline    : 'nearest',      // default: nearest
-        //scrollMode: 'always',       // default: always
 
-        // node module
+        block                     : 'center',     // default: center
+        scrollMode                : 'if-needed',  // default: always
+        skipOverflowHiddenElements: true,         // default: false
         boundary                  : container_el,
-        skipOverflowHiddenElements: true, // default: false
       };
 
       scrollIntoView( first, scrollOpts );
