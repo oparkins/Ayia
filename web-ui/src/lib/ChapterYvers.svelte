@@ -57,7 +57,7 @@
     selected  as selected_store,
   }  from '$lib/stores';
 
-  import { html_chapter }                 from '$lib/render/yvers';
+  import { html_chapter }   from '$lib/render/yvers';
   import {
     activate  as activate_notes,
     is_active as notes_are_active,
