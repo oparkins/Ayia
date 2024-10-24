@@ -96,12 +96,13 @@ export class VerseRef {
    *  @return void
    */
   update_verses( verses ) {
-    if (! Array.isArray( verses )) {
-      return;
-    }
+    if (Array.isArray( verses )) {
+      // Ensure the incoming verses are sorted
+      verses.sort( (a,b) => a - b );
 
-    // Ensure the incoming verses are sorted
-    verses.sort( (a,b) => a - b );
+    } else {
+      verses = [];
+    }
 
     this.verses  = verses;
     this.ui_ref  = generate_ui_ref(  this.book, this.chapter, verses );
