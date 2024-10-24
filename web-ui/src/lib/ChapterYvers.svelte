@@ -42,10 +42,11 @@
   import { get, writable, derived } from 'svelte/store';
   import scrollIntoView from 'scroll-into-view-if-needed'
 
+  import { page } from '$app/stores';
+
   import {
     afterNavigate,
     goto,
-    replaceState,
   } from '$app/navigation';
 
   import {
@@ -96,10 +97,10 @@
     /*
     console.log('ChapterYvers.afterUpdate(): %d verses, '
                 +     'have_content[ %s ], '
-                +     'is_loading[ %s ]',
+                +     'is_loading[ %s ], page:',
                 verses.length,
                 String( content != null ),
-                String( $is_loading ) );
+                String( $is_loading ), $page );
     // */
 
     if (verses.length < 1) {
@@ -355,6 +356,50 @@
   }
 
   /**
+   *  Update the selection attribute of the given verse element.
+   *
+   *  @method update_selection
+   *  @param  $el   The target verse element {Element};
+   *
+   *  @return void
+   */
+  function update_selection( $el ) {
+    // Identify the verse number and determine if the current verse is selected
+    const verse_num = $el.getAttribute('v');
+    const select    = (! $el.hasAttribute('selected'));
+
+    /*
+    console.log('ChapterYvers.update_selection(): '
+                +           'verse_num[ %s ], select[ %s ]:',
+                verse_num, String( select ), $el);
+    // */
+
+    if (select) {
+      // Selet the target verse.
+      select_verse( verse_num );
+
+    } else {
+      // Remove verse selection
+      remove_selection();
+
+    }
+
+    // Update the current state with the new selection
+    const ref_stored  = get( verse_store );
+    ref_stored.update_verses( $selected_store );
+
+    /*
+    console.log('ChapterYvers.update_selection(): verse_num[ %s ], '
+                +       'select[ %s ], selected[ %s ], verse_ref[ %s ], page:',
+                verse_num, String( select ),
+                ($selected_store ? $selected_store.join(', ') : 'none'),
+                ref_stored.ui_ref, $page);
+    // */
+
+    goto( ref_stored.url_ref, { replaceState: true } );
+  }
+
+  /**
    *  Handle a click within the chapter element:
    *  - on a verse: highlight, extend, or remove highlight;
    *  - on a link : navigate to the target href;
@@ -415,24 +460,9 @@
     const el = event.target.closest('[v]');
     if (el == null) { return }
 
-    // Identify the verse number and determine if the current verse is selected
-    const verse_num = el.getAttribute('v');
-    const select    = (! el.hasAttribute('selected'));
+    event.preventDefault();
 
-    /*
-    console.log('ChapterYvers.click_verse(): verse_num[ %s ], select[ %s ]:',
-                verse_num, String( select ), el);
-    // */
-
-    if (select) {
-      // Selet the target verse.
-      select_verse( verse_num );
-
-    } else {
-      // Remove verse selection
-      remove_selection();
-
-    }
+    update_selection( el );
   }
 
   /* Whenever `$version_store` or `$verse_store` change, trigger
