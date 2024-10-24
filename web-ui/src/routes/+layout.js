@@ -2,10 +2,7 @@ import { browser, version as app_version} from '$app/environment';
 import { error } from '@sveltejs/kit';
 import { get }   from "svelte/store";
 
-import {
-  config    as config_store,
-  versions  as versions_store,
-}  from '$lib/stores';
+import { config    as config_store }  from '$lib/stores';
 
 import Agent  from '$lib/agent';
 
@@ -28,34 +25,33 @@ export async function load({ fetch, params }) {
     /* Browser-side: SHOULD have access to `config` pushed by the server into
      * the config store.
      */
-    console.log('+layout.js: browser, config_store:', config);
+    //console.log('+layout.js: browser, config_store:', config);
     if (config == null || config.app_version !== app_version) {
       const url = `${location.origin}/config`;
-      console.log('+layout.js: browser, fetch config:', url);
+      //console.log('+layout.js: browser, fetch config:', url);
 
       config = await Agent.get( url, {fetch} );
 
-      console.log('+layout.js: browser, config:', config);
-
-      config_store.set( config );
+      //console.log('+layout.js: browser, config:', config);
     }
 
   } else if (typeof(global) === 'object' && global.config) {
     /* Server-side with 'global.config' : push the config into a store to
      * provide client-side access.
      */
-    console.log('+layout.js: server, global.config:', global.config);
+    //console.log('+layout.js: server, global.config:', global.config);
 
     config = global.config;
-    config_store.set( config );
   }
 
   const path  = '/versions';
 
   const versions  = await Agent.get( path, {fetch} );
 
-  // Place the 'versions' data in our reactive store
-  versions_store.set( versions );
+  console.log('+layout.js: config  :', config);
+  /*
+  console.log('+layout.js: versions:', versions);
+  // */
 
   return {
     config  : config,

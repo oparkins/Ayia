@@ -1,9 +1,4 @@
 import { error } from '@sveltejs/kit';
-import { get }   from "svelte/store";
-
-import {
-  version   as version_store,
-}  from '$lib/stores';
 
 import Agent  from '$lib/agent';
 
@@ -37,14 +32,14 @@ export async function load({ params, fetch, parent }) {
   if (vers_name) {
     const path    = `/versions/${vers_name}`;
 
-    /*
+    // /*
     console.log('[version]/+layout.js: get( %s ) ...', path);
     // */
 
     const version = await Agent.get( path, {fetch} );
 
-    // Place the 'version' data in our reactive store
-    version_store.primary.set( version );
+    console.log('[version]/+layout.js: version[ %s ]:',
+                vers_name, version);
 
     return {
       ...data,

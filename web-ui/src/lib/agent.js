@@ -10,11 +10,7 @@ export const ssr = false;
 
 import { get }            from "svelte/store";
 
-import {
-  users,
-  errors,
-  config    as config_store,
-}  from '$lib/stores';
+import { config as config_store }  from '$lib/stores';
 
 /* Fall-back for _get_api_url() when a server-provided `config` is not
  * available.
@@ -129,8 +125,6 @@ async function _send( method, path, config=null) {
   const data    = (config && config.data);
   const headers = [];
   const opts    = { method, headers };
-  const user_ro = get( user );  // Don't want to subscribe
-  const token   = (user_ro && user_ro.token);
   let   url     = _get_api_url( path );
 
   // Require a JSON response
@@ -146,11 +140,6 @@ async function _send( method, path, config=null) {
       headers['Content-Type'] = 'application/json';
       opts.body = JSON.stringify( data );
     }
-  }
-
-  if (token) {
-    // Include an authorization header
-    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response  = await _fetch( url, opts );
@@ -195,23 +184,6 @@ async function _send( method, path, config=null) {
 
   // Decode the JSON
   const json  = await response.json();
-
-  /* Update our store if the response includes:
-   *    user  {Object};
-   *    token {String};
-   */
-  if (json.hasOwnProperty('user') && typeof(json.user) === 'object') {
-    // Store the entire user
-    user.set( json.user );
-
-  } else if (json.hasOwnProperty('token')) {
-    // Store the authentication token
-    user.update( (prev) => {
-      if (prev == null) { prev = {} }
-
-      return {...prev, token: json.token};
-    });
-  }
 
   return json;
 }

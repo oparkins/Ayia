@@ -15,6 +15,11 @@
    *                                  up against a companion SelectVerse
    *                                  element.
    *
+   *  Required contexts:
+   *    versions
+   *    version
+   *    verse
+   *
    *  External properties {
    */
   export let column   = 'primary';
@@ -22,12 +27,16 @@
   export let verse    = null;   // The target verse
   export let content  = null;   // Verse-related content
 
+  console.log('Version: version: %s', (version ? version.type : '???'));
+  console.log('Version: verse  :',    verse);
+
   /*  External properties }
    *************************************************************************
    *  Imports {
    *
    */
-  import { get, derived } from 'svelte/store';
+  import { getContext }             from 'svelte';
+  import { get, writable, derived } from 'svelte/store';
 
   import {
     BottomNav,
@@ -45,16 +54,15 @@
   import Chapter          from '$lib/Chapter.svelte';
   import ChapterYvers     from '$lib/ChapterYvers.svelte';
 
-  import {
-    versions  as versions_store,
-    version   as version_stores,
-    verse     as verse_store,
-    selected  as selected_store,
-  }  from '$lib/stores';
+  import { selected  as selected_store }  from '$lib/stores';
 
   import Agent  from '$lib/agent';
 
   import { DotsVerticalOutline as DotsVertical } from 'flowbite-svelte-icons';
+
+  const versions_store  = getContext( 'versions' );
+  const version_stores  = getContext( 'version' );
+  const verse_store     = getContext( 'verse' );
 
   /*  Imports }
    *************************************************************************
@@ -67,31 +75,10 @@
     throw new Error(`Invalid column [ ${column} ]`);
   }
 
-  // Synchronize our store with any incoming parameters
-  if (version) {
-    /*
-    console.log('Version.version: passed-in ...');
-    // */
-
-    // Ensure our store is in-sync
-    version_store.set( version );
-  }
-
-  if (verse) {
-    // /*
-    console.log('Version.verse: passed-in, update verse_store:', verse);
-    // */
-
-    // Ensure our store is in-sync
-    verse_store.set( verse );
-
-  }
-
   /*  Synchronization }
    *************************************************************************
    *  Local state {
    */
-  let content_loading = false;
   let chapter_el      = Chapter;
   let book            = null;
   let max_chapter     = 0;
@@ -99,6 +86,7 @@
   let prev_disabled   = false;
   let next_disabled   = false;
 
+  const is_loading    = writable( false );
   const is_selecting  = derived( selected_store, ( $selected_store ) => {
     return (Array.isArray( $selected_store ) && $selected_store.length > 0);
   });
@@ -121,7 +109,8 @@
    *      book
    */
   function update_dependents( version, verse ) {
-    const versions  = get( versions_store );
+    console.log('Version.update_dependents(): version.type:',
+                (version ? version.type : '???'));
 
     // Determine which Chapter element we should use
     if (version && (version.type === 'yvers' || version.type === 'pdf')) {
@@ -131,10 +120,7 @@
       chapter_el = Chapter;
     }
 
-    /* Determine immediately if we should disable the previous chapter button.
-     *  :XXX: Wait until AFTER the fetch for the next chapter button since
-     *        the versions information may not be available yet.
-     */
+    // Determine immediately if we should disable the previous chapter button.
     prev_disabled = (verse.chapter < 2);
 
     if (verse.book) {
@@ -147,65 +133,6 @@
     } else {
       next_disabled = false;
     }
-  }
-
-  /**
-   *  Fetch content based upon the current `vers_abbr` and parsed `verse`.
-   *
-   *  @method fetch_content
-   *  @param  version   The selected version {Object};
-   *                      { abbreviation, local_abbreviation, ... }
-   *  @param  verse     The verse reference {VerseRef};
-   *
-   *  This sets the `contoent_loading` flag and, upon completion, the `content`
-   *  value.
-   *
-   *  @return void;
-   */
-  function fetch_content( version, verse ) {
-    if (content_loading) { return }
-
-    if (version == null || verse == null || verse.is_valid !== true) {
-      return;
-    }
-    //const path  = `/versions/${version.abbreviation}/${verse.url_ref}`;
-
-    /* :XXX: Don't use `verse.url_ref` directly since we really want to
-     *       ensure we fetch an entire chapter.
-     */
-    const api_ref = `${verse.book.abbr}.${ref_num(verse.chapter)}`;
-    const path    = `/versions/${version.abbreviation}/${api_ref}`;
-
-    // /*
-    console.log('Version.fetch_content(): path:', path);
-    // */
-
-    /* Determine immediately if we should disable the previous chapter button.
-     *  :XXX: Wait until AFTER the fetch for the next chapter button since
-     *        the versions information may not be available yet.
-     */
-    update_dependents( version, verse );
-
-    content_loading = true;
-    Agent.get( path )
-      .then( res => {
-        /*
-        console.log('fetch_content():', res);
-        // */
-
-        /* Once this fetch completes, versions meta-data should be available,
-         * allowing the use of `find_book()` to retrieve book information.
-         */
-        update_dependents( version, verse );
-
-        content = res;
-      })
-      .catch( err => {
-        console.error('fetch_content():', err);
-      })
-      .finally( () => {
-        content_loading = false;
-      });
   }
 
   /**
@@ -340,7 +267,7 @@
   }
 
   // When either `version_store` or `verse_store` change, update content
-  $: fetch_content( $version_store, $verse_store );
+  $: update_dependents( $version_store, $verse_store );
 
   /*  Methods }
    *************************************************************************
@@ -453,13 +380,13 @@
 <div class={ Css.container.join(' ') }>
   <Card class={ Css.card.join(' ') }>
     <svelte:component
-        this={        chapter_el }
-        is_loading={  content_loading }
-        column={      column }
-        version={     $version_store }
-        book={        book }
-        verse={       $verse_store }
-        content={     content }
+        this={            chapter_el }
+        content_loading={ $is_loading }
+        column={          column }
+        version={         $version_store }
+        book={            book }
+        verse={           $verse_store }
+        content={         content }
     />
 
     <BottomNav

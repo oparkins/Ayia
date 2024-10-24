@@ -7,10 +7,7 @@
  *  Type-specific rendering engines.
  *
  */
-import {
-  html      as generate_note,
-  activate  as activate_notes,
-} from '$lib/verse_note';
+import { html as generate_note } from '$lib/verse_note';
 
 /**
  *  Generate the HTML markup for an entire chapter.
@@ -192,7 +189,9 @@ export function html_continuous_block( state ) {
   }
 
   if (key_type !== '/') {
-    if (heading_keys.includes( key )) {
+    const is_heading  = (heading_keys.includes( key ));
+
+    if ( is_heading ) {
       // No verse ref for heading/title spans
       html.push( `<${tag} class='${css.join(' ')}'>` );
 
@@ -428,9 +427,8 @@ export function html_char( state, item ) {
     let   label   = '#';
     const content = val.map( (n_item, n_dex) => {
       if (typeof(n_item) === 'string') {
-        return (type === 'note.x'
-                  ? _generate_refs( n_item )
-                  : n_item);
+        // :XXX: type === note.f | note.x
+        return n_item;
       }
 
       const i_key = Object.keys(n_item)[0];
@@ -454,16 +452,41 @@ export function html_char( state, item ) {
    * A non-note element, possibly *within* a note.
    *
    */
-  const html    = [];
-  const content = html_char( state, val );
+  if (type === 'xt' && val.text && val.usfm) {
+    /* Cross-reference: val = { text, usfm }
+     *
+     * Bypass content generation for direct interpretation.
+     *
+     * :NOTE: target='_self' is required so svelte doesn't auto-load the URL on
+     *        hover
+     */
+    const style_a = [
+      'inline-flex', 'items-center',
+      //'p-[.1em]',
+      //'rounded-md', 'bg-dark-50', 'text-green-700',
+      //'text-xs', 'font-medium',
+      //'ring-1', 'ring-inset', 'ring-green-600/20',
+      'border-blue-900',
+      'border-b-[.1em]',
+    ]
 
-  if (type === 'fq' || type === 'fqa') {
-    // fq : Quotation from current scripture
-    // fqa: Alternative Translation
-    html.push( ` “` );
+    return `<a class='${type} ${style_a.join(' ')}'
+                href='${val.usfm}'
+                target='_self'>${val.text}</a>`;
   }
 
+  // Generate textual content from `val`, interpreting any markup
+  const content = html_char( state, val );
+  const html    = [];
+
   switch( type ) {
+    case 'fq':      // Quotation from current scription (fall-through)
+    case 'fqa':     // Alternative Translation
+      html.push( ` “` );
+      html.push( `<span class='${type}'>${content}</span>` );
+      html.push( `” ` );
+      break;
+
     case 'label':   // verse label
       html.push( `<sup class='verse label'>${content}</sup>` );
       break;
@@ -479,12 +502,6 @@ export function html_char( state, item ) {
     default:
       html.push( `<span class='${type}'>${content}</span>` );
       break;
-  }
-
-  if (type === 'fq' || type === 'fqa') {
-    // fq : Quotation from current scripture
-    // fqa: Alternative Translation
-    html.push( `” ` );
   }
 
   return html.join(' ');
@@ -645,9 +662,8 @@ function html_markup( markup, m_dex, show={} ) {
       const content = m_val.map( n_obj => {
 
         if (typeof(n_obj) === 'string') {
-          return (type === 'xref'
-                    ? _generate_refs( n_obj )
-                    : n_obj);
+          // :XXX: note.f content type === xref | foor
+          return n_obj;
         }
 
         const i_key = Object.keys(n_obj)[0];
@@ -693,33 +709,4 @@ function html_markup( markup, m_dex, show={} ) {
   return html;
 }
 /* Version 1 }
- ****************************************************************************
- * Private helpers {
- *
- */
-
-/**
- *  Generate anchors for verse references.
- *
- *  @method _generate_refs
- *  @param  text      The text from which to generate references {String};
- *
- *  @return HTML markup {String};
- *  @private
- */
-function _generate_refs( text ) {
-  /* :TODO: When iterating over `items` to convert to references
-   *        If the item has no book (i.e. begins with a number), it is a
-   *        chapter/verse reference referring to the previous book. If no
-   *        previous book, the currently presented book.
-   */
-  //const items = text.replace(/\s*(ver\.|ch\.|Cited from|See)\s*/gi, '')
-  //                  .replace(/\s*[\[\(\)\]]\s*/g, '')
-  //                  .split(/\s*;\s*/);
-  //console.log('_generate_refs( %s ):', text, items);
-
-  return `<span class='xt'>${text}</span>`;
-}
-
-/* Private helpers }
  ****************************************************************************/

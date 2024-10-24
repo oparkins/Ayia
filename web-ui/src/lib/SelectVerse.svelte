@@ -17,21 +17,20 @@
    *  Imports {
    *
    */
-  import { afterUpdate, createEventDispatcher } from 'svelte';
-  import { get, writable }  from 'svelte/store';
+  import { getContext, afterUpdate, createEventDispatcher } from 'svelte';
+  import { get, derived, writable }  from 'svelte/store';
+	import { page } from '$app/stores';
 
   import { Input }  from 'flowbite-svelte';
   import Fitty      from 'fitty';
-
-  import {
-    versions  as versions_store,
-    verse     as verse_store,
-  }  from '$lib/stores';
 
   import { VerseRef } from '$lib/verse_ref';
 
   // Adapt fitty so we don't get a server-side error
   const fitty = (typeof(Fitty) === 'function' ? Fitty : () => {} );
+
+  const versions_store  = getContext( 'versions' );
+  const verse_store     = getContext( 'verse' );
 
   /*  Imports }
    *************************************************************************

@@ -1,6 +1,15 @@
 <script>
-  import { beforeUpdate, tick } from 'svelte';
-
+  /**
+   *  Present a single yvers-formatted verse.
+   *
+   *  @element  VerseYvers
+   *  @prop     verse_ref     The reference for the verse {String};
+   *  @prop     verse         The yvers verse entry {Object};
+   *  @prop     verse.markup  yvers-specific markup {Array};
+   *  @prop     verse.text    Raw text of the verse {String};
+   *
+   *  External properties {
+   */
   import {
     show_footnotes,
     show_xrefs,
@@ -37,10 +46,7 @@
 
   // As soon as this component has been updated, activate all popovers
   let container_el  = null;
-  beforeUpdate(async () => {
-    await tick();
-    activate_notes( container_el );
-  });
+
 </script>
 
 {#if Array.isArray( verse.markup ) }

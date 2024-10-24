@@ -1,12 +1,13 @@
 <script>
   import Version  from '$lib/Version.svelte';
 
-// Load data : {vesions, version}
+  // Load data from +layout.js: {version}
   export let data;
 
-  /*
+  // /*
   console.log('>>> [version]/+page.svelte: data:', data);
   // */
+
 </script>
 
 <svelte:head>

@@ -18,12 +18,12 @@
 {#if Array.isArray( verse.markup ) }
 
 {#if verse.markup[0].heading != null}
-  <p class='s'>{verse.markup[0].heading}</p>
+  <div class='s'>{verse.markup[0].heading}</div>
 {/if}
 
 <div class='verse pb-[1.5em] !flex flex-wrap gap-x-[1em] gap-y-[.75em]'
      role='button' v='{verse_num}'>
-  <p class='verse label leading-none pr-0'>{verse_num}</p>
+  <div class='verse label leading-none pr-0'>{verse_num}</div>
   {#each verse.markup as markup, m_dex}
     {#if markup.text !== undefined}
       {@const word_ref = verse_ref.replaceAll('.','-') +'-'+ m_dex }

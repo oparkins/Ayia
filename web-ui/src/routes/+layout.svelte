@@ -1,7 +1,9 @@
 <script>
   import '../app.pcss';
 
-  import { get }  from 'svelte/store';
+	import { setContext } from 'svelte';
+
+  import { config, versions } from '$lib/stores';
 
   import {
     Navbar, NavBrand, NavLi, NavUl, NavHamburger,
@@ -12,6 +14,22 @@
 
   import { theme, content_font_size } from '$lib/stores';
   import { set_cssVariable }          from '$lib/css';
+
+  // Load data from +layout.js: {config, versions}
+  export let data;
+
+  // /*
+  console.log('+layout.svelte: data:', data);
+  // */
+
+  // Populate stores
+  $: config.set(   data.config );
+  $: versions.set( data.versions );
+
+	// ...and add them to the context for child components to access
+  setContext('config',   config);
+	setContext('versions', versions);
+
 
   // Subscribe to changes to the content_font_size to apply them to the DOM
   content_font_size.subscribe( (val) => {
@@ -78,7 +96,7 @@
   </script>
 </svelte:head>
 
-<div class='flex flex-col h-screen w-screen'>
+<div class='flex flex-col h-screen w-screen overflow-hidden'>
   <Navbar fluid>
       <NavBrand href='/' class='brand'>
         <img  src='/Ayia.png'
