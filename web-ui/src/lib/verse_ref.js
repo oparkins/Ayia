@@ -172,7 +172,7 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
   // */
 
   // Validate chapter and verse bounds
-  const is_valid  = _validate_ref( book, ch, from_vs );
+  const is_valid  = _validate_ref( book, ch, from_vs, apply_bounds );
   if (! is_valid) { return }
 
   const ch_num  = is_valid.chapter;
