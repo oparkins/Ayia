@@ -495,6 +495,13 @@ function _validate_ref( book, ch, vs, apply_bounds = true ) {
 
   if (ch_num > max_chaps) {
     if (! apply_bounds) { /* Invalid */ return }
+
+    if (Number.isNaN(vs_num)) {
+      /* Since no verse was provided, use the verse as the chapter and restrict
+       * the chapter to the max.
+       */
+      vs_num = ch_num;
+    }
     ch_num = max_chaps;
   }
 
