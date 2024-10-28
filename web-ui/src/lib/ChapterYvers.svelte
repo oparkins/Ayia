@@ -63,7 +63,6 @@
     return (Array.isArray( $selected_store ) && $selected_store.length > 0);
   });
 
-  // Whenever `content` changes, update is_loading
   /**
    *  Triggered whenever $content_store changes, update `is_loading` to true.
    *
@@ -73,9 +72,11 @@
    *  @return void
    */
   function content_changed( new_content ) {
+    /*
     console.log('ChapterYvers.content_changed(): '
                 +     'is_loading[ %s => true ] ...',
                 String( $is_loading ) );
+    // */
 
     is_loading.set(  true );
   }
@@ -86,6 +87,8 @@
    *  @method scroll_into_view
    */
   function scroll_into_view() {
+    if (container_el == null) { return }
+
     const verse_nums  = ($is_selecting && $selected_store);
 
     /*
@@ -143,23 +146,6 @@
 
     // Switching to a new version or verse so reset our local state
     selected_store.set( null )
-
-    /*
-    if (version_changed) {
-      version = new_version;
-
-      console.log('ChapterYvers.reset_selecting(): version changed, '
-                  +     'is_loading[ %s => true ] ...',
-                  String($is_loading));
-
-      // When changing versions, reset is_loading
-      is_loading.set(  true );
-    }
-
-    if (verse_changed) {
-      verse = new_verse;
-    }
-    // */
 
     const verse_nums  = ($verse_store && $verse_store.verses);
     if (Array.isArray( verse_nums ) && verse_nums.length > 0) {
