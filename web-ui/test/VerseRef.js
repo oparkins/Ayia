@@ -63,6 +63,44 @@ describe('VerseRef', () => {
 });
 
 describe('VerseRef.update_verses', () => {
+  it( 'Should extend verse range: Romans 8:3 to Romans 8:3-4', () => {
+    const expect  = {
+      is_valid  : true,
+      book_abbr : 'ROM',
+      chapter   : 8,
+      verses    : [ 3,4 ],
+      ui_ref    : 'Romans 8:3-4',
+      url_ref   : 'ROM.008.003-004',
+    };
+    const ref     = new VerseRef( 'Romans 8:3', versions );
+
+    ref.update_verses( [3,'4'] );
+
+      Assert.equal( ref.is_valid, expect.is_valid,
+                    'Validation mismatch: '
+                      + JSON_stringify_ref( ref ));
+      Assert.equal( ref.book.abbr, expect.book_abbr,
+                    'Book mismatch: '
+                      + `${ref.book.abbr} !== ${expect.book_abbr}: `
+                      + JSON_stringify_ref( ref ));
+      Assert.equal( ref.chapter, expect.chapter,
+                    'Chapter mismatch: '
+                      + `${ref.chapter} !== ${expect.chapter}: `
+                      + JSON_stringify_ref( ref ));
+      Assert.deepEqual( ref.verses, expect.verses,
+                    'Verses mismatch: '
+                      + `${ref.verses} !== ${expect.verses}: `
+                      + JSON_stringify_ref( ref ));
+
+      Assert.equal( ref.ui_ref, expect.ui_ref,
+                    'ui_ref mismatch: '
+                      + `${ref.ui_ref} !== ${expect.ui_ref}: `
+                      + JSON_stringify_ref( ref ));
+      Assert.equal( ref.url_ref, expect.url_ref,
+                    'url_ref mismatch: '
+                      + `${ref.url_ref} !== ${expect.url_ref}: `
+                      + JSON_stringify_ref( ref ));
+  });
   it( 'Should extend verse range: John 3:16-18 to John 3:16-22', () => {
     const expect  = {
       is_valid  : true,
