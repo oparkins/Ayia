@@ -97,7 +97,13 @@ export class VerseRef {
    */
   update_verses( verses ) {
     if (Array.isArray( verses )) {
-      // Ensure the incoming verses are sorted
+      // Ensure all entries are integer
+      verses = verses.map( val => {
+        if (typeof(val) === 'string') { val = parseInt( val ) }
+        return val;
+      });
+
+      // Ensure the incoming verses are sorted in ascending order
       verses.sort( (a,b) => a - b );
 
     } else {
