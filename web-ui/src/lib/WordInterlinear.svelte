@@ -18,9 +18,9 @@
 
 <div class='text-center leading-none'>
   <div>
-    <p class="inline">
+    <div class="inline">
       {word.text}
-    </p>
+    </div>
     {#if $show_xrefs && word.xref}
         <VerseNote id='{word_ref}' type="xref" label="#">
           {word.xref}
@@ -28,8 +28,8 @@
       {/if}
     </div>
 
-  <p id='wlc_{word_ref}'
-     class='text-blue-400 text-[.9em] hover-trigger'>{word.wlc}</p>
+  <div id='wlc_{word_ref}'
+     class='text-blue-400 text-[.9em] hover-trigger'>{word.wlc}</div>
 
     <Popover
         class='note-content z-20'

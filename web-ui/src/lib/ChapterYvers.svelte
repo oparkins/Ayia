@@ -5,166 +5,81 @@
    *  chapter content.
    *
    *  @element  ChapterYvers
-   *  @prop     is_loading    Indicates whether `content` is currently being
-   *                          loaded {Boolean};
-   *  @prop     column        The column in which this chapter is presented
-   *                          (primary | column#) {String};
-   *  @prop     version       The current version ('yvers') {Version};
-   *  @prop     book          The target book {Book};
-   *  @prop     verse         The target verse {VerseRef};
-   *  @prop     content       Chapter content for the current `book` and
-   *                          `verse` {Object};
+   *  @prop     content_loading   Indicates whether `content` is currently
+   *                              being loaded {Boolean};
+   *  @prop     column            The column in which this chapter is presented
+   *                              (primary | column#) {String};
+   *  @prop     book              The target book {Book};
+   *
+   *  Required contexts:
+   *    version
+   *    verse
+   *    content
    *
    *  External properties {
    */
-  export let is_loading = true;
-  export let column     = null;   // The column for this chapter
-  export let version    = null;   // The target version (yvers)
-  export let book       = null;   // The target book
-  export let verse      = null;   // The target verse
-  export let content    = null;   // Chapter content
-
-  /* :XXX: Make use of `version` to remove the svelte warning about an unused
-   *       property.
-   */
-  console.log('ChapterYvers(): version:', version);
+  export let content_loading  = true;
+  export let column           = null;   // The column for this chapter
+  export let book             = null;   // The target book
 
   /*  External properties }
    *************************************************************************
    *  Imports {
    *
    */
-  import { afterUpdate }  from 'svelte';
-  import { get, derived } from 'svelte/store';
-  import {
-    afterNavigate,
-    goto,
-    replaceState,
-  } from '$app/navigation';
+  import { getContext, afterUpdate, tick }  from 'svelte';
+  import { get, writable, derived } from 'svelte/store';
+  import scrollIntoView from 'scroll-into-view-if-needed'
+
+  import { goto } from '$app/navigation';
 
   import {
     show_footnotes,
     show_xrefs,
     show_redletters,
 
-    version   as version_stores,
-    verse     as verse_store,
     selected  as selected_store,
   }  from '$lib/stores';
 
-  import { html_chapter }                 from '$lib/render/yvers';
+  import { html_chapter }   from '$lib/render/yvers';
   import {
     activate  as activate_notes,
     is_active as notes_are_active,
   }  from '$lib/verse_note';
 
+  const version_stores  = getContext( 'version' );
+  const verse_store     = getContext( 'verse' );
+  const content_store   = getContext( 'content' );
+
   /*  Imports }
    *************************************************************************
    *  Local state/methods {
    */
-  let container_el  = null;
-  let need_scroll   = false;
+  let   container_el  = null;
+  const is_loading    = writable( content_loading || true );
 
   const version_store = version_stores[ column ];
   const is_selecting  = derived( selected_store, ( $selected_store ) => {
     return (Array.isArray( $selected_store ) && $selected_store.length > 0);
   });
 
-  // After any navigation, reset is_loading and need_scroll
-  afterNavigate( ( navigation ) => {
+  /**
+   *  Triggered whenever $content_store changes, update `is_loading` to true.
+   *
+   *  @method content_changed
+   *  @param  new_content   The (new) content from `$content_store` {String};
+   *
+   *  @return void
+   */
+  function content_changed( new_content ) {
     /*
-    console.log('ChapterYvers.afterNavigate(): '
-                +   'is_loading[ %s => true ], need_scroll[ %s => true ]',
-                String( is_loading ),
-                String( need_scroll ) );
+    console.log('ChapterYvers.content_changed(): '
+                +     'is_loading[ %s => true ] ...',
+                String( $is_loading ) );
     // */
 
-    is_loading  = true;
-    need_scroll = true;
-  });
-
-  // As soon as this component has been fully loaded,
-  afterUpdate(async () => {
-    const verses  = (container_el
-                        ? container_el.querySelectorAll( '[v]' )
-                        : []);
-    /*
-    console.log('ChapterYvers.afterUpdate(): %d verses, '
-                +     'have_content[ %s ], '
-                +     'is_loading[ %s ], '
-                +     'need_scroll[ %s ]',
-                verses.length,
-                String( content != null ),
-                String( is_loading ),
-                String( need_scroll ));
-    // */
-
-    if (verses.length < 1) {
-      /* Either we do not yet have access to our container element OR we do not
-       * yet have verse elements. In either case, force `is_loading` to true to
-       * indicate that we're still loading.
-       */
-      /*
-      console.log('ChapterYvers.afterUpdate(): no verses, '
-                  +   'is_loading[ %s => true ], need_scroll[ %s => true ]',
-                  String( is_loading ),
-                  String( need_scroll ) );
-      // */
-
-      is_loading  = true;
-      need_scroll = true;
-      return;
-    }
-
-    /************************************************************************
-     * :XXX:
-     *    When activating notes, involved DOM elements are tagged with a
-     *    'popover-active' attribute. The active notes check scans all
-     *    note-related DOM elements within the current container element to see
-     *    if all have that attribute. If they do not, then notes have not been
-     *    activated.
-     *
-     *    We use the active notes check as an indication of whether or not
-     *    this is the first full rendering of this component.  If notes are
-     *    active, rendering has occurred previously, otherwise it has not and:
-     *      - notes need to be activated;
-     *      - if a verse is selected, we need to scroll to it;
-     */
-    const notes_active      = notes_are_active( container_el );
-
-    /*
-    console.log('ChapterYvers.afterUpdate(): %d verses, '
-                +     'notes_active[ %s ], '
-                +     'is_selecting[ %s : %s ], verse:',
-                verses.length,
-                String( notes_active ),
-                String( $is_selecting ),
-                ($is_selecting ? $selected_store.join(', ') : 'null'),
-                verse );
-    // */
-
-    if ( ! notes_active ) {
-      // Activate notes
-      activate_notes( container_el );
-    }
-
-    // Ensure selection matches our selection state.
-    if (! $is_selecting) {
-      remove_selection();
-
-    } else {
-      select_verses( $selected_store );
-
-      if ( need_scroll ) {
-        // On first full render, scroll the selected verse into view
-        scroll_into_view();
-      }
-    }
-
-    // Update is_loading and need_scroll
-    is_loading  = false;
-    need_scroll = false;
-  });
+    is_loading.set(  true );
+  }
 
   /**
    *  Scroll the first of the selected verses into view.
@@ -172,9 +87,11 @@
    *  @method scroll_into_view
    */
   function scroll_into_view() {
+    if (container_el == null) { return }
+
     const verse_nums  = ($is_selecting && $selected_store);
 
-    // /*
+    /*
     console.log('ChapterYvers.scroll_into_view(): verse_nums:', verse_nums);
     // */
 
@@ -192,7 +109,17 @@
 
     if (first) {
       // Scroll the first of the target verse(s) into view
-      first.scrollIntoView({ behavior: 'auto', block: 'center'});
+      const scrollOpts  = {
+        //behavior  : 'auto',         // default: auto
+        //inline    : 'nearest',      // default: nearest
+
+        block                     : 'center',     // default: center
+        scrollMode                : 'if-needed',  // default: always
+        skipOverflowHiddenElements: true,         // default: false
+        boundary                  : container_el,
+      };
+
+      scrollIntoView( first, scrollOpts );
     }
   }
 
@@ -207,8 +134,8 @@
    *  @return void
    */
   function reset_selecting( new_version, new_verse ) {
-    const version_changed = (version !== new_version);
-    const verse_changed   = (verse !== new_verse);
+    const version_changed = ($version_store !== new_version);
+    const verse_changed   = ($verse_store   !== new_verse);
 
     /*
     console.log('ChapterYvers.reset_selecting(): version_changed[ %s ]:',
@@ -220,20 +147,7 @@
     // Switching to a new version or verse so reset our local state
     selected_store.set( null )
 
-    if (version_changed) {
-      version = new_version;
-
-      // When changing versions, reset is_loading and need_scroll
-      is_loading  = true;
-      need_scroll = true;
-
-    }
-
-    if (verse_changed) {
-      verse = new_verse;
-    }
-
-    const verse_nums  = (verse && verse.verses);
+    const verse_nums  = ($verse_store && $verse_store.verses);
     if (Array.isArray( verse_nums ) && verse_nums.length > 0) {
       // Update the set of selected verses
       /*
@@ -257,6 +171,9 @@
                   verse_nums);
     // */
 
+    // Deselect any currently selected verses
+    deselect_verses();
+
     if (! Array.isArray( verse_nums) || verse_nums.length < 1) {
       return;
     }
@@ -269,6 +186,20 @@
       // Select all portions of the target verse(s)
       verse_nums.forEach( num => select_verse( num, verses ) );
     }
+  }
+
+  /**
+   *  Remove 'selected' from all verses that currently have the attribute.
+   *
+   *  @method deselect_verses
+   */
+  function deselect_verses() {
+    const selected  = (container_el
+                        ? container_el.querySelectorAll('[selected="true"]')
+                        : []);
+    selected.forEach( el => {
+      el.removeAttribute( 'selected' );
+    });
   }
 
   /**
@@ -303,17 +234,6 @@
     });
 
     selected_store.set( selected );
-
-    /* :TODO: Determine if this changes the current URL and, if so,
-     *        perform a replaceState() with the new URL.
-     */
-    const verse = get( verse_store ) || null;
-    console.log('ChapterYvers.select_verse( %s ): [ %s ], '
-                +   'verse.verses[ %s ], verse.url_ref[ %s ]',
-                verse_num,
-                selected.join(', '),
-                (verse ? verse.verses.join(', ') : '???'),
-                (verse ? verse.url_ref           : '???'));
   }
 
   /**
@@ -324,27 +244,63 @@
    *  @return void
    */
   function remove_selection() {
-    const selected  = container_el.querySelectorAll('[selected="true"]');
-    selected.forEach( el => {
-      el.removeAttribute( 'selected' );
-    });
+    deselect_verses();
 
     // Update 'is_selecting' (on the chapter container)
     selected_store.set( null );
-
-    /* :TODO: Determine if this changes the current URL and, if so,
-     *        perform a replaceState() with the new URL.
-     */
-    const verse = get( verse_store ) || null;
-    console.log('ChapterYvers.remove_selection(): %d verse elements, '
-                +   'verse.verses[ %s ], verse.url_ref[ %s ]',
-                selected.length,
-                (verse ? verse.verses.join(', ') : '???'),
-                (verse ? verse.url_ref           : '???'));
   }
 
   /**
-   *  Handle a click on a verse.
+   *  Update the selection attribute of the given verse element.
+   *
+   *  @method update_selection
+   *  @param  $el   The target verse element {Element};
+   *
+   *  @return void
+   */
+  function update_selection( $el ) {
+    // Identify the verse number and determine if the current verse is selected
+    const verse_str = $el.getAttribute('v');
+    const select    = (! $el.hasAttribute('selected'));
+
+    /*
+    console.log('ChapterYvers.update_selection(): '
+                +           'verse_str[ %s ], select[ %s ]:',
+                verse_str, String( select ), $el);
+    // */
+
+    if (select) {
+      // Selet the target verse.
+      const verse_num = parseInt( verse_str );
+
+      // assert( ! Number.isNaN( verse_num ) )
+      select_verse( verse_num );
+
+    } else {
+      // Remove verse selection
+      remove_selection();
+
+    }
+
+    // Update the current state with the new selection
+    const ref_stored  = get( verse_store );
+    ref_stored.update_verses( $selected_store );
+
+    /*
+    console.log('ChapterYvers.update_selection(): verse_str[ %s ], '
+                +       'select[ %s ], selected[ %s ], verse_ref[ %s ]',
+                verse_str, String( select ),
+                ($selected_store ? $selected_store.join(', ') : 'none'),
+                ref_stored.ui_ref);
+    // */
+
+    goto( ref_stored.url_ref, { replaceState: true } );
+  }
+
+  /**
+   *  Handle a click within the chapter element:
+   *  - on a verse: highlight, extend, or remove highlight;
+   *  - on a link : navigate to the target href;
    *
    *  @method click_verse
    *  @param  event     The triggering event {Event};
@@ -353,6 +309,27 @@
    */
   function click_verse( event ) {
     const target  = event.target;
+
+    /*
+    console.log('ChapterYvers.click_verse(): target:', target);
+    // */
+
+    const $xt = target.closest('.xt[target="_self"]');
+    if ($xt) {
+      // Handle a click on a cross-reference anchor
+      const href  = $xt.getAttribute('href');
+
+      /*
+      console.log('ChapterYvers.click_verse(): xt.href[ %s ]', href);
+      // */
+
+      if (href) {
+        event.preventDefault();
+
+        goto( href );
+        return;
+      }
+    }
 
     /* Do NOT respond to clicks if:
      *  1. A tool-tip is visible;
@@ -381,32 +358,83 @@
     const el = event.target.closest('[v]');
     if (el == null) { return }
 
-    // Identify the verse number and determine if the current verse is selected
-    const verse_num = el.getAttribute('v');
-    const select    = (! el.hasAttribute('selected'));
+    event.preventDefault();
 
-    /*
-    console.log('ChapterYvers.click_verse(): verse_num[ %s ], select[ %s ]:',
-                verse_num, String( select ), el);
-    // */
-
-    if (select) {
-      // Selet the target verse.
-      select_verse( verse_num );
-
-    } else {
-      // Remove verse selection
-      remove_selection();
-
-    }
+    update_selection( el );
   }
+
+  /*  Local state/Methods }
+   *************************************************************************
+   *  Reactivity {
+   */
+
+  // Monitor when `$content_store` changes
+  $: content_changed( $content_store );
 
   /* Whenever `$version_store` or `$verse_store` change, trigger
    * reset_selecting()
    */
   $: reset_selecting( $version_store, $verse_store );
 
-  /*  Local state/Methods }
+  /**
+   * As soon as this component has been fully loaded, ensure notes are active,
+   * perform any selection update, and if selecting, scroll the first selected
+   * verse into view.
+   */
+  afterUpdate(() => {
+    /* :XXX:
+     *    When activating notes, involved DOM elements are tagged with a
+     *    'popover-active' attribute. The active notes check scans all
+     *    note-related DOM elements within the current container element to see
+     *    if all have that attribute. If they do not, then notes have not been
+     *    activated.
+     *
+     *    We use the active notes check as an indication of whether or not
+     *    this is the first full rendering of this component.  If notes are
+     *    active, rendering has occurred previously, otherwise it has not and:
+     *      - notes need to be activated;
+     *      - if a verse is selected, we need to scroll to it;
+     */
+    const notes_active  = notes_are_active( container_el );
+
+    /*
+    const verses        = (container_el
+                            ? container_el.querySelectorAll( '[v]' )
+                            : []);
+    console.log('ChapterYvers.afterUpdate(): %d verses, '
+                +     'notes_active[ %s ], '
+                +     'is_loading[ %s => false ], '
+                +     'is_selecting[ %s : %s ], verse:',
+                verses.length,
+                String( notes_active ),
+                String( $is_loading ),
+                String( $is_selecting ),
+                ($is_selecting ? $selected_store.join(', ') : 'null'),
+                $verse_store );
+    // */
+
+    if ( ! notes_active ) {
+      // Activate notes
+      activate_notes( container_el );
+    }
+
+    // Ensure selection matches our selection state.
+    if (! $is_selecting) {
+      remove_selection();
+
+    } else {
+      select_verses( $selected_store );
+
+      // Wait a tick and then scroll the selected verse(s) into view.
+      tick().then( () => scroll_into_view() );
+    }
+
+    // Update is_loading
+    is_loading.set(  false );
+  });
+
+
+  /*  Reactivity }
    *************************************************************************
    *  Styling {
    */
@@ -421,6 +449,9 @@
       'text-gray-800',
       'dark:text-gray-200',
     ],
+
+    body: [
+    ],
   };
 
   /*  Styling }
@@ -432,23 +463,26 @@
       role='presentation'
       on:click={ click_verse }
       bind:this={container_el} >
-  {#if is_loading}
-    Loading { verse.ui_ref } ...
-  {:else if content}
-    {#if (book && verse) }
-      <div class='chapter header'>
-        <span class='chapter name'>{ book.name }</span>
-        <span class='chapter number'>{ verse.chapter }</span>
-      </div>
-    {/if}
-
-    {@html html_chapter( content, { footnotes : $show_footnotes,
-                                    xrefs     : $show_xrefs,
-                                    redletters: $show_redletters } ) }
-
-  {:else if verse}
-    { verse.ui_ref } [ { verse.url_ref } ]
-  {:else}
-    Select the desired verse above
+  {#if $is_loading}
+    Loading { $verse_store ? $verse_store.ui_ref : '' } ...
   {/if}
+  <div class='body { Css.body.join(' ') }'
+       style='{ `display: ${ $is_loading ? 'none' : 'block'}` }'>
+    {#if $content_store}
+      {#if (book && $verse_store ) }
+        <div class='chapter header'>
+          <span class='chapter name'>{ book.name }</span>
+          <span class='chapter number'>{ $verse_store.chapter }</span>
+        </div>
+      {/if}
+      {@html html_chapter( $content_store,
+                            { footnotes : $show_footnotes,
+                              xrefs     : $show_xrefs,
+                              redletters: $show_redletters } ) }
+    {:else if $verse_store}
+      Select the desired version below
+    {:else}
+      Select the desired verse below
+    {/if}
+  </div>
 </div>

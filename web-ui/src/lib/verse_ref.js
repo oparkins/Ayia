@@ -12,10 +12,6 @@
  *        ...
  *      ],
  *    }
- *
- *  import { get }              from 'svelte/store';
- *  import { versions, verse }  from "$lib/stores";
- *
  */
 
 /* Support various HTML dashes for separator
@@ -76,10 +72,10 @@ export class VerseRef {
    *                                  bounds. Otherwise, the reference is
    *                                  invalid {Boolean};
    */
-  constructor( verse_ref, version, apply_bounds = true ) {
+  constructor( verse_ref, versions, apply_bounds = true ) {
     this.verse_ref = verse_ref;
 
-    const data  = parse_verse( verse_ref, version, apply_bounds );
+    const data  = parse_verse( verse_ref, versions, apply_bounds );
 
     if (data) {
       this.is_valid  = true;
@@ -100,12 +96,19 @@ export class VerseRef {
    *  @return void
    */
   update_verses( verses ) {
-    if (! Array.isArray( verses )) {
-      return;
-    }
+    if (Array.isArray( verses )) {
+      // Ensure all entries are integer
+      verses = verses.map( val => {
+        if (typeof(val) === 'string') { val = parseInt( val ) }
+        return val;
+      });
 
-    // Ensure the incoming verses are sorted
-    verses.sort( (a,b) => a - b );
+      // Ensure the incoming verses are sorted in ascending order
+      verses.sort( (a,b) => a - b );
+
+    } else {
+      verses = [];
+    }
 
     this.verses  = verses;
     this.ui_ref  = generate_ui_ref(  this.book, this.chapter, verses );
@@ -175,7 +178,7 @@ export function parse_verse( verse_ref, versions, apply_bounds = true ) {
   // */
 
   // Validate chapter and verse bounds
-  const is_valid  = _validate_ref( book, ch, from_vs );
+  const is_valid  = _validate_ref( book, ch, from_vs, apply_bounds );
   if (! is_valid) { return }
 
   const ch_num  = is_valid.chapter;
@@ -498,6 +501,13 @@ function _validate_ref( book, ch, vs, apply_bounds = true ) {
 
   if (ch_num > max_chaps) {
     if (! apply_bounds) { /* Invalid */ return }
+
+    if (Number.isNaN(vs_num)) {
+      /* Since no verse was provided, use the verse as the chapter and restrict
+       * the chapter to the max.
+       */
+      vs_num = ch_num;
+    }
     ch_num = max_chaps;
   }
 

@@ -11,9 +11,10 @@ describe('yvers.xrefs', () => {
       usfm      : test.usfm,
     };
 
+    const msg = `${test.type} from ${ref} : ${test.texts}`;
     if (test.actual) {
       // This is a test that will currently generate incorrect results
-      it( `:TODO: Improperly parses ${test.type} from ${ref}`, () => {
+      it( `:TODO: Improperly parses ${msg}`, () => {
         const res = Xrefs.normalize( state, test.texts );
 
         //Assert.notDeepEqual( res, test.expect );
@@ -22,7 +23,7 @@ describe('yvers.xrefs', () => {
 
     } else {
       // This is a test that should generate correct results
-      it( `Should properly parse ${test.type} from ${ref}`, () => {
+      it( `Should properly parse ${msg}`, () => {
         const res = Xrefs.normalize( state, test.texts );
 
         Assert.deepEqual( res, test.expect );

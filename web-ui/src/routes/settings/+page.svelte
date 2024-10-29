@@ -21,7 +21,6 @@
     versions,
     version as version_store,
     verse,
-    user,
 
     content_font_size,
     show_footnotes,
@@ -379,12 +378,6 @@
             <TableBodyCell><b>verse</b></TableBodyCell>
             <TableBodyCell>
               <pre>{ JSON.stringify( $verse, null, 2 ) }</pre>
-            </TableBodyCell>
-          </TableBodyRow>
-          <TableBodyRow class='align-top'>
-            <TableBodyCell><b>user</b></TableBodyCell>
-            <TableBodyCell>
-              <pre>{ JSON.stringify( $user, null, 2 ) }</pre>
             </TableBodyCell>
           </TableBodyRow>
         </TableBody>

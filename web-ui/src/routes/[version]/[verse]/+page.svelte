@@ -1,8 +1,22 @@
 <script>
-  import Version  from '$lib/Version.svelte';
+	import { setContext }     from 'svelte';
+  import { verse, content } from '$lib/stores';
+  import Version            from '$lib/Version.svelte';
 
-  // Load data : {vesions, version, verse, content}
+  // Load data from parent and +layout.js: {vesions, version, verse }
   export let data;
+
+  // /*
+  console.log('>>> [version]/[verse]/+page.svelte: data:', data);
+  // */
+
+  // Update the verse and content stores
+  $: verse.set(   data.verse );
+  $: content.set( data.content );
+
+	// ...and add it to the context for child components to access
+  setContext('verse',   verse);
+  setContext('content', content);
 
   /*
   console.log('>>> [version]/[verse]/+page.svelte: data:', data);

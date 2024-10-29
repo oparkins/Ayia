@@ -682,6 +682,15 @@ const tests  = [
       { xt: { text: '2 Tim. 1:14', usfm: '2TI.1.14' } },
     ],
   },
+  { version: 'ESV', usfm: 'ROM.8.9', type: 'note.x',
+    texts: [ 'Jude 19; [John 14:17]' ],
+    expect: [
+      { xt: { text: 'Jude 19', usfm: 'JUD.1.19' } },
+      '; [',
+      { xt: { text: 'John 14:17', usfm: 'JHN.14.17' } },
+      ']',
+    ],
+  },
   /* ESV }
    *
    * note.x }

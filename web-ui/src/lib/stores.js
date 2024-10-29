@@ -8,6 +8,7 @@
  *    version           {Object}  -- { primary, column1, column2 };
  *
  *    selected          {Array}   -- verse numbers;
+ *    content           {String}  -- fetched content;
  *
  *    theme             {String};
  *    content_font_size {Number};
@@ -30,6 +31,7 @@ export const  config            = _writable_json_ls( 'config', null );
 export const  user              = _writable_json_ls( 'user', null );
 export const  versions          = writable( null );
 export const  selected          = writable( null );
+export const  content           = writable( null );
 export const  verse             = _writable_json_ls( 'verse', null );
 export const  version = {
   primary:  _writable_json_ls( 'version_primary', null ),

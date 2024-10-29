@@ -10,10 +10,35 @@ import {
  *  Check if we need to redirect to a deeper page.
  *
  *  @method load
+ *  @param  config          Configuratino data {Object};
  *
- *  @return void;
+ *  `config`:
+ *    { url       : {URL};
+ *      params    : {Object};
+ *      data      : {Object};
+ *      route     : {Object};   {id: {String}}
+ *      fetch     : {Function};
+ *      setHeaders: {Function};
+ *      depends   : {Function};
+ *      parent    : {Function};
+ *      untracek  : {Function};
+ *    }
+ *
+ *  @return A promise for results {Promise};
+ *          - on success, the loaded data {Object};
+ *                          { verse }
+ *          - on failure, an error {Error};
  */
-export function load() {
+export async function load( {params, fetch, parent} ) {
+  const data  = await parent();
+  console.log('+page.load(): data:', data);
+
+  /*
+  const data  = await parent();
+  if (data.version == null || data.verse == null) {return }
+
+  // */
+
   if (version_stores == null || verse == null) { return }
 
   const version_ro  = get( version_stores.primary );

@@ -11,6 +11,10 @@
    *                                  up against a companion SelectVerse
    *                                  element.
    *
+   *  Required contexts:
+   *    versions
+   *    version
+   *
    *  Dispatches event:
    *    'versionchanged'  { detail: {Version} }
    *
@@ -24,7 +28,7 @@
    *  Imports {
    *
    */
-  import { createEventDispatcher }  from 'svelte';
+  import { getContext, createEventDispatcher }  from 'svelte';
   import { get, writable, derived } from 'svelte/store';
   import { afterNavigate }          from '$app/navigation';
 
@@ -34,10 +38,8 @@
     DropdownItem,
   } from 'flowbite-svelte';
 
-  import {
-    versions  as versions_store,
-    version   as version_stores,
-  }  from '$lib/stores';
+  const versions_store  = getContext( 'versions' );
+  const version_stores  = getContext( 'version' );
 
   /*  Imports }
    *************************************************************************
