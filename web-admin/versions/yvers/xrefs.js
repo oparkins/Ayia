@@ -314,8 +314,32 @@ function _extract_xrefs( state, re_match ) {
       if (groups.ch)    { ch = groups.ch.replaceAll(/\s+/g,'') }
       if (groups.vs)    { vs = groups.vs.replaceAll(/\s+/g,'') }
 
+      if (vs == null) {
+        /* See if this book has a single chapter and if the target chapter
+         * exceeds the number of chapters. If so, set the verse to the chapter
+         * and chapter to 1.
+         */
+        const num_chap  = parseInt( ch );
+        const max_chap  = Books.getChapters( book );
+        if (num_chap > 1 && max_chap === 1) {
+          if (state.verbosity > 2) {
+            console.log('>>> Normalize Xrefs: single chapter book, '
+                        +       'ch[ %s ] => vs, ch => 1',
+                        ch);
+          }
+
+          vs = ch;
+          ch = 1;
+        }
+      }
+
+
       let ref = `${book}.${ch}`;
       if (vs) { ref += `.${vs}` }
+
+      if (state.verbosity > 2) {
+        console.log('>>> Normalize Xrefs: text[ %s ], ref[ %s ]', text, ref);
+      }
 
       _push_item( state, {xt: { text: text, usfm: ref }} );
     });
