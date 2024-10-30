@@ -4,10 +4,6 @@
    *  verse.
    *
    *  @element  Version
-   *  @prop     [version = null]      The current version {Version};
-   *  @prop     [verse = null]        The target verse {Object};
-   *  @prop     [content = null]      Content for the current `version` and
-   *                                  `verse` {Object};
    *  @prop     [column = 'primary']  The column this selector is for
    *                                  (primary | column#) {String};
    *                                  For the 'primary' column, style with no
@@ -23,12 +19,6 @@
    *  External properties {
    */
   export let column   = 'primary';
-  export let version  = null;   // The target version
-  export let verse    = null;   // The target verse
-  export let content  = null;   // Verse-related content
-
-  console.log('Version: version: %s', (version ? version.type : '???'));
-  console.log('Version: verse  :',    verse);
 
   /*  External properties }
    *************************************************************************
@@ -63,6 +53,12 @@
   const versions_store  = getContext( 'versions' );
   const version_stores  = getContext( 'version' );
   const verse_store     = getContext( 'verse' );
+
+  /*
+  console.log('Version.svelte: versions_store:', versions_store);
+  console.log('Version.svelte: version_stores:', version_stores);
+  console.log('Version.svelte: verse_store   :', verse_store);
+  // */
 
   /*  Imports }
    *************************************************************************
@@ -109,8 +105,12 @@
    *      book
    */
   function update_dependents( version, verse ) {
+    /*
+    console.log('Version.update_dependents(): version:', version);
+    console.log('Version.update_dependents(): verse  :', verse);
     console.log('Version.update_dependents(): version.type:',
                 (version ? version.type : '???'));
+    // */
 
     // Determine which Chapter element we should use
     if (version && (version.type === 'yvers' || version.type === 'pdf')) {
@@ -121,9 +121,9 @@
     }
 
     // Determine immediately if we should disable the previous chapter button.
-    prev_disabled = (verse.chapter < 2);
+    prev_disabled = (verse == null || verse.chapter < 2);
 
-    if (verse.book) {
+    if (verse && verse.book) {
       // Determine if we should disable the next chapter button
       max_chapter = verse.book.verses.length - 1;
       max_verse   = verse.book.verses[ verse.chapter ];
@@ -386,7 +386,6 @@
         version={         $version_store }
         book={            book }
         verse={           $verse_store }
-        content={         content }
     />
 
     <BottomNav
