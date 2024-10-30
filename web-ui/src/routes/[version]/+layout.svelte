@@ -1,6 +1,5 @@
 <script>
-	import { setContext } from 'svelte';
-  import { version }    from '$lib/stores';
+  import { version }  from '$lib/stores';
 
   // Load data from +layout.js: {version}
   export let data;
@@ -17,8 +16,7 @@
 
   $: do_update( data.version );
 
-	// ...and add it to the context for child components to access
-	setContext('version', version);
+  // :XXX: setContext('version', version) moved up
 
 </script>
 

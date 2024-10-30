@@ -1,5 +1,4 @@
 <script>
-	import { setContext }     from 'svelte';
   import { verse, content } from '$lib/stores';
   import Version            from '$lib/Version.svelte';
 
@@ -14,9 +13,11 @@
   $: verse.set(   data.verse );
   $: content.set( data.content );
 
-	// ...and add it to the context for child components to access
-  setContext('verse',   verse);
-  setContext('content', content);
+  /* :XXX: setContext('verse',   verse);
+   *       setContext('content', content);
+   *
+   *        moved up
+   */
 
   /*
   console.log('>>> [version]/[verse]/+page.svelte: data:', data);

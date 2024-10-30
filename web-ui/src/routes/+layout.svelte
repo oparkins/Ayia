@@ -1,9 +1,9 @@
 <script>
   import '../app.pcss';
 
-	import { setContext } from 'svelte';
+  import { setContext } from 'svelte';
 
-  import { config, versions } from '$lib/stores';
+  import { config, versions, version, verse, content }  from '$lib/stores';
 
   import {
     Navbar, NavBrand, NavLi, NavUl, NavHamburger,
@@ -26,10 +26,18 @@
   $: config.set(   data.config );
   $: versions.set( data.versions );
 
-	// ...and add them to the context for child components to access
+  /* Add *ALL* stores to the context for child components to access.
+   *  Specific stores (version, verse, content) will be populated lower in the
+   *  routes.
+   */
   setContext('config',   config);
-	setContext('versions', versions);
-
+  setContext('versions', versions);
+  setContext('version',  version);  /* { primary: {Store},
+                                     *   column1: {Store},
+                                     *   column2: {Store},
+                                     * } */
+  setContext('verse',    verse);
+  setContext('content',  content);
 
   // Subscribe to changes to the content_font_size to apply them to the DOM
   content_font_size.subscribe( (val) => {
