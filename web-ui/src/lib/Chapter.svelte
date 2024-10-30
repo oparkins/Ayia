@@ -452,8 +452,8 @@
             verse={     verse }
         />
       {/each}
-    {:else if $verse_store}
-      Select the desired version below
+    {:else if $version_store == null}
+      Select the desired version and version below
     {:else}
       Select the desired verse below
     {/if}
