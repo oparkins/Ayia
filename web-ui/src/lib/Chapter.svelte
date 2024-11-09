@@ -117,12 +117,16 @@
     console.log('Chapter.scroll_into_view(): verse_nums:', verse_nums);
     // */
 
-    if (! Array.isArray( verse_nums) || verse_nums.length < 1) {
-      return;
+    //const verse_ref = get( verse_store );
+    let   verse_num = 1;  /* OR if we need to scroll to the end of the chapter
+                           * verse_ref.max_verse();
+                           */
+    if (Array.isArray( verse_nums) && verse_nums.length > 0) {
+      verse_num = verse_nums[0];
     }
 
     // Locate all portions of all target verse(s)
-    const selector  = `[v="${verse_nums[0]}"]`;
+    const selector  = `[v="${verse_num}"]`;
     const first     = container_el.querySelector( selector );
 
     /*
@@ -396,9 +400,10 @@
     } else {
       select_verses( $selected_store );
 
-      // Wait a tick and then scroll the selected verse(s) into view.
-      tick().then( () => scroll_into_view() );
     }
+
+    // Wait a tick and then scroll the first/selected verse(s) into view.
+    tick().then( () => scroll_into_view() );
 
     // Update is_loading
     is_loading.set( false );
