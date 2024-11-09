@@ -205,14 +205,14 @@
 
     // assert( version != null );
     // assert( verse   != null );
+    // assert( verse   instanceof VerseRef );
+    // assert( verse.versions === versions );
 
-    const ch_cur    = parseInt( verse.chapter );
-    const new_ref   = `${verse.book}.${ch_cur - 1}`;
-    const new_verse = new VerseRef( new_ref, versions );
+    const new_verse = verse.chapter_prev();
 
     /*
     console.log('Version.chapter_prev(): %s => %s:',
-                verse.url_ref, new_ref, new_verse);
+                verse.url_ref, new_verse.url_ref, new_verse);
     // */
 
     if (new_verse && new_verse.is_valid) {
@@ -236,14 +236,14 @@
 
     // assert( version != null );
     // assert( verse   != null );
+    // assert( verse   instanceof VerseRef );
+    // assert( verse.versions === versions );
 
-    const ch_cur    = parseInt( verse.chapter );
-    const new_ref   = `${verse.book}.${ch_cur + 1}`;
-    const new_verse = new VerseRef( new_ref, versions );
+    const new_verse = verse.chapter_next();
 
     /*
     console.log('Version.chapter_next(): %s => %s:',
-                verse.url_ref, new_ref, new_verse);
+                verse.url_ref, new_verse.url_ref, new_verse);
     // */
 
     if (new_verse && new_verse.is_valid) {
