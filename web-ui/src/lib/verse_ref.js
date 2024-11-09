@@ -127,7 +127,7 @@ export class VerseRef {
       return null;
     }
 
-    const new_ref = generate_url_ref( this.book, prev_ch, this.verses );
+    const new_ref = generate_url_ref( this.book, prev_ch );
 
     return new VerseRef( new_ref, this.versions );
   }
@@ -148,7 +148,7 @@ export class VerseRef {
       return null;
     }
 
-    const new_ref = generate_url_ref( this.book, next_ch, this.verses );
+    const new_ref = generate_url_ref( this.book, next_ch );
 
     return new VerseRef( new_ref, this.versions );
   }
@@ -350,13 +350,13 @@ export function generate_ui_ref( book, chapter, verses ) {
  *  for the verse (range).
  *
  *  @method generate_url_ref
- *  @param  book    The full book information for the target book {Object};
- *  @param  chapter The chapter number {Number};
- *  @param  verses  The sorted set of verses {Array[Number]};
+ *  @param  book      The full book information for the target book {Object};
+ *  @param  chapter   The chapter number {Number};
+ *  @param  [verses]  The sorted set of selected verses {Array[Number]};
  *
  *  @return The human readable, UI reference {String};
  */
-export function generate_url_ref( book, chapter, verses ) {
+export function generate_url_ref( book, chapter, verses = null ) {
   /* Collapse verses into a first verse, any initial range, and a following CSV
    * of additional verses.
    */
