@@ -91,6 +91,28 @@ export class VerseRef {
   }
 
   /**
+   *  Return the maximum chapter for the referenced book.
+   *
+   *  @method max_chapter
+   *
+   *  @return The maximum chapter {Number};
+   */
+  max_chapter() {
+    return (this.book ? this.book.verses.length - 1 : 0);
+  }
+
+  /**
+   *  Return the maximum chapter for the referenced book and chapter.
+   *
+   *  @method max_verse
+   *
+   *  @return The maximum verse {Number};
+   */
+  max_verse() {
+    return (this.book ? this.book.verses[ this.chapter ] : 0);
+  }
+
+  /**
    *  Generate a VerseRef instance for the previous chapter.
    *
    *  @method chapter_prev
