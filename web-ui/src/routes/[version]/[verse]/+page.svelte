@@ -9,9 +9,27 @@
   console.log('>>> [version]/[verse]/+page.svelte: data:', data);
   // */
 
+  function update_verse( new_verse ) {
+    // /*
+    console.log('>>> [version]/[verse]/+page.svelte: update_verse:',
+                new_verse);
+    // */
+
+    verse.set( new_verse );
+  }
+
+  function update_content( new_content ) {
+    // /*
+    console.log('>>> [version]/[verse]/+page.svelte: update_content:',
+                new_content);
+    // */
+
+    content.set( new_content );
+  }
+
   // Update the verse and content stores
-  $: verse.set(   data.verse );
-  $: content.set( data.content );
+  $: update_verse(   data.verse );
+  $: update_content( data.content );
 
   /* :XXX: setContext('verse',   verse);
    *       setContext('content', content);
