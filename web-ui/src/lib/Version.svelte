@@ -123,10 +123,10 @@
     // Determine immediately if we should disable the previous chapter button.
     prev_disabled = (verse == null || verse.chapter < 2);
 
-    if (verse && verse.book) {
+    if (verse) {
       // Determine if we should disable the next chapter button
-      max_chapter = verse.book.verses.length - 1;
-      max_verse   = verse.book.verses[ verse.chapter ];
+      max_chapter = verse.max_chapter();
+      max_verse   = verse.max_verse();
 
       next_disabled = (verse.chapter >= max_chapter);
 
