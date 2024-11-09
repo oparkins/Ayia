@@ -61,6 +61,8 @@ export class VerseRef {
   ui_ref    = null;   // A human readable UI reference {String};
   url_ref   = null;   // The full URL for this reference {String};
 
+  versions  = null;   // Maintained to enable chapter_prev/next()
+
   /**
    *  Create a new, validated instance.
    *
@@ -74,6 +76,7 @@ export class VerseRef {
    */
   constructor( verse_ref, versions, apply_bounds = true ) {
     this.verse_ref = verse_ref;
+    this.versions  = versions;
 
     const data  = parse_verse( verse_ref, versions, apply_bounds );
 
@@ -85,6 +88,47 @@ export class VerseRef {
       this.ui_ref    = data.ui_ref;
       this.url_ref   = data.url_ref;
     }
+  }
+
+  /**
+   *  Generate a VerseRef instance for the previous chapter.
+   *
+   *  @method chapter_prev
+   *
+   *  @return The VerseRef instance for the previous chapter or null if there
+   *          is no previous chapter {VerseRef | null};
+   */
+  chapter_prev() {
+    const prev_ch = this.chapter - 1;
+    if (prev_ch < 1) {
+      // No previous chapter
+      return null;
+    }
+
+    const new_ref = generate_url_ref( this.book, prev_ch, this.verses );
+
+    return new VerseRef( new_ref, this.versions );
+  }
+
+  /**
+   *  Generate a VerseRef instance for the next chapter.
+   *
+   *  @method chapter_next
+   *
+   *  @return The VerseRef instance for the next chapter or null if there is no
+   *          next chapter {VerseRef | null};
+   */
+  chapter_next() {
+    const max_ch    = this.book.verses.length - 1;
+    const next_ch   = this.chapter + 1;
+    if (next_ch >= max_ch) {
+      // No next chapter
+      return null;
+    }
+
+    const new_ref = generate_url_ref( this.book, next_ch, this.verses );
+
+    return new VerseRef( new_ref, this.versions );
   }
 
   /**
