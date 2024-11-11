@@ -68,11 +68,21 @@
   function content_changed( new_content ) {
     /*
     console.log('Chapter.content_changed(): '
-                +     'is_loading[ %s => true ] ...',
-                String( $is_loading ) );
+                +     'is_loading[ %s ], content.changed[ %s ]:',
+                String( $is_loading ), String( new_content.changed),
+                new_content );
     // */
 
-    is_loading.set(  true );
+    // Only change 'is_loading' if the new content has actually changed
+    if (new_content.changed) {
+      // /*
+      console.log('Chapter.content_changed(): '
+                  +     'is_loading[ %s => true ]',
+                  String( $is_loading ), new_content );
+      // */
+
+      is_loading.set( true );
+    }
   }
   /**
    *  Update the component based upon `version.type`
@@ -402,11 +412,13 @@
 
     }
 
-    // Wait a tick and then scroll the first/selected verse(s) into view.
-    tick().then( () => scroll_into_view() );
+    if ( $is_loading ) {
+      // Wait a tick and then scroll the first/selected verse(s) into view.
+      tick().then( () => scroll_into_view() );
 
-    // Update is_loading
-    is_loading.set( false );
+      // Update is_loading
+      is_loading.set( false );
+    }
   });
 
   /*  Reactivity }
