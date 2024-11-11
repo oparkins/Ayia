@@ -1,7 +1,8 @@
 import { error } from '@sveltejs/kit';
 import { get }   from "svelte/store";
 
-import { VerseRef, ref_num } from '$lib/verse_ref';
+import { content as content_store } from '$lib/stores';
+import { VerseRef, ref_num }        from '$lib/verse_ref';
 
 import Agent  from '$lib/agent';
 
@@ -20,7 +21,7 @@ import Agent  from '$lib/agent';
  *      setHeaders: {Function};
  *      depends   : {Function};
  *      parent    : {Function};
- *      untracek  : {Function};
+ *      untrace   : {Function};
  *    }
  *
  *  @return A promise for results {Promise};
@@ -34,7 +35,7 @@ export async function load( {params, fetch, parent} ) {
   const versions  = data.versions;
   const version   = data.version;
 
-  // /*
+  /*
   console.log('[version]/[verse]/+layout.js: verse_ref[ %s ], version:',
               verse_ref, version);
   // */
@@ -43,7 +44,7 @@ export async function load( {params, fetch, parent} ) {
     const verse = new VerseRef( verse_ref, versions );
 
     if (verse.is_valid) {
-      // /*
+      /*
       console.log('[version]/[verse]/+layout.js: verse_ref[ %s ], verse:',
                   verse_ref, verse);
       // */
@@ -51,17 +52,37 @@ export async function load( {params, fetch, parent} ) {
       /* :XXX: Don't use `verse.url_ref` directly since we really want to
        *       ensure we fetch an entire chapter.
        */
-      const api_ref = `${verse.book.abbr}.${ref_num(verse.chapter)}`;
-      const path    = `/versions/${version.abbreviation}/${api_ref}`;
+      const api_ref       = `${verse.book.abbr}.${ref_num(verse.chapter)}`;
+      const path          = `/versions/${version.abbreviation}/${api_ref}`;
+      const store_content = get( content_store );
+      let   new_content   = true;
+
+      // Determine whether this will actually load new content
+      if (store_content) {
+        // Check if the current content matches the target version/verse
+        const match_version = (store_content.version === version.abbreviation);
+        const match_ref     = (store_content.api_ref === api_ref);
+
+        if (match_version && match_ref) {
+          // The content will NOT be new
+          new_content = false;
+        }
+      }
 
       // /*
-      console.log('[version]/[verse]/+layout.js: get( %s ) ...', path);
+      console.log('[version]/[verse]/+layout.js: new_content[ %s ], '
+                  +                           'get( %s ) ...',
+                  String( new_content ), path);
       // */
 
-      /* :XXX: If we attempt to pre-load the content, it will end up being
-       *       loaded a second time from Version.svelte...
-       */
       const content = await Agent.get( path, {fetch} );
+
+      /* Associate this content with the target version, api_ref, and an
+       * indiation of whether the content has actually changed.
+       */
+      content.version = version.abbreviation;
+      content.api_ref = api_ref;
+      content.changed = new_content;
 
       return {
         ...data,
