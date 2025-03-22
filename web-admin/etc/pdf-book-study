@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+const Yargs         = require('yargs');
+const Usage         = require('../lib/usage');
+const Books         = require('../lib/books');
+const Versions      = require('../versions');
+const { StudyBook } = require('../lib/pdf');
+
+const yargs = Yargs
+  .usage( 'Generate a study book for <vers> <book>' )
+  .positional( 'vers', {
+    describe    : 'The desired version',
+    type        : 'string',
+    demandOption: true,
+  })
+  .positional( 'book', {
+    describe    : 'The target book',
+    type        : 'string',
+    demandOption: true,
+  })
+  .options({
+    p: {
+      alias   : 'paragraph',
+      describe: 'Generate each vers as its own paragraph',
+      type    : 'boolean',
+      default : false,
+    },
+  })
+  .help();
+
+main().catch(err => { console.error('*** main:', err) });
+
+/****************************************************************************
+ * async main
+ *
+ */
+async function main() {
+  const args  = yargs.parse();
+
+  //console.log('main() args:', args);
+  if (args._.length !== 2) {
+    Usage.yargs( yargs );
+  }
+
+  const linePerVerse  = args.paragraph; //false;
+  const versionName   = args._[0];      // 'NIV84';  //'NIV11';
+  const bookName      = args._[1];      // '1 Peter';
+  const version       = await Versions.find( {vers: versionName} );
+  if (version == null) {
+    console.error('*** Unknown version: %s', versionName);
+    return;
+  }
+
+  const bookAbbr  = Books.nameToABBR( bookName );
+  const book      = Books.getBook( bookAbbr );
+  if (book == null) {
+    console.error('*** Unknown book: %s', bookName);
+    return;
+  }
+
+  const outFile = `${bookAbbr}-${versionName}.pdf`;
+  const study   = new StudyBook();
+
+  console.log('=== Generate PDF for the %s version of: %s (%s) ...',
+              versionName, book.name, book.abbr);
+  const pdf = await study.generate( version, book, linePerVerse );
+
+  console.log('=== Output to %s ...', outFile);
+  pdf.write( outFile );
+}
