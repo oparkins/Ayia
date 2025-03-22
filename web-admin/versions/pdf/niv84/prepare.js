@@ -5,10 +5,11 @@
  *  For this version, this work is performed in the 'extract' step, so this
  *  is just an alias entry that directs there.
  */
-const Path        = require('path');
+const Path            = require('path');
 
-const { Version } = require('./version');
-const Extract     = require('./extract');
+const { Version }     = require('./version');
+const { PATH_CACHE }  = require('./constants');
+const Extract         = require('./extract');
 
 /****************************************************************************
  * Public methods {
@@ -45,6 +46,9 @@ const Extract     = require('./extract');
  */
 async function prepare_version( config=null ) {
   const ABBR  = Version.abbreviation;
+  if (config.outPath == null) {
+    config.outPath = Path.join( PATH_CACHE, ABBR );
+  }
 
   if (config && config.verbosity) {
     console.log('>>> Prepare %s: redirect to Extract '
