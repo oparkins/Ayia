@@ -24,6 +24,12 @@ const yargs = Yargs
       type    : 'boolean',
       default : false,
     },
+    b: {
+      alias   : 'base',
+      describe: 'The base font size',
+      number  : true,
+      default : 9,
+    },
   })
   .help();
 
@@ -42,6 +48,7 @@ async function main() {
   }
 
   const linePerVerse  = args.paragraph; //false;
+  const baseFont      = args.base;      //9;
   const versionName   = args._[0];      // 'NIV84';  //'NIV11';
   const bookName      = args._[1];      // '1 Peter';
   const version       = await Versions.find( {vers: versionName} );
@@ -62,7 +69,9 @@ async function main() {
 
   console.log('=== Generate PDF for the %s version of: %s (%s) ...',
               versionName, book.name, book.abbr);
-  const pdf = await study.generate( version, book, linePerVerse );
+  const pdf = await study.generate( version, book,
+                                    linePerVerse,
+                                    baseFont );
 
   console.log('=== Output to %s ...', outFile);
   pdf.write( outFile );

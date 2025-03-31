@@ -28,6 +28,7 @@ class StudyBook {
   // The fonts that will be used
   Font  = {
     chapter : {
+      // Book name and Chapter numbers  : 2x verse text
       name  : 'Chapter',
       size  : 18,  // 1/4"
       source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
@@ -35,6 +36,7 @@ class StudyBook {
       // family: 'NimbusSans',
     },
     verse : {
+      // Verse numbers (super-script)   : 1.333x verse text
       name  : 'Verse',
       size  : 12,
       source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
@@ -43,6 +45,7 @@ class StudyBook {
     },
 
     text  : {
+      // Verse text
       name  : 'Text',
       size  : 9,  // 1/8"
       source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Regular.otf',
@@ -71,11 +74,25 @@ class StudyBook {
    *                                    { abbr, name, loc, verses }
    *  @param  [linePerVerse = false]  If truthy, generate each verse as its own
    *                                  line {Boolean};
+   *  @param  [baseFont = 9]          The size, in points, of the base font,
+   *                                  used to compute the sizes for headers and
+   *                                  verse labels {Number};
    *
    *  @return A promise for results {Promise};
    */
-  async generate( version, book, linePerVerse = false ) {
+  async generate( version, book, linePerVerse = false, baseFont = 9 ) {
     linePerVerse = !!linePerVerse;
+
+    if (baseFont !== this.Font.text.size) {
+      // Re-compute font sizes
+      this.Font.text.size    = baseFont;
+      this.Font.chapter.size = Math.round( baseFont * 2 );
+      this.Font.verse.size   = Math.round( baseFont * 1.333 );
+
+      console.log('=== Adjust fonts: text[ %s ], chapter[ %s ], verse[ %s ]',
+                  this.Font.text.size, this.Font.chapter.size,
+                  this.Font.verse.size);
+    }
 
     const chapters  = await this._getChapters( version, book );
 
