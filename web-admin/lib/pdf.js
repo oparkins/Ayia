@@ -334,67 +334,15 @@ class MemoryCards {
   layout        = {
     layout  : 'portrait',
     margins : {
-      top   : 36, // 1/2"
-      right : 36,
-      bottom: 36,
-      left  : 36,
+      top   : 18, // 1/4"
+      right : 18,
+      bottom: 18,
+      left  : 18,
     },
   };
 
   columns = 2;
-  rows    = 6;
-
-  /* Position and size information for the first card on a page:
-   *  - 2 columns per page with 6 cards per column
-   *  - 1/2" (36 point) margin around the entire page
-   *  - Each card is 5" (360 points) wide and 1-1/4" (90 points) tall
-   *    36         360              360          36
-   *      +------------------+------------------+  < 36 --+
-   *      | Ref1        Key1 | Ref7        Key7 |         |
-   *      | Text 1           | Text 7           |  90     |
-   *      |                  |                  |         |
-   *      +------------------+------------------+  < 126  |
-   *      ^        360       ^      360         ^         |
-   *      36               396                756         |
-   *                                                      |
-   * Text Boxes:                                          |
-   *               324               324                  |
-   *          162      162       162     162              v
-   *       +--------+-------+ +--------+-------+  < 54  (36+18)
-   *       | Ref1   |  Key1 | | Ref7   |  Key7 |
-   *       +--------+-------+ +--------+-------+  < (depends on header font)
-   *       | Text1          | | Text7          |
-   *       +----------------+ +----------------+  < 108 (126-18)
-   *       ^  162   ^  162  ^ ^  162   ^ 162   ^
-   *       54      216    378 414     576    738
-   *
-   */
-  card0 = {
-    top   : 36,
-    left  : 36,
-    width : 342,
-    height: 90,
-    margin: 18,
-
-    ref   : {
-      top   : 54,   // card0.top  + card0.margin
-      left  : 54,   // card0.left + card0.margin
-      width : 162,  // card0.width / 2
-      height: -1,   // (Depends on header font-size)
-    },
-    key   : {
-      top   : 54,   // card0.top  + card0.margin
-      left  : 216,  // ref.left   + ref.width
-      width : 162,  // card0.width / 2
-      height: -1,   // ref.height
-    },
-    text  : {
-      top   : -1,   // ref.top    + ref.height
-      left  : 54,   // card0.left + card0.margin
-      width : 324,  // card0.width
-      height: -1,   // card0.height - ref.height
-    },
-  };
+  rows    = 7;
 
   /**
    *  Create a new instance for the given version.
@@ -427,48 +375,17 @@ class MemoryCards {
    *            - on failure, an error {Error};
    */
   async generate( verses, baseFont = 9, fromCache = false ) {
-    if (baseFont !== this.Font.text.size) {
-      // Re-compute font sizes
-      this.Font.text.size   = baseFont;
-      this.Font.verse.size  = Math.round( baseFont * 1.333 );
-      this.Font.header.size = this.Font.verse.size;
-      this.Font.key.size    = this.Font.text.size;
-
-      console.log('=== Adjust fonts: text[ %s ], header[ %s ], verse[ %s ]',
-                  this.Font.text.size, this.Font.header.size,
-                  this.Font.verse.size);
-    }
-
-    // Gather all target verses.
-    const fullVerses  = await this.gatherVerses( verses, fromCache );
-
     // Walk through gathered verses and generate a card for each
     this.doc = new PDFDocument( this.layout );
 
     _registerFonts( this.doc, this.Font );
 
-    /* Measure the height of a header and adjust card0 measurements
-     *    card0.ref.height  = height
-     *    card0.key.height  = height
-     *    card0.text.top    = card0.ref.top + height
-     *    card0.text.height = card0.height  - height
-     */
-    this.doc.font(     this.Font.header.name )
-            .fontSize( this.Font.header.size );
-
-    const width   = this.doc.widthOfString('X');
-    const height  = Math.round( this.doc.widthOfString('X', {width} ) );
-
-    this.card0.ref.height  = height;
-    this.card0.key.height  = height;
-    this.card0.text.top    = Math.round( this.card0.ref.top +
-                                          (height * 1.5) );
-    this.card0.text.height = this.card0.top
-                           + this.card0.height
-                           - this.card0.margin
-                           - this.card0.text.top;
+    this.card0 = this._computeCardLayout( baseFont );
 
     console.log('=== Adjusted card measurements:', this.card0);
+
+    // Gather all target verses.
+    const fullVerses  = await this.gatherVerses( verses, fromCache );
 
     fullVerses.forEach( (verseInfo, index) => {
       this._generateCard( verseInfo, index );
@@ -531,6 +448,99 @@ class MemoryCards {
    */
 
   /**
+   *  Compute the layout of the first card based upon the e
+   *
+   *  @method _computeCardLayout
+   *  @param  baseFont  The size, in points, of the base font, used to compute
+   *                    the sizes for headers and verse labels {Number};
+   *
+   *  @return The layout data {Object};
+   *            { top, left, width, height, margin,
+   *              ref : {top, left, width, height },
+   *              key : {top, left, width, height },
+   *              text: {top, left, width, height },
+   *            }
+   */
+  _computeCardLayout( baseFont ) {
+    /* Compute position, width, and height for the first card and its
+     * components.
+     *
+     *  - 8.5" x 11" portrait paper
+     *  - .25" margin
+     *  - 2 columns per page with 7 cards per column
+     *  - .125" margin within each card
+     *
+     *     |                      612 (8.5")                 |
+     *     | |       288 (4")       |     288 (4")         | |
+     *     +-------------------------------------------------+
+     *     |18                     36     252 (3-1/2")       |
+     *     | +--------------------+   +--------------------+ | < 18
+     * 27 >| | Ref1          Key1 |   | Ref7          Key7 | |
+     *     | |                    |   |                    | | 108 (1-1/2")
+     *     | | Text 1             |   | Text 7             | |
+     *     | |                    |   |                    | |
+     *     | +--------------------+   +--------------------+ | < 126
+     *     |18                                               |
+     *     | +--------------------+   +--------------------+ | < 144
+     *         ^ 27 (.375")
+     *
+     */
+    const card  = {
+      top   : 18,     //   1/4"
+      left  : 18,     //   1/4"
+      width : 288,    // 4"
+      height: 108,    // 1-1/2"
+      margin: 9,      //   1/8"
+
+      header: {
+        top   : 27,   //   3/8"
+        left  : 27,   //   3/8"
+        width : 252,  // 3-1/2"
+        height: -1,   // computed based upon font size
+      },
+      text: {
+        margin: 18,   //   1/4"
+        top   : -1,   // header.top + header.height + text.margin
+        left  : 27,   //   3/8"
+        width : 252,  // 3-1/2"
+        height: -1,   // card.top + card.height - text.top
+      },
+    };
+
+    if (baseFont !== this.Font.text.size) {
+      // Re-compute font sizes
+      this.Font.text.size   = baseFont;
+      this.Font.verse.size  = Math.round( baseFont * 1.333 );
+      this.Font.header.size = this.Font.verse.size;
+      this.Font.key.size    = this.Font.text.size;
+
+      console.log('=== Adjust fonts: text[ %s ], header[ %s ], verse[ %s ]',
+                  this.Font.text.size, this.Font.header.size,
+                  this.Font.verse.size);
+    }
+
+    /* Measure the height of a header and adjust card0 measurements
+     *    card0.ref.height  = height
+     *    card0.key.height  = height
+     *    card0.text.top    = card0.ref.top + height
+     *    card0.text.height = card0.height  - height
+     */
+    this.doc.font(     this.Font.header.name )
+            .fontSize( this.Font.header.size );
+
+    const width   = this.doc.widthOfString('X');
+    const height  = Math.round( this.doc.widthOfString('X', {width} ) );
+
+    card.header.height  = height;
+    card.text.top       = card.header.top + height + card.text.margin;
+    card.text.height    = card.top
+                           + card.height
+                           - card.text.top;
+
+    return card;
+  }
+
+  /**
    *  Generate a card for a single memory verse.
    *
    *  @method _generateCard
@@ -562,17 +572,13 @@ class MemoryCards {
       left: this.card0.width  * column,
     };
     const position  = {
-      ref : {...this.card0.ref,
-        top : this.card0.ref.top  + offset.top,
-        left: this.card0.ref.left + offset.left,
-      },
-      key : {...this.card0.key,
-        top : this.card0.key.top  + offset.top,
-        left: this.card0.key.left + offset.left,
+      header : {...this.card0.header,
+        top : this.card0.header.top  + offset.top,
+        left: this.card0.header.left + offset.left,
       },
       text: {...this.card0.text,
-        top : this.card0.key.top  + offset.top,
-        left: this.card0.key.left + offset.left,
+        top : this.card0.text.top  + offset.top,
+        left: this.card0.text.left + offset.left,
       },
     };
 
@@ -585,7 +591,8 @@ class MemoryCards {
     // */
 
     const header_opts = {
-      width     : position.ref.width + position.key.width,
+      width     : position.header.width,
+      height    : position.header.height,
       continued : true,
     };
     const text_opts   = {
@@ -600,8 +607,10 @@ class MemoryCards {
 
     this.doc.font(     this.Font.header.name )
             .fontSize( this.Font.header.size )
-            .text( `${index+1}: ${ref}`, position.ref.left, position.ref.top,
-                   header_opts )
+            .text( `${index+1}: ${ref}`,
+                    position.header.left, // x
+                    position.header.top,  // y
+                    header_opts )
             .font(     this.Font.key.name )
             .fontSize( this.Font.key.size )
             .text( memKey, { align: 'right' } )
@@ -619,9 +628,12 @@ class MemoryCards {
       this.doc.font(     this.Font.verse.name )
               .fontSize( this.Font.verse.size );
 
-      if (false && is_first) {
+      if (is_first) {
         console.log('=== first verse');
-        this.doc.text( vref, position.text.left, position.text.top, vopts );
+        this.doc.text(  vref,
+                        position.text.left, // x
+                        position.text.top,  // y
+                        vopts );
 
         is_first = false;
 
