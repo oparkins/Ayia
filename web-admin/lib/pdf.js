@@ -1,8 +1,64 @@
 const Fs            = require('fs');
+
 const { readFile }  = require('fs/promises');
 const PDFDocument   = require('pdfkit');
+
+const AYIA_API      = 'https://api.ayia.nibious.com/api/v2';
+//                                      versions/%VERS%/%BOK%.ccc.vvv[-vvv]
+
 const Refs          = require('./refs');
+const Books         = require('../lib/books');
 const Versions      = require('../versions');
+
+// Import ESM {
+const importSync    = require('import-sync');
+const Path          = require('path');
+
+const {parse_verse} = importSync( '../../web-ui/src/lib/verse_ref',
+                                  { basePath: Path.dirname( __filename ) } );
+// Import ESM }
+
+const Font  = {
+  chapter : {
+    // Book name and Chapter numbers  : 2x verse text
+    name  : 'Chapter',
+    size  : 18,  // 1/4"
+    source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
+    // :XXX: NOT permitted for OTF fonts
+    // family: 'NimbusSans',
+  },
+  verse : {
+    // Verse numbers (super-script)   : 1.333x verse text
+    name  : 'Verse',
+    size  : 12,
+    source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
+    // :XXX: NOT permitted for OTF fonts
+    // family: 'NimbusSans',
+  },
+
+  header  : {
+    name  : 'Card Header',
+    size  : 12,
+    source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
+  },
+
+  key     : {
+    name  : 'Card Memmory key',
+    size  : 9,
+    source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
+  },
+
+  text  : {
+    // Verse text
+    name  : 'Text',
+    size  : 9,  // 1/8"
+    source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Regular.otf',
+    // :XXX: NOT permitted for OTF fonts
+    // family: 'NimbusSans',
+  },
+};
+
+/***************************************************************************/
 
 class StudyBook {
   /**
@@ -25,35 +81,6 @@ class StudyBook {
     },
   };
 
-  // The fonts that will be used
-  Font  = {
-    chapter : {
-      // Book name and Chapter numbers  : 2x verse text
-      name  : 'Chapter',
-      size  : 18,  // 1/4"
-      source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
-      // :XXX: NOT permitted for OTF fonts
-      // family: 'NimbusSans',
-    },
-    verse : {
-      // Verse numbers (super-script)   : 1.333x verse text
-      name  : 'Verse',
-      size  : 12,
-      source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
-      // :XXX: NOT permitted for OTF fonts
-      // family: 'NimbusSans',
-    },
-
-    text  : {
-      // Verse text
-      name  : 'Text',
-      size  : 9,  // 1/8"
-      source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Regular.otf',
-      // :XXX: NOT permitted for OTF fonts
-      // family: 'NimbusSans',
-    },
-  };
-
   // General text options
   Text_opts = {
     columns     : 2,
@@ -66,21 +93,44 @@ class StudyBook {
   };
 
   /**
+   *  Create a new instance for the given version.
+   *
+   *  @constructor
+   *  @param  versionName   The name of the target version {String};
+   *  @param  bookName      The name of the target book {String};
+   */
+  constructor( versionName, bookName ) {
+    this.versionName  = versionName;
+    this.bookName     = bookName;
+
+    this.bookAbbr     = Books.nameToABBR( this.bookName );
+    this.book         = Books.getBook( this.bookAbbr );
+    if (this.book == null) {
+      console.error('*** Unknown book: %s', this.bookName);
+      return;
+    }
+
+    this.versions     = null;
+    this.version      = null;
+
+    this.Font         = {...Font};
+  }
+
+  /**
    *  Generate the PDF for a specific book
    *
-   *  @method geneerate
-   *  @param  version                 The target version {Version};
-   *  @param  book                    The target book {Book};
-   *                                    { abbr, name, loc, verses }
+   *  @method generate
    *  @param  [linePerVerse = false]  If truthy, generate each verse as its own
    *                                  line {Boolean};
    *  @param  [baseFont = 9]          The size, in points, of the base font,
    *                                  used to compute the sizes for headers and
    *                                  verse labels {Number};
+   *  @param  [fromCache = false]     If truthy, use the local cache instead of
+   *                                  the Ayia API {Boolean};
    *
    *  @return A promise for results {Promise};
    */
-  async generate( version, book, linePerVerse = false, baseFont = 9 ) {
+  async generate( linePerVerse = false, baseFont = 9, fromCache = false ) {
     linePerVerse = !!linePerVerse;
 
     if (baseFont !== this.Font.text.size) {
@@ -94,17 +144,18 @@ class StudyBook {
                   this.Font.verse.size);
     }
 
-    const chapters  = await this._getChapters( version, book );
+    // Fetch all chapters for the named version
+    const chapters  = await this.fetchChapters( fromCache );
 
     this.doc = new PDFDocument( this.layout );
 
-    this._registerFonts( this.doc );
+    _registerFonts( this.doc, this.Font );
 
     let curChap = null;
 
     this.doc.font(     this.Font.chapter.name )
             .fontSize( this.Font.chapter.size )
-            .text( book.name,  { ...this.Text_opts, continued: false } );
+            .text( this.book.name,  { ...this.Text_opts, continued: false } );
 
     Object.entries( chapters ).forEach( ([ref, entry]) => {
       const [abbr, chapText, versText]  = ref.split('.');
@@ -202,105 +253,592 @@ class StudyBook {
     return this;
   }
 
+  /**
+   *  Fetch the chapters for the target version and book.
+   *
+   *  @method fetchChapters
+   *  @param  [fromCache]   If truthy, fetch from cache instead of Ayia
+   *                        {Boolean};
+   *
+   *  @return The chapter data {Object};
+   *            { %BOK.chp.vrs%: { markup, text }, ... }
+   */
+  async fetchChapters( fromCache = false ) {
+    if (fromCache) {
+      return this._fetchChaptersFromCache();
+    }
+
+    return this._fetchChaptersFromAyia();
+  }
+
   /**************************************************************************
    * Protected methods {
    *
    */
 
   /**
-   *  Register the specified fonts in the new PDF document.
+   *  Fetch the chapters for the target version and book from the local cache.
    *
-   *  @method _registerFonts
-   *  @param  doc     The target document {PDFDocument};
+   *  @method _fetchChaptersFromCache
    *
-   *  @return `this` for a fluent interface;
+   *  @return The chapter data {Object};
+   *            { %BOK.chp.vrs%: { markup, text }, ... }
    *  @protected
    */
-  _registerFonts( doc ) {
-    Object.values( this.Font ).forEach( (font) => {
-      if (font.name == null || font.source == null) {
-        return;
+  async _fetchChaptersFromCache() {
+    if (this.version == null) {
+      this.version = await _fetchVersionFromCache( this.versionName );
+      if (this.version == null) {
+        throw new Error( `Unknown version: ${versionName}` );
       }
 
       /*
-      console.log('>>> Register font [%s%s]: %s',
-                  font.name, (font.family ? ` : ${font.family}` : ''),
-                  font.source);
+      console.log('_fetchChaptersFromCache(): version[ %s ]:',
+                  this.versionName, this.version);
       // */
+    }
 
-      doc.registerFont( font.name, font.source, font.family );
+    return _fetchChaptersFromCache( this.version, this.book );
+  }
+
+  /**
+   *  Fetch the chapters for the target version and book from Ayia.
+   *
+   *  @method _fetchChaptersFromAyia
+   *
+   *  @return The chapter data {Object};
+   *            { %BOK.chp.vrs%: { markup, text }, ... }
+   *  @protected
+   */
+  async _fetchChaptersFromAyia() {
+    return _fetchChaptersFromAyia( this.versionName, this.book );
+  }
+  /* Protected methods }
+   **************************************************************************/
+}
+
+/***************************************************************************/
+
+class MemoryCards {
+  /**
+   *  A class to generate a memory card layout for a specific set of memory
+   *  verses.
+   *
+   *  :NOTE: Measurements are typically in points: 72 points == 1"
+   */
+
+  // Generated PDF Document (via generate()) {PDFDocument};
+  doc = null;
+
+  // Default layout
+  layout        = {
+    layout  : 'portrait',
+    margins : {
+      top   : 36, // 1/2"
+      right : 36,
+      bottom: 36,
+      left  : 36,
+    },
+  };
+
+  columns = 2;
+  rows    = 6;
+
+  /* Position and size information for the first card on a page:
+   *  - 2 columns per page with 6 cards per column
+   *  - 1/2" (36 point) margin around the entire page
+   *  - Each card is 5" (360 points) wide and 1-1/4" (90 points) tall
+   *    36         360              360          36
+   *      +------------------+------------------+  < 36 --+
+   *      | Ref1        Key1 | Ref7        Key7 |         |
+   *      | Text 1           | Text 7           |  90     |
+   *      |                  |                  |         |
+   *      +------------------+------------------+  < 126  |
+   *      ^        360       ^      360         ^         |
+   *      36               396                756         |
+   *                                                      |
+   * Text Boxes:                                          |
+   *               324               324                  |
+   *          162      162       162     162              v
+   *       +--------+-------+ +--------+-------+  < 54  (36+18)
+   *       | Ref1   |  Key1 | | Ref7   |  Key7 |
+   *       +--------+-------+ +--------+-------+  < (depends on header font)
+   *       | Text1          | | Text7          |
+   *       +----------------+ +----------------+  < 108 (126-18)
+   *       ^  162   ^  162  ^ ^  162   ^ 162   ^
+   *       54      216    378 414     576    738
+   *
+   */
+  card0 = {
+    top   : 36,
+    left  : 36,
+    width : 342,
+    height: 90,
+    margin: 18,
+
+    ref   : {
+      top   : 54,   // card0.top  + card0.margin
+      left  : 54,   // card0.left + card0.margin
+      width : 162,  // card0.width / 2
+      height: -1,   // (Depends on header font-size)
+    },
+    key   : {
+      top   : 54,   // card0.top  + card0.margin
+      left  : 216,  // ref.left   + ref.width
+      width : 162,  // card0.width / 2
+      height: -1,   // ref.height
+    },
+    text  : {
+      top   : -1,   // ref.top    + ref.height
+      left  : 54,   // card0.left + card0.margin
+      width : 324,  // card0.width
+      height: -1,   // card0.height - ref.height
+    },
+  };
+
+  /**
+   *  Create a new instance for the given version.
+   *
+   *  @constructor
+   *  @param  versionName   The name of the target version {String};
+   */
+  constructor( versionName ) {
+    this.versionName  = versionName;
+    this.versions     = null;
+    this.version      = null;
+
+    this.Font         = {...Font};
+  }
+
+  /**
+   *  Generate the memory card PDF for a specific set of verses.
+   *
+   *  @method generate
+   *  @param  verses                The set of memory verses {Array};
+   *                                  [ { ref, key }, ... ]
+   *  @param  [baseFont = 9]        The size, in points, of the base font, used
+   *                                to compute the sizes for headers and verse
+   *                                labels {Number};
+   *  @param  [fromCache = false]   If truthy, use the local cache instead of
+   *                                the Ayia API {Boolean};
+   *
+   *  @return A promise for results {Promise};
+   *            - on success, this {MemoryCards};
+   *            - on failure, an error {Error};
+   */
+  async generate( verses, baseFont = 9, fromCache = false ) {
+    if (baseFont !== this.Font.text.size) {
+      // Re-compute font sizes
+      this.Font.text.size   = baseFont;
+      this.Font.verse.size  = Math.round( baseFont * 1.333 );
+      this.Font.header.size = this.Font.verse.size;
+      this.Font.key.size    = this.Font.text.size;
+
+      console.log('=== Adjust fonts: text[ %s ], header[ %s ], verse[ %s ]',
+                  this.Font.text.size, this.Font.header.size,
+                  this.Font.verse.size);
+    }
+
+    // Gather all target verses.
+    const fullVerses  = await this.gatherVerses( verses, fromCache );
+
+    // Walk through gathered verses and generate a card for each
+    this.doc = new PDFDocument( this.layout );
+
+    _registerFonts( this.doc, this.Font );
+
+    /* Measure the height of a header and adjust card0 measurements
+     *    card0.ref.height  = height
+     *    card0.key.height  = height
+     *    card0.text.top    = card0.ref.top + height
+     *    card0.text.height = card0.height  - height
+     */
+    this.doc.font(     this.Font.header.name )
+            .fontSize( this.Font.header.size );
+
+    const width   = this.doc.widthOfString('X');
+    const height  = Math.round( this.doc.widthOfString('X', {width} ) );
+
+    this.card0.ref.height  = height;
+    this.card0.key.height  = height;
+    this.card0.text.top    = Math.round( this.card0.ref.top +
+                                          (height * 1.5) );
+    this.card0.text.height = this.card0.top
+                           + this.card0.height
+                           - this.card0.margin
+                           - this.card0.text.top;
+
+    console.log('=== Adjusted card measurements:', this.card0);
+
+    fullVerses.forEach( (verseInfo, index) => {
+      this._generateCard( verseInfo, index );
     });
 
     return this;
   }
 
   /**
-   *  Retrieve the chapters for the identified book.
+   *  Write the generated PDF to the given file/path.
    *
-   *  @method _getChapters
-   *  @param  version   The target version {Version};
-   *  @param  book      The target book {Book};
-   *                      { abbr, name, loc, verses }
+   *  @method write
+   *  @param  path    The target output file/path {String};
    *
-   *  @return A promise for all verses for the target book {Promise};
-   *            { %verse-ref%: {  // e.g. '1PE.001.001'
-   *                markup: [
-   *                  { %type%: ... },
-   *                  ...
-   *                ],
-   *                text:   Raw text of this verse {String};
-   *              },
-   *              ...
-   *            }
+   *  @return `this` for a fluent interface;
+   */
+  write( path ) {
+    if (this.doc == null) {
+      console.error('The document has not yet been generated');
+
+    } else {
+      this.doc.pipe( Fs.createWriteStream( path ) );
+      this.doc.end();
+
+      this.doc = null;
+    }
+
+    return this;
+  }
+
+  /**
+   *  Asynchronously gather verse information.
+   *
+   *  @method gatherVerses
+   *  @param  verses      The set of memory verses {Array};
+   *                        [ { ref, key }, ... ]
+   *  @param  [fromCache] If truthy, gather verses from locally cached data
+   *                      instead of Ayia {Boolean};
+   *
+   *  @return A promise for results {Promise};
+   *            - on success, the fully resolved verses {Array};
+   *                [ { ref, key, norm_ref, verses }, ... ]
+   *            - on failure, an error {Error};
+   */
+  async gatherVerses( verses, fromCache = false ) {
+    /***
+     * We can either fetch verses from the Ayia API
+     * OR, if we have cached version data, fetch them from the local cache.
+     */
+    if (fromCache) {
+      return this._gatherVersesFromCache( verses );
+    }
+
+    return this._gatherVersesFromAyia( verses );
+  }
+
+  /**************************************************************************
+   * Protected methods {
+   *
+   */
+
+  /**
+   *  Generate a card for a single memory verse.
+   *
+   *  @method _generateCard
+   *  @param  memVerse  The target memory verse {Object};
+   *                      { ref     : The user-provided verse reference
+   *                                  {String};
+   *                        key     : The user-provided memory key {String};
+   *
+   *                        norm_ref: The normalized reference {String};
+   *                        verses  : The text of all target verses, indexed by
+   *                                  verse number {Object};
+   *                          { %verseNum%: Verse text {String}, ... .}
+   *                      }
+   *  @param  index     The index of this card {Number};
+   *
+   *  @return this for a fluent interface;
    *  @protected
    */
-  async _getChapters( version, book ) {
-    const res       = {};
-    const bookAbbr  = book.abbr;
-    const config    = {
-      version : version,
-      /*
-      vers    : versionName,
-      // */
+  _generateCard( memVerse, index ) {
+    const ref       = memVerse.norm_ref;
+    const memKey    = memVerse.key;
+    const perPage   = this.rows * this.columns;
+    const page      = Math.floor( index / perPage );
+    const inPage    = (index % perPage);
+    const column    = Math.floor( inPage / this.rows );
+    const row       = (inPage % this.rows );
+    const offset    = {
+      top : this.card0.height * row,
+      left: this.card0.width  * column,
     };
-    const cacheDir  = await Versions.prepare( config );
+    const position  = {
+      ref : {...this.card0.ref,
+        top : this.card0.ref.top  + offset.top,
+        left: this.card0.ref.left + offset.left,
+      },
+      key : {...this.card0.key,
+        top : this.card0.key.top  + offset.top,
+        left: this.card0.key.left + offset.left,
+      },
+      text: {...this.card0.text,
+        top : this.card0.key.top  + offset.top,
+        left: this.card0.key.left + offset.left,
+      },
+    };
 
-    // assert( typeof(cacheDir) === 'string' );
-    const jsonPath  = `${cacheDir}/${bookAbbr}.json`;
-
+    console.log('%s: %s / %s:',
+                index, ref, memKey);
     /*
-    console.log('=== _getChapters( %s ):', bookAbbr, jsonPath);
+    console.log('=== page %d, inPage %d, grid: %d, %d, offset:',
+                page, inPage, column, row, offset);
+    console.log('=== position:', position);
     // */
 
-    const jsonData  = await readFile( jsonPath );
-    const chapters  = JSON.parse( jsonData );
+    const header_opts = {
+      width     : position.ref.width + position.key.width,
+      continued : true,
+    };
+    const text_opts   = {
+      features  : [],
+      width     : position.text.width,
+      height    : position.text.height,
+      continued : true,
+    };
+    const verse_opts  = { ...text_opts,
+      features  : ['sups'],
+    };
 
-    /*
-    console.log('=== _getChapters( %s ): chapters:',
-                bookAbbr, chapters);
-    // */
+    this.doc.font(     this.Font.header.name )
+            .fontSize( this.Font.header.size )
+            .text( `${index+1}: ${ref}`, position.ref.left, position.ref.top,
+                   header_opts )
+            .font(     this.Font.key.name )
+            .fontSize( this.Font.key.size )
+            .text( memKey, { align: 'right' } )
+            .moveDown();
 
-    return chapters;
+    const verses    = Object.entries( memVerse.verses );
+    const count     = verses.length;
+    let   is_first  = true;
+    verses.forEach( ([verseNum, text], idex) => {
+      const is_last = (idex == count -1);
+      const vref    = `  ${verseNum}\u202f`;
+      const topts   = {...text_opts};
+      const vopts   = {...verse_opts};
 
-    /************************************************************************/
-    let   chapter   = 0;
-    let   verse     = 1;
+      this.doc.font(     this.Font.verse.name )
+              .fontSize( this.Font.verse.size );
 
-    _lorem().forEach( (para, idex) => {
-      if (idex % 10 === 0) {
-        chapter++;
-        verse = 1;
+      if (false && is_first) {
+        console.log('=== first verse');
+        this.doc.text( vref, position.text.left, position.text.top, vopts );
+
+        is_first = false;
 
       } else {
-        verse++;
+        this.doc.text( vref, vopts );
+
       }
 
-      const ref = Refs.sortable( bookAbbr, chapter, verse );
+      if (is_last)  {
+        console.log('=== last verse');
+        topts.continued = false;
+      }
 
-      res[ ref ] = { markup: null, text: para };
+      this.doc.font(     this.Font.text.name )
+              .fontSize( this.Font.text.size )
+              .text(`${text} `, topts );
+
+      console.log('  %s:', verseNum, text);
     });
 
-    return res;
+    console.log('=======================================================');
+  }
+
+  /**
+   *  Asynchronously gather verse information from the Ayia API.
+   *
+   *  @method _gatherVersesFromAyia
+   *  @param  verses    The set of memory verses {Array};
+   *                      [ { ref, key }, ... ]
+   *
+   *  @return A promise for results {Promise};
+   *            - on success, the fully resolved verses {Array};
+   *                [ { ref, key, norm_ref, verses }, ... ]
+   *            - on failure, an error {Error};
+   *  @protected
+   */
+  async _gatherVersesFromAyia( verses ) {
+    if (this.versions == null) {
+      this.versions = await _fetchVersionsFromAyia();
+
+      /*
+      console.log('_gatherVersesFromAyia(): versions:', this.versions);
+      // */
+    }
+
+    const fullVerses  = [];
+    const pending     = verses.map( async (verseInfo, idex) => {
+      const memKey  = verseInfo.key;
+      const refData = parse_verse( verseInfo.ref, this.versions );
+      /*  refData = {
+       *    book      : 'Hebrews ',
+       *    chapter   : 11,
+       *    verse     : 6,
+       *    verses    : [ 6 ],
+       *    ui_ref    : 'Hebrews 11:6',
+       *    url_ref   : 'HEB.011.006',
+       *    full_book : {
+       *      abbr  : 'HEB',
+       *      name  : 'Hebrews',
+       *      match : /^(heb?(rews)?)$/i,
+       *      order : 58,
+       *      loc   : 'New Testament',
+       *      verses: [ 0, 14, 18, 19, 16, 14, 20, 28, 13, 28, 39, 40, 29, 25 ],
+       *    },
+       *  }
+       */
+      if (refData == null) {
+        console.warn('=== Cannot parse:', verseInfo);
+        return;
+      }
+
+      verseInfo.norm_ref = refData.ui_ref;
+      verseInfo.verses   = {};
+
+      // Fetch the verses
+      const verseData = await _fetchVersesFromAyia( this.versionName, 
+                                                    refData.url_ref );
+
+      /*
+      console.log('_gatherVersesFromAyia(): version[ %s ], ref[ %s ]:',
+                  this.versionName, refData.url_ref, verseData);
+      // */
+
+      Object.entries( verseData.verses ).forEach( ([key, verse]) => {
+        const [book, chap, vers]  = key.split('.');
+        const verseNum            = parseInt( vers );
+
+        verseInfo.verses[ verseNum ] = verse.text;
+      });
+
+      fullVerses[ idex ] = verseInfo;
+
+      /* Fetch the text for each referenced verse
+      verseInfo.verses = {};
+      refData.verses.forEach( verseNum => {
+        const ref   = Refs.sortable( refData.full_book.abbr,
+                                     refData.chapter,
+                                     verseNum );
+        const verse = verses[ ref ];
+
+        verseInfo.verses[ verseNum ] = verse.text;
+      });
+      // */
+    });
+
+    // Await full resolution
+    await Promise.all( pending );
+
+    return fullVerses;
+  }
+
+  /**
+   *  Asynchronously gather verse information from the local cache.
+   *
+   *  @method _gatherVersesFromCache
+   *  @param  verses    The set of memory verses {Array};
+   *                      [ { ref, key }, ... ]
+   *
+   *  @return A promise for results {Promise};
+   *            - on success, the fully resolved verses {Array};
+   *                [ { ref, key, norm_ref, verses }, ... ]
+   *            - on failure, an error {Error};
+   *  @protected
+   */
+  async _gatherVersesFromCache( verses ) {
+    let versions  = this.versions;
+
+    if (this.version == null) {
+      this.version = await _fetchVersionFromCache( this.versionName );
+      if (this.version == null) {
+        throw new Error( `Unknown version: ${versionName}` );
+      }
+
+      console.log('_gatherVersesFromCache(): version[ %s ]:',
+                  this.versionName, this.version);
+    }
+
+    if (this.versions == null) {
+      // Construct a pseudo-versions set
+      versions  = {
+        versions: [ this.version ],
+        books   : Books.getBooks( 'ot,nt' ),
+      };
+
+      this.versions = versions;
+    }
+
+    /* First walk through all memory verses and resolve them to their
+     * constituent verses.
+     */
+    const bookCache   = {};
+    const fullVerses  = [];
+    const pending     = verses.map( async (verseInfo, idex) => {
+      const memKey  = verseInfo.key;
+      const refData = parse_verse( verseInfo.ref, versions );
+      /*  refData = {
+       *    book      : 'Hebrews ',
+       *    chapter   : 11,
+       *    verse     : 6,
+       *    verses    : [ 6 ],
+       *    ui_ref    : 'Hebrews 11:6',
+       *    url_ref   : 'HEB.011.006',
+       *    full_book : {
+       *      abbr  : 'HEB',
+       *      name  : 'Hebrews',
+       *      match : /^(heb?(rews)?)$/i,
+       *      order : 58,
+       *      loc   : 'New Testament',
+       *      verses: [ 0, 14, 18, 19, 16, 14, 20, 28, 13, 28, 39, 40, 29, 25 ],
+       *    },
+       *  }
+       */
+      if (refData == null) {
+        console.warn('=== Cannot parse:', verseInfo);
+        return;
+      }
+
+      // Fetch (and cache) all verses for the target book
+      const book      = refData.full_book;
+      let   verses    = bookCache[ book.abbr ];
+      if ( ! Array.isArray( verses )) {
+        verses = await _fetchChaptersFromCache( this.version, book );
+        /*  verses = {
+         *    %verse-ref%: {  // e.g. '1PE.001.001'
+         *      markup: [
+         *        { %type%: ... },
+         *        ...
+         *      ],
+         *      text:   Raw text of this verse {String};
+         *    },
+         *    ...
+         *  }
+         */
+        bookCache[ book.abbr ] = verses;
+      }
+
+      //console.log('%s verses:', book.abbr, verses);
+      verseInfo.norm_ref = refData.ui_ref;
+
+      // Fetch the text for each referenced verse
+      verseInfo.verses = {};
+      refData.verses.forEach( verseNum => {
+        const ref   = Refs.sortable( refData.full_book.abbr,
+                                     refData.chapter,
+                                     verseNum );
+        const verse = verses[ ref ];
+
+        verseInfo.verses[ verseNum ] = verse.text;
+      });
+
+      fullVerses[ idex ] = verseInfo;
+    });
+
+    // Await full resolution
+    await Promise.all( pending );
+
+    return fullVerses;
   }
 
   /* Protected methods }
@@ -312,44 +850,221 @@ class StudyBook {
  *
  */
 
-function _lorem() {
-  const paragraphs  = [
-    `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque accumsan hendrerit sem sed varius. Duis malesuada ante ac lorem malesuada, non volutpat turpis congue. Nunc euismod velit vitae mattis congue. Donec ante enim, cursus non pellentesque ut, accumsan nec neque. Integer pretium, tortor sed dictum convallis, elit nisl tincidunt nisi, ac sollicitudin erat orci accumsan nulla. Sed purus sem, tincidunt sit amet mi quis, convallis fermentum arcu. Duis a varius nulla, ac facilisis quam. Vivamus vitae dolor egestas, imperdiet elit sed, tempus massa.`,
-    `Quisque lobortis facilisis diam ac euismod. Nulla placerat justo ipsum, at elementum risus iaculis sit amet. Donec ac purus placerat, cursus velit nec, porta eros. Praesent consequat commodo urna at maximus. Proin bibendum ex eget velit placerat, vel porttitor leo ultrices. Maecenas porttitor ligula in turpis egestas gravida. Nunc placerat orci vitae purus feugiat mollis quis malesuada massa. Fusce a nisl vel lorem mattis vestibulum. Mauris vel dui enim. Nulla ultricies lectus vitae quam vestibulum dictum. Duis non maximus enim, eu consequat metus. In eget diam sodales, maximus purus euismod, elementum massa. Nulla congue rhoncus diam, et tempor odio accumsan eu. Nam euismod neque sit amet interdum rhoncus. Nulla facilisis arcu in eros sollicitudin, id faucibus justo porta. Ut egestas metus enim, eget condimentum arcu pellentesque rutrum.`,
-    `Curabitur auctor lacus pulvinar, pretium elit eu, tempus elit. Mauris eget nisi in diam viverra maximus ac eget mi. Nullam vulputate eleifend lacus et maximus. Nam eget dui purus. Cras auctor, odio sed semper tincidunt, est arcu cursus velit, id pellentesque est leo non leo. Etiam eget felis justo. Donec convallis dignissim lectus eget pharetra. Curabitur tempor metus vitae odio dignissim, sit amet sodales diam scelerisque.`,
-    `Donec malesuada viverra turpis, ultricies porttitor lacus viverra et. Nulla facilisi. Pellentesque lobortis convallis dui non aliquam. Etiam ornare massa sed tempor iaculis. Quisque et lacus mi. Ut in nisi et nulla malesuada imperdiet a non ligula. Aenean non nibh semper, ultricies neque non, hendrerit libero. Nullam auctor dictum lorem. Phasellus venenatis sodales tortor, ac dictum quam ornare nec. Mauris eu nibh neque. Curabitur vel facilisis metus. Aenean maximus turpis enim, bibendum gravida nunc hendrerit vel. Duis aliquet non mauris a accumsan. Morbi scelerisque orci eros, eu convallis nisi viverra eget.`,
-    `Donec rutrum, ipsum finibus pretium volutpat, mi libero pulvinar lectus, aliquam tincidunt diam arcu eu neque. Praesent neque urna, accumsan mattis enim ac, lobortis viverra neque. Mauris ac diam quam. Sed in condimentum odio, vitae maximus turpis. Suspendisse potenti. Fusce sollicitudin nisl at ex porttitor, ac feugiat erat posuere. Nullam feugiat elit nunc, vitae auctor risus malesuada sit amet. Curabitur vel tempus enim, non ultrices dolor. Sed odio sem, tristique ac orci porta, dignissim aliquet ipsum. Aenean mattis faucibus libero, eu euismod turpis fermentum id.`,
-    `Donec tempor commodo dictum. Integer eget auctor lorem, sit amet faucibus quam. Vivamus ultrices sem nec semper imperdiet. Fusce hendrerit gravida lacinia. Sed eu pretium turpis. Pellentesque facilisis enim a aliquet condimentum. Curabitur sit amet ex sed odio cursus gravida in facilisis augue. Etiam nisi velit, aliquet sed consectetur a, sollicitudin quis purus. Donec quis nisi a quam bibendum rutrum. Integer dictum tempus erat, quis pretium orci iaculis nec. Curabitur vulputate, est vulputate fermentum dictum, tortor arcu pulvinar nibh, vel eleifend leo libero eu nulla. Pellentesque maximus velit augue, nec cursus nibh accumsan id. Vestibulum auctor elit non placerat faucibus. Proin mollis accumsan efficitur.`,
-    `Etiam vulputate eleifend mi. Nunc iaculis luctus blandit. Phasellus imperdiet erat ac nibh finibus egestas. Pellentesque at ex laoreet, luctus nisi quis, tincidunt dolor. Nam eu lacus id sem vehicula volutpat. Praesent rhoncus tortor a dolor sodales ultrices. Sed ullamcorper, nibh eget lacinia fermentum, tortor turpis viverra nibh, pharetra suscipit elit ex sed eros. Curabitur orci eros, fringilla et rutrum et, consectetur consectetur arcu. Suspendisse eget euismod dui. Donec sit amet velit in lacus volutpat interdum. Fusce ligula ex, commodo non erat ut, lacinia convallis nisl. Nunc nec velit quis orci ullamcorper tincidunt non quis odio.`,
-    `Phasellus eget ante leo. Integer eget odio arcu. Nulla facilisi. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce pellentesque tellus nec ex ornare, in pretium magna interdum. Vivamus non euismod arcu, eu cursus felis. Cras in lacus vel eros volutpat faucibus vel a tortor. Sed non dui non velit accumsan tempor. Pellentesque quis justo vitae ligula ultrices semper sed ac nibh.`,
-    `Donec mattis tortor dui, sit amet luctus justo mattis vitae. Curabitur venenatis felis nibh, ut lacinia velit consectetur eu. Nunc vel elit fringilla, eleifend purus quis, mollis velit. Vestibulum cursus scelerisque tellus eget commodo. Vestibulum convallis posuere ex in finibus. Nullam arcu felis, dapibus id dictum non, placerat in massa. Cras in bibendum turpis. Vestibulum at auctor tortor.`,
-    `In tortor turpis, tempus non sem et, porta euismod erat. Maecenas nisi odio, aliquet ac ligula hendrerit, faucibus semper felis. Aliquam auctor porttitor ultricies. Quisque ultrices elit a consectetur sagittis. Nulla commodo, leo id elementum gravida, risus mauris tempus quam, in lobortis felis urna nec velit. Cras porttitor risus nisi, et fermentum ante faucibus quis. Vestibulum dignissim in risus semper interdum. Ut ut augue ante. Aliquam elementum, risus sit amet vehicula maximus, ex turpis hendrerit ex, sit amet maximus nunc nulla nec turpis. Curabitur dui arcu, eleifend vel sem eget, scelerisque lobortis lacus.`,
-    `Nunc varius et nisi sed feugiat. Nulla luctus a turpis id posuere. Sed vel mollis eros. Aenean tempor leo quis erat efficitur consectetur. Phasellus sed massa eget dolor tincidunt interdum. Vivamus blandit laoreet sapien vel auctor. Nunc congue tincidunt massa vitae dignissim. Aenean lacus nulla, dignissim vel pharetra vitae, finibus sit amet sem. Suspendisse mi sem, volutpat consequat magna a, fermentum laoreet odio. Nulla interdum semper mauris, eu rutrum felis molestie in. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed at cursus tellus.`,
-    `Aliquam erat volutpat. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Donec id hendrerit sapien. Pellentesque nec viverra nunc, quis sodales erat. Nam malesuada metus sed est suscipit facilisis. Quisque dolor enim, scelerisque a condimentum eget, lobortis id dolor. Proin sodales maximus turpis, ut cursus massa molestie in. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin volutpat consectetur venenatis.`,
-    `Fusce nisi nisl, tempus quis nunc non, molestie viverra felis. Vivamus lacinia metus posuere, pharetra ligula ut, blandit turpis. Nullam id pellentesque nunc, et accumsan metus. Donec semper pharetra euismod. Praesent nec gravida metus. Sed sed accumsan magna. Sed venenatis luctus nisi, eget maximus sapien imperdiet eget. Integer in leo nulla. Proin commodo pulvinar enim, id porta ligula sagittis eget. Sed tincidunt, purus pretium aliquet cursus, eros odio posuere dui, lobortis auctor orci felis et ipsum. In fermentum ultrices odio, tristique tempus erat eleifend sit amet. Quisque elit ipsum, cursus nec diam at, pellentesque fermentum nisi. Integer lacinia eros sem, nec tincidunt odio egestas non.`,
-    `Sed feugiat convallis neque ac rhoncus. Proin ornare, nisi ut pretium mollis, nulla risus malesuada leo, a accumsan lorem dui vitae tortor. Proin ac consectetur ligula, in consequat risus. Mauris lectus lacus, sagittis sit amet quam molestie, feugiat ultricies felis. Fusce quis convallis mauris, et gravida odio. Aenean in dolor sit amet libero consectetur pulvinar. Donec ullamcorper ipsum non vehicula pulvinar. Sed sollicitudin est at dapibus vehicula.`,
-    `Pellentesque nisl diam, ultrices fermentum interdum ut, consectetur in erat. Etiam non quam justo. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nullam bibendum interdum congue. Proin sit amet sodales quam. Sed ultricies tincidunt metus ac pharetra. Quisque odio nunc, aliquam in accumsan at, mollis ac quam. Morbi venenatis ligula nunc, nec mollis leo iaculis id. Nam ac magna non purus consequat interdum. In hac habitasse platea dictumst.`,
-    `Integer rhoncus eu ex id tincidunt. Nunc vel purus auctor, pretium velit non, lobortis odio. Fusce feugiat, lorem sit amet tincidunt commodo, nibh mi fringilla eros, id pharetra velit sem vel est. Proin in iaculis felis. Pellentesque commodo non turpis sit amet cursus. Duis hendrerit, lacus vitae euismod cursus, enim massa facilisis eros, sed dictum eros sem ut diam. Mauris iaculis eros non ante pellentesque tempor.`,
-    `Nunc maximus massa non gravida finibus. Etiam a hendrerit quam, ut posuere ex. Nam ac tortor euismod, porttitor ante at, euismod enim. Nunc at feugiat massa. Nam felis sapien, vestibulum sit amet malesuada sit amet, finibus sed felis. Donec eleifend vel risus in dignissim. In a commodo tortor. Maecenas non leo a elit eleifend scelerisque eu ac eros. Vestibulum ac gravida magna, vitae pellentesque tortor. Vivamus vel sollicitudin magna. Lorem ipsum dolor sit amet, consectetur adipiscing elit.`,
-    `Praesent rhoncus sagittis orci, at ultrices metus vehicula ac. Maecenas eget lectus non enim bibendum dapibus. Duis sit amet tempor nulla, non ullamcorper risus. Donec molestie, odio non efficitur lacinia, dui quam rhoncus metus, eget tristique purus dui vitae ante. In hac habitasse platea dictumst. Mauris eu quam vitae dolor auctor condimentum. Vivamus venenatis scelerisque lorem sed ullamcorper. Curabitur sollicitudin erat euismod nibh lacinia, eget malesuada dui feugiat. Aliquam porttitor, nibh nec pharetra lobortis, neque erat pulvinar lacus, non suscipit ligula risus quis massa. Etiam hendrerit urna ex, eget aliquam tortor commodo sed. Nulla et placerat velit. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus convallis, quam nec suscipit facilisis, justo tortor maximus augue, sed vestibulum dui nunc sed arcu. Pellentesque eget ligula sit amet magna sagittis sodales. Proin feugiat efficitur ipsum congue eleifend. Aenean pharetra, sem vel consequat lobortis, risus tortor ultricies nunc, vel iaculis lacus leo tempus dui.`,
-    `In semper finibus molestie. Maecenas sit amet erat in massa efficitur sodales sit amet vel ante. Donec convallis nisl diam, a pulvinar erat gravida vitae. Nunc tincidunt lectus ligula, nec ornare lectus vestibulum eu. Pellentesque mauris mi, porttitor id condimentum ac, dignissim at nisl. Suspendisse rhoncus vehicula convallis. Pellentesque pharetra, sapien sit amet laoreet gravida, eros erat ultrices turpis, maximus viverra neque tortor euismod felis. Mauris vehicula nulla non lectus lacinia placerat. Sed eu finibus eros. Sed arcu mi, dignissim sed leo sit amet, semper laoreet massa. Pellentesque feugiat imperdiet lorem suscipit faucibus. Mauris non velit quis orci condimentum mollis. Donec at orci at nisl sagittis sodales.`,
-    `Donec eget augue vitae turpis efficitur mollis auctor et leo. Nunc sem lectus, accumsan in viverra convallis, suscipit eu sem. Praesent rhoncus quam nisi, lobortis lacinia odio imperdiet fringilla. Praesent a maximus erat, a volutpat nunc. Nulla vulputate vehicula porttitor. Donec ornare tortor eget diam ullamcorper molestie. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Sed cursus placerat neque, vitae fermentum orci pulvinar in. Donec nec neque vitae sapien congue scelerisque quis eget tellus. Phasellus elementum, enim vel eleifend interdum, enim massa porttitor magna, vitae lacinia diam mauris ut mi. Duis vitae blandit diam. Aliquam quis tempus magna, et dignissim nunc.`,
-    `Duis dictum aliquet eleifend. Maecenas nisi velit, ultricies sed diam et, malesuada placerat metus. Proin vestibulum sem ac arcu viverra faucibus. Aenean convallis at purus nec congue. Phasellus ullamcorper fringilla mauris pharetra suscipit. Nunc et accumsan ipsum. Integer ultrices erat eget urna vulputate, id gravida ex hendrerit. Duis tristique massa ut ex tincidunt, vel hendrerit sapien consectetur.`,
-    `Aliquam erat volutpat. Vestibulum eget tortor eu ex cursus viverra sed vitae mi. Aliquam ultrices erat a eros mollis accumsan. Cras eget quam eros. Duis non sodales libero. Cras lobortis augue ante, et elementum dolor consectetur quis. Sed tristique ullamcorper massa, in aliquam diam gravida at. Donec sollicitudin vitae nisi vitae pretium. Mauris sit amet iaculis augue, in fringilla lorem.`,
-    `Nam in hendrerit sapien. Quisque ut purus sit amet odio egestas sodales ac porttitor mi. In ex erat, efficitur et bibendum at, posuere ac lorem. In mattis, nunc at aliquam porta, libero mauris euismod nulla, quis faucibus nisi purus eleifend nulla. Mauris dui lacus, venenatis sit amet congue ut, dictum vitae quam. Vestibulum lobortis orci sed aliquet iaculis. Duis eu velit in diam mattis hendrerit eu eget augue.`,
-    `Maecenas imperdiet ligula ligula, at laoreet dui maximus in. Nunc ultrices rutrum cursus. Etiam eleifend cursus ligula sed scelerisque. In vel sodales nulla. Suspendisse mattis commodo lacus, non venenatis arcu congue nec. Mauris quis odio non magna laoreet elementum. Sed at ligula vehicula, ullamcorper nisi quis, dapibus libero. Nam ut dolor lectus. Suspendisse bibendum ipsum et lobortis ornare. Fusce convallis augue non dignissim tincidunt. Sed dapibus pharetra viverra. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas faucibus, diam eu iaculis volutpat, mi libero scelerisque orci, a lobortis ligula est quis orci.`,
-    `Aliquam lobortis est nec mauris posuere placerat. Vestibulum fringilla tellus purus, varius efficitur dui iaculis nec. Suspendisse urna velit, luctus at lorem eget, rutrum dapibus sem. Nullam pulvinar, magna eu malesuada fermentum, dolor sapien commodo nisl, nec dignissim purus metus eu nibh. Nulla facilisi. Morbi condimentum quis quam non finibus. Vestibulum eget venenatis enim. Aliquam velit lacus, faucibus in accumsan et, iaculis vel leo. Quisque tincidunt dolor vel cursus dapibus. Nam pretium, enim vel laoreet facilisis, diam metus semper arcu, id faucibus massa dui a risus. Morbi risus ante, condimentum a pretium eu, cursus at metus. Nunc a facilisis leo. Fusce ac dictum nisi.`,
-  ];
+/**
+ *  Register the specified fonts in the new PDF document.
+ *
+ *  @method _registerFonts
+ *  @param  doc     The target document {PDFDocument};
+ *  @param  fonts   Information about the fonts to register {Object};
+ *                    { chapter : { name, size, source },
+ *                      verse   : { name, size, source },
+ *                      text    : { name, size, source },
+ *                    }
+ *
+ *
+ *  @return `doc`
+ *  @private
+ */
+function _registerFonts( doc, fonts ) {
+  Object.values( fonts ).forEach( (font) => {
+    if (font.name == null || font.source == null) {
+      return;
+    }
 
-  return paragraphs;
+    /*
+    console.log('>>> Register font [%s%s]: %s',
+                font.name, (font.family ? ` : ${font.family}` : ''),
+                font.source);
+    // */
+
+    doc.registerFont( font.name, font.source, font.family );
+  });
+
+  return doc;
 }
 
-/* Private helpers }
- ****************************************************************************/
+/****************************************************************************
+ * Cache helpers {
+ *
+ */
 
-module.exports = {
-  StudyBook,
-};
+/**
+ *  Fetch information about the target version from the local cache.
+ *
+ *  @method _fetchVersionFromCache
+ *  @param  versionName     The name of the target version {String};
+ *
+ *  @return Information about the target version {Object};
+ *            { id, abbreviation, title }
+ */
+async function _fetchVersionFromCache( versionName ) {
+  return Versions.find( {vers: versionName} );
+}
+
+/**
+ *  Retrieve the data (verses referenced by BOK.chap.vers) for the identified
+ *  book.
+ *
+ *  @method _fetchChaptersFromCache
+ *  @param  version   The target version {Version};
+ *  @param  book      The target book {Book};
+ *                      { abbr, name, loc, verses }
+ *
+ *  @return A promise for verse data for the target book {Promise};
+ *            { %verse-ref%: {  // e.g. '1PE.001.001'
+ *                markup: [
+ *                  { %type%: ... },
+ *                  ...
+ *                ],
+ *                text:   Raw text of this verse {String};
+ *              },
+ *              ...
+ *            }
+ *  @protected
+ */
+async function _fetchChaptersFromCache( version, book ) {
+  const res       = {};
+  const bookAbbr  = book.abbr;
+  const config    = {
+    version : version,
+    /*
+    vers    : versionName,
+    // */
+  };
+  const cacheDir  = await Versions.prepare( config );
+
+  // assert( typeof(cacheDir) === 'string' );
+  const jsonPath  = `${cacheDir}/${bookAbbr}.json`;
+
+  /*
+  console.log('=== _fetchChaptersFromCache( %s ):', bookAbbr, jsonPath);
+  // */
+
+  const jsonData  = await readFile( jsonPath );
+  const chapters  = JSON.parse( jsonData );
+
+  /*
+  console.log('=== _fetchChaptersFromCache( %s ): chapters:',
+              bookAbbr, chapters);
+  // */
+
+  return chapters;
+}
+
+/* Cache helpers }
+ ****************************************************************************
+ * Ayia helpers {
+ *
+ */
+
+/**
+ *  Fetch the given path from the Ayia API.
+ *
+ *  @method _fetchFromAyia
+ *  @param  path    The target API endpoint {String};
+ *
+ *  @return The returned, json-decoded data {Object};
+ *  @private
+ */
+async function _fetchFromAyia( path ) {
+  const url      = `${AYIA_API}/${path}`;
+  const opts    = { headers: {Accept: 'application/json'} };
+
+  /*
+  console.log('_fetchFromAyia(): %s ...', url);
+  // */
+
+  const response = await fetch( url, opts );
+  if (response.status !== 200) {
+    console.error('*** Versions not found: %s',
+                  versionName, response.status);
+    return null;
+  }
+
+  const contentType = response.headers.get('content-type');
+  if (contentType == null || !contentType.startsWith('application/json')) {
+    console.error('*** Unexpected content type: %s', contentType);
+    return null;
+  }
+
+  return await response.json();
+}
+
+/**
+ *  Fetch the full set of available versions from the Ayia API.
+ *
+ *  @method _fetchVersionsFromAyia
+ *
+ *  @return The set of all known versions {Object};
+ */
+async function _fetchVersionsFromAyia() {
+  return await _fetchFromAyia( 'versions' );
+}
+
+/**
+ *  Retrieve the data (verses referenced by BOK.chap.vers) for the identified
+ *  book.
+ *
+ *  @method _fetchChaptersFromAyia
+ *  @param  versionName   The name of the target version {String};
+ *  @param  book          The target book {Book};
+ *                          { abbr, name, loc, verses }
+ *
+ *  @return A promise for verse data for the target book {Promise};
+ *            { %verse-ref%: {  // e.g. '1PE.001.001'
+ *                markup: [
+ *                  { %type%: ... },
+ *                  ...
+ *                ],
+ *                text:   Raw text of this verse {String};
+ *              },
+ *              ...
+ *            }
+ *  @protected
+ */
+async function _fetchChaptersFromAyia( versionName, book ) {
+  const verses      = {};
+  const bookPath    = `versions/${versionName}/${book.abbr}`;
+  const numChapters = book.verses.length;
+
+  for (let idex = 1; idex <= numChapters; idex++) {
+    const data  = await _fetchFromAyia( `${bookPath}.${idex}` );
+
+    Object.assign( verses, data.verses );
+  }
+
+  return verses;
+}
+
+/**
+ *  Fetch information about the target version from Ayia.
+ *
+ *  @method _fetchVersionFromAyia
+ *  @param  versionName     The name of the target version {String};
+ *
+ *  @return Information about the target version {Object};
+ *            { id, abbreviation, title }
+ */
+async function _fetchVersionFromAyia( versionName ) {
+  return _fetchFromAyia( `versions/${versionName}` );
+}
+
+/**
+ *  Fetch a set of verses from the Ayia API.
+ *
+ *  @method _fetchVersesFromAyia
+ *  @param  versionName     The name of the target version {String};
+ *  @param  verseRef        The target verse referrence {String};
+ *
+ *  @return The set of verses {Object};
+ *            { %BOK.chp.vrs%: { markup, text }, ... }
+ */
+async function _fetchVersesFromAyia( versionName, verseRef ) {
+  return _fetchFromAyia( `versions/${versionName}/${verseRef}` );
+}
+
+/* Ayia helpers }
+ ****************************************************************************/
 
 /**
  * Superscript (using an OpenType font that supports super/sub-scripts)
@@ -398,3 +1113,11 @@ module.exports = {
  *
  * Measurements are in Points where 72 points == 1"
  */
+
+/* Private helpers }
+ ****************************************************************************/
+
+module.exports = {
+  StudyBook,
+  MemoryCards,
+};
