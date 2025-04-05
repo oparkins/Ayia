@@ -20,6 +20,12 @@ const yargs = Yargs
       number  : true,
       default : 9,
     },
+    s: {
+      alias   : 'scale',
+      describe: 'Scale all fonts according to the selected base font',
+      type    : 'boolean',
+      default : false,
+    },
     c: {
       alias   : 'cache',
       describe: 'Fetch data from the local cache',
@@ -43,34 +49,38 @@ async function main() {
     Usage.yargs( yargs );
   }
 
-  const baseFont      = args.base;      //9;
-  const fromCache     = args.cache;     // false;
+  const opts  = {
+    baseFont      : args.base,
+    scaleFonts    : args.scale,
+    fromCache     : args.cache,
+  };
 
   /* Read and process the provided memory verse file in the form:
    *    Version       | %version-name%
    *    %ref1%        | %memory-key%
    *    ...
    */
-  const content       = Fs.readFileSync( args.file, 'utf-8' );
-  const lines         = content.split('\n');
-  const verses        = lines.map( line => {
-                          const [ref, key]  = line.split( /\s*\|\s*/ );
-                          return {ref, key}
-                        }).filter( data => data.ref );
-  const versionId     = verses.shift();
+  const content   = Fs.readFileSync( args.file, 'utf-8' );
+  const lines     = content.split('\n');
+  const verses    = lines.map( line => {
+                      const [ref, key]  = line.split( /\s*\|\s*/ );
+                      return {ref, key}
+                    }).filter( data => data.ref );
+  const versionId = verses.shift();
+
   if (versionId.ref !== 'Version') {
     console.error('*** Missing "Version | %name%" as the first line');
     return;
   }
 
-  const versionName   = versionId.key;
-  const outFile       = `memory-cards-${versionName}.pdf`;
+  const versionName = versionId.key;
+  const outFile     = `memory-cards-${versionName}.pdf`;
 
   console.log('=== Generate PDF for %d %s memory cards ...',
               verses.length, versionName);
 
   const cards = new MemoryCards( versionName );
-  const pdf   = await cards.generate( verses, baseFont, fromCache );
+  const pdf   = await cards.generate( verses, opts );
 
   console.log('=== Output to %s ...', outFile);
   pdf.write( outFile );

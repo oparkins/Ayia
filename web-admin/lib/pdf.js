@@ -120,24 +120,36 @@ class StudyBook {
    *  Generate the PDF for a specific book
    *
    *  @method generate
-   *  @param  [linePerVerse = false]  If truthy, generate each verse as its own
-   *                                  line {Boolean};
-   *  @param  [baseFont = 9]          The size, in points, of the base font,
-   *                                  used to compute the sizes for headers and
-   *                                  verse labels {Number};
-   *  @param  [fromCache = false]     If truthy, use the local cache instead of
-   *                                  the Ayia API {Boolean};
+   *  @param  [opts]                      Generation options {Object};
+   *  @param  [opts.linePerVerse = false] If truthy, generate each verse as its
+   *                                      own line {Boolean};
+   *  @param  [opts.baseFont = 9]         The size, in points, of the base
+   *                                      font (verse). MAY be used to scale all
+   *                                      other font sizes depending on
+   *                                      `scaleFonts` {Number};
+   *  @param  [opts.scaleFonts = false]   Scale all fonts according to the
+   *                                      selected base font {Boolean};
+   *
+   *  @param  [opts.fromCache = false]    If truthy, use the local cache
+   *                                      instead of the Ayia API {Boolean};
    *
    *  @return A promise for results {Promise};
    */
-  async generate( linePerVerse = false, baseFont = 9, fromCache = false ) {
-    linePerVerse = !!linePerVerse;
+  async generate( opts = null ) {
+    opts = Object.assign( { linePerVerse: false,
+                            baseFont    : this.Font.text.size,
+                            scaleFonts  : false,
+                            fromCache   : false,
+                          }, opts || {} );
 
-    if (baseFont !== this.Font.text.size) {
-      // Re-compute font sizes
+    if (opts.baseFont !== this.Font.text.size) {
       this.Font.text.size    = baseFont;
-      this.Font.chapter.size = Math.round( baseFont * 2 );
-      this.Font.verse.size   = Math.round( baseFont * 1.333 );
+
+      if (opts.scaleFonts) {
+        // Re-compute font sizes
+        this.Font.chapter.size = Math.round( baseFont * 2 );
+        this.Font.verse.size   = Math.round( baseFont * 1.333 );
+      }
 
       console.log('=== Adjust fonts: text[ %s ], chapter[ %s ], verse[ %s ]',
                   this.Font.text.size, this.Font.chapter.size,
@@ -145,7 +157,7 @@ class StudyBook {
     }
 
     // Fetch all chapters for the named version
-    const chapters  = await this.fetchChapters( fromCache );
+    const chapters  = await this.fetchChapters( opts.fromCache );
 
     this.doc = new PDFDocument( this.layout );
 
@@ -175,7 +187,7 @@ class StudyBook {
         this.doc.font(     this.Font.chapter.name )
                 .fontSize( this.Font.chapter.size );
 
-        if (! linePerVerse && chap !== 1) {
+        if (! opts.linePerVerse && chap !== 1) {
            this.doc.text( `\n `, this.Text_opts );
         }
 
@@ -184,7 +196,7 @@ class StudyBook {
       }
 
       const verse_opts  = { ... this.Text_opts, features: ['sups'] };
-      if (linePerVerse) {
+      if (opts.linePerVerse) {
         // Line-per-verse
         this.doc.font(     this.Font.verse.name )
                 .fontSize( this.Font.verse.size )
@@ -362,30 +374,40 @@ class MemoryCards {
    *  Generate the memory card PDF for a specific set of verses.
    *
    *  @method generate
-   *  @param  verses                The set of memory verses {Array};
-   *                                  [ { ref, key }, ... ]
-   *  @param  [baseFont = 9]        The size, in points, of the base font, used
-   *                                to compute the sizes for headers and verse
-   *                                labels {Number};
-   *  @param  [fromCache = false]   If truthy, use the local cache instead of
-   *                                the Ayia API {Boolean};
+   *  @param  verses                      The set of memory verses {Array};
+   *                                        [ { ref, key }, ... ]
+   *  @param  [opts]                      Generation options {Object};
+   *  @param  [opts.baseFont = 9]         The size, in points, of the base
+   *                                      font (verse). MAY be used to scale all
+   *                                      other font sizes depending on
+   *                                      `scaleFonts` {Number};
+   *  @param  [opts.scaleFonts = false]   Scale all fonts according to the
+   *                                      selected base font {Boolean};
+   *
+   *  @param  [opts.fromCache = false]    If truthy, use the local cache
+   *                                      instead of the Ayia API {Boolean};
    *
    *  @return A promise for results {Promise};
    *            - on success, this {MemoryCards};
    *            - on failure, an error {Error};
    */
-  async generate( verses, baseFont = 9, fromCache = false ) {
+  async generate( verses, opts = null ) {
+    opts = Object.assign( { baseFont    : this.Font.text.size,
+                            scaleFonts  : false,
+                            fromCache   : false,
+                          }, opts || {} );
+
     // Walk through gathered verses and generate a card for each
     this.doc = new PDFDocument( this.layout );
 
     _registerFonts( this.doc, this.Font );
 
-    this.card0 = this._computeCardLayout( baseFont );
+    this.card0 = this._computeCardLayout( opts );
 
     console.log('=== Adjusted card measurements:', this.card0);
 
     // Gather all target verses.
-    const fullVerses  = await this.gatherVerses( verses, fromCache );
+    const fullVerses  = await this.gatherVerses( verses, opts.fromCache );
 
     fullVerses.forEach( (verseInfo, index) => {
       this._generateCard( verseInfo, index );
@@ -448,11 +470,15 @@ class MemoryCards {
    */
 
   /**
-   *  Compute the layout of the first card based upon the e
+   *  Compute the layout of the first card based upon the provided options.
    *
    *  @method _computeCardLayout
-   *  @param  baseFont  The size, in points, of the base font, used to compute
-   *                    the sizes for headers and verse labels {Number};
+   *  @param  opts              Generation options {Object};
+   *  @param  opts.baseFont     The size, in points, of the base font (verse).
+   *                            MAY be used to scale all other font sizes
+   *                            depending on `scaleFonts` {Number};
+   *  @param  opts.scaleFonts   Scale all fonts according to the selected base
+   *                            font {Boolean};
    *
    *  @return The layout data {Object};
    *            { top, left, width, height, margin,
@@ -461,7 +487,7 @@ class MemoryCards {
    *              text: {top, left, width, height },
    *            }
    */
-  _computeCardLayout( baseFont ) {
+  _computeCardLayout( opts ) {
     /* Compute position, width, and height for the first card and its
      * components.
      *
@@ -507,12 +533,15 @@ class MemoryCards {
       },
     };
 
-    if (baseFont !== this.Font.text.size) {
+    if (opts.baseFont !== this.Font.text.size) {
       // Re-compute font sizes
-      this.Font.text.size   = baseFont;
-      this.Font.verse.size  = Math.round( baseFont * 1.333 );
-      this.Font.header.size = this.Font.verse.size;
-      this.Font.key.size    = this.Font.text.size;
+      this.Font.text.size   = opts.baseFont;
+
+      if (opts.scaleFonts) {
+        this.Font.verse.size  = Math.round( baseFont * 1.333 );
+        this.Font.header.size = this.Font.verse.size;
+        this.Font.key.size    = this.Font.text.size;
+      }
 
       console.log('=== Adjust fonts: text[ %s ], header[ %s ], verse[ %s ]',
                   this.Font.text.size, this.Font.header.size,

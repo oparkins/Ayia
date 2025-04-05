@@ -30,6 +30,12 @@ const yargs = Yargs
       number  : true,
       default : 9,
     },
+    s: {
+      alias   : 'scale',
+      describe: 'Scale all fonts according to the selected base font',
+      type    : 'boolean',
+      default : false,
+    },
     c: {
       alias   : 'cache',
       describe: 'Fetch data from the local cache',
@@ -53,19 +59,21 @@ async function main() {
     Usage.yargs( yargs );
   }
 
-  const linePerVerse  = args.paragraph; //false;
-  const baseFont      = args.base;      //9;
-  const fromCache     = args.cache;     // false;
   const versionName   = args._[0];      // 'NIV84';  //'NIV11';
   const bookName      = args._[1];      // '1 Peter';
-  const study         = new StudyBook( versionName, bookName );
-  const outFile       = `${study.book.abbr}-${versionName}.pdf`;
+  const opts  = {
+    linePerVerse: args.paragraph,
+    baseFont    : args.base,
+    scaleFonts  : args.scale,
+    fromCache   : args.cache,
+  };
+
+  const study   = new StudyBook( versionName, bookName );
+  const outFile = `${study.book.abbr}-${versionName}.pdf`;
 
   console.log('=== Generate PDF for the %s version of: %s (%s) ...',
               versionName, study.book.name, study.book.abbr);
-  const pdf = await study.generate( linePerVerse,
-                                    baseFont,
-                                    fromCache );
+  const pdf = await study.generate( opts );
 
   console.log('=== Output to %s ...', outFile);
   pdf.write( outFile );
