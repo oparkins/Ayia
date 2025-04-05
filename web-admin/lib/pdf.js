@@ -20,41 +20,37 @@ const {parse_verse} = importSync( '../../web-ui/src/lib/verse_ref',
 
 const Font  = {
   chapter : {
-    // Book name and Chapter numbers  : 2x verse text
     name  : 'Chapter',
-    size  : 18,  // 1/4"
+    usage : 'BookStudy: Book name and Chapter nubers',
+    size  : 18,  // 2x verse text
     source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
-    // :XXX: NOT permitted for OTF fonts
-    // family: 'NimbusSans',
   },
   verse : {
-    // Verse numbers (super-script)   : 1.333x verse text
     name  : 'Verse',
-    size  : 12,
+    usage : 'BookStudy/MemoryCard: Verse numbers (super-script)',
+    size  : 12, // 1.333x verse text
     source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
-    // :XXX: NOT permitted for OTF fonts
-    // family: 'NimbusSans',
   },
 
   header  : {
-    name  : 'Card Header',
+    name  : 'Card-Header',
+    usage : 'MemoryCard: Reference',
     size  : 12,
     source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
   },
 
   key     : {
-    name  : 'Card Memmory key',
+    name  : 'Card-Key',
+    usage : 'MemoryCard: Memory key',
     size  : 9,
     source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
   },
 
   text  : {
-    // Verse text
     name  : 'Text',
+    usage : 'BookStudy/MemoryCard: Verse text',
     size  : 9,  // 1/8"
     source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Regular.otf',
-    // :XXX: NOT permitted for OTF fonts
-    // family: 'NimbusSans',
   },
 };
 
@@ -354,7 +350,7 @@ class MemoryCards {
   };
 
   columns = 2;
-  rows    = 7;
+  rows    = 6;
 
   /**
    *  Create a new instance for the given version.
@@ -412,6 +408,9 @@ class MemoryCards {
     fullVerses.forEach( (verseInfo, index) => {
       this._generateCard( verseInfo, index );
     });
+
+    // Finally, generate dashed cut marks between each card
+    this._generateDashes();
 
     return this;
   }
@@ -492,43 +491,54 @@ class MemoryCards {
      * components.
      *
      *  - 8.5" x 11" portrait paper
-     *  - .25" margin
-     *  - 2 columns per page with 7 cards per column
-     *  - .125" margin within each card
+     *  - .25" page margin
+     *  - 2 columns per page with 6 cards per column
+     *  - 1/8"  margin within each card
+     *  - 1/16" between cards vertically
+     *  - 1/2"  between cards horizontally
      *
      *     |                      612 (8.5")                 |
      *     | |       288 (4")       |     288 (4")         | |
      *     +-------------------------------------------------+
-     *     |18                     36     252 (3-1/2")       |
-     *     | +--------------------+   +--------------------+ | < 18
-     * 27 >| | Ref1          Key1 |   | Ref7          Key7 | |
-     *     | |                    |   |                    | | 108 (1-1/2")
+     *     |18   279 (3-7/8")      18     279 (3-7/8")       |
+     *     | +--------------------+   +--------------------+ |-< 18
+     *     | | Ref1          Key1 |   | Ref7          Key7 | |
+     *     | |                    |   |                    | | 117 (1-5/8")
      *     | | Text 1             |   | Text 7             | |
      *     | |                    |   |                    | |
-     *     | +--------------------+   +--------------------+ | < 126
+     *     | +--------------------+   +--------------------+ |-
      *     |18                                               |
-     *     | +--------------------+   +--------------------+ | < 144
-     *         ^ 27 (.375")
+     *     | +--------------------+   +--------------------+ |
      *
      */
+    const pageWidth     = (8.5 * 72);
+    const pageHeight    = (11  * 72);
+    const innerWidth    = pageWidth
+                        - this.layout.margins.left -
+                        - this.layout.margins.right;
+    const innerHeight   = pageHeight
+                        - this.layout.margins.top -
+                        - this.layout.margins.bottom;
+
     const card  = {
-      top   : 18,     //   1/4"
-      left  : 18,     //   1/4"
-      width : 288,    // 4"
-      height: 108,    // 1-1/2"
-      margin: 9,      //   1/8"
+      top     : 18,   //   1/4"
+      left    : 18,   //   1/4"
+      width   : 279,  // 3-7/8" (innerWidth  / 2 - margin / 2)
+      height  : 117,  // 1-5/8" (innerHeight / 6 - margin / 2)
+      padding : 0,    //
+      margin  : 18,   //  ~1/16"
 
       header: {
-        top   : 27,   //   3/8"
-        left  : 27,   //   3/8"
-        width : 252,  // 3-1/2"
+        top   : 18,   //   1/4"   (card.top  + card.padding)
+        left  : 18,   //   1/4"   (card.left + card.padding)
+        width : 279,  // 3-7/8"
         height: -1,   // computed based upon font size
       },
       text: {
-        margin: 18,   //   1/4"
+        margin: 12,   //   .166"
         top   : -1,   // header.top + header.height + text.margin
-        left  : 27,   //   3/8"
-        width : 252,  // 3-1/2"
+        left  : 18,   //   1/4"
+        width : 279,  // 3-7/8"
         height: -1,   // card.top + card.height - text.top
       },
     };
@@ -596,9 +606,14 @@ class MemoryCards {
     const inPage    = (index % perPage);
     const column    = Math.floor( inPage / this.rows );
     const row       = (inPage % this.rows );
+    const margin    = this.card0.margin;
     const offset    = {
-      top : this.card0.height * row,
-      left: this.card0.width  * column,
+      top : row    * (this.card0.height + margin),
+      left: column * (this.card0.width  + margin),
+      /*
+      top : row    * this.card0.height,
+      left: column * this.card0.width,
+      // */
     };
     const position  = {
       header : {...this.card0.header,
@@ -684,6 +699,55 @@ class MemoryCards {
     });
 
     console.log('=======================================================');
+  }
+
+  /**
+   *  Add dashed cut marks between each card.
+   *
+   *  @method _generateDashes
+   *
+   *  @return void
+   *  @protected
+   */
+  _generateDashes() {
+    const pageWidth     = (8.5 * 72);
+    const pageHeight    = (11  * 72);
+    const innerWidth    = pageWidth
+                        - this.layout.margins.left -
+                        - this.layout.margins.right;
+    const innerHeight   = pageHeight
+                        - this.layout.margins.top -
+                        - this.layout.margins.bottom;
+
+
+    /* First the vertical down the center of the page just before/beyond the
+     * page margin.
+     */
+    const centerX = pageWidth / 2;
+    const startY  = this.layout.margins.top - 9;
+    const endY    = innerHeight - 9;
+
+    this.doc.dash(1)
+            .moveTo( centerX, startY )
+            .lineTo( centerX, endY )
+            .strokeOpacity( 0.25 )
+            .stroke();
+
+    // Now, the horizontal lines between cards
+    const startX  = this.layout.margins.left - 9;
+    const endX    = innerWidth - 9;
+    const margin  = this.card0.margin;
+    for (let row = 1; row < this.rows; row++) {
+      let y = (row * this.card0.height)
+            + ((row-1) * margin)
+            + (margin / 2);
+
+      this.doc.dash(1)
+              .moveTo( startX, y )
+              .lineTo( endX,   y )
+              .strokeOpacity( 0.25 )
+              .stroke();
+    }
   }
 
   /**
