@@ -20,37 +20,41 @@ const {parse_verse} = importSync( '../../web-ui/src/lib/verse_ref',
 
 const Font  = {
   chapter : {
-    name  : 'Chapter',
+    name  : 'Times-Bold',  //'Chapter',
     usage : 'BookStudy: Book name and Chapter nubers',
-    size  : 18,  // 2x verse text
-    source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
+    size  : 18,
+    scale : 2,    // x text.size
+    //source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
   },
   verse : {
-    name  : 'Verse',
-    usage : 'BookStudy/MemoryCard: Verse numbers (super-script)',
-    size  : 12, // 1.333x verse text
-    source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
+    name  : 'Times-Bold',  //'Verse',
+    usage : 'BookStudy/MemoryCard: Verse numbers (super-script via smaller)',
+    size  : 5.4,
+    scale : 0.6,  // x text.size
+    //source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
   },
 
   header  : {
-    name  : 'Card-Header',
+    name  : 'Times-Bold', //'Card-Header',
     usage : 'MemoryCard: Reference',
     size  : 12,
-    source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
+    scale : 1.33, // x text.size
+    //source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
   },
 
   key     : {
-    name  : 'Card-Key',
+    name  : 'Times-Bold', //'Card-Key',
     usage : 'MemoryCard: Memory key',
     size  : 9,
-    source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
+    scale : 1,    // x text.size
+    //source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf',
   },
 
   text  : {
-    name  : 'Text',
+    name  : 'Times-Roman',  //'Text',
     usage : 'BookStudy/MemoryCard: Verse text',
     size  : 9,  // 1/8"
-    source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Regular.otf',
+    //source: '/usr/share/fonts/opentype/urw-base35/NimbusRoman-Regular.otf',
   },
 };
 
@@ -139,12 +143,12 @@ class StudyBook {
                           }, opts || {} );
 
     if (opts.baseFont !== this.Font.text.size) {
-      this.Font.text.size    = baseFont;
+      this.Font.text.size    = opts.baseFont;
 
       if (opts.scaleFonts) {
         // Re-compute font sizes
-        this.Font.chapter.size = Math.round( baseFont * 2 );
-        this.Font.verse.size   = Math.round( baseFont * 1.333 );
+        this.Font.chapter.size = opts.baseFont * this.Font.chapter.scale;
+        this.Font.verse.size   = opts.baseFont * this.Font.verse.scale;
       }
 
       console.log('=== Adjust fonts: text[ %s ], chapter[ %s ], verse[ %s ]',
@@ -161,8 +165,7 @@ class StudyBook {
 
     let curChap = null;
 
-    this.doc.font(     this.Font.chapter.name )
-            .fontSize( this.Font.chapter.size )
+    this.doc.font( this.Font.chapter.name, this.Font.chapter.size )
             .text( this.book.name,  { ...this.Text_opts, continued: false } );
 
     Object.entries( chapters ).forEach( ([ref, entry]) => {
@@ -180,8 +183,7 @@ class StudyBook {
 
       if (chap !== curChap) {
         // New chapter
-        this.doc.font(     this.Font.chapter.name )
-                .fontSize( this.Font.chapter.size );
+        this.doc.font( this.Font.chapter.name, this.Font.chapter.size );
 
         if (! opts.linePerVerse && chap !== 1) {
            this.doc.text( `\n `, this.Text_opts );
@@ -191,46 +193,18 @@ class StudyBook {
         curChap = chap;
       }
 
-      const verse_opts  = { ... this.Text_opts, features: ['sups'] };
+      const verse_opts  = this.Text_opts;
       if (opts.linePerVerse) {
         // Line-per-verse
-        this.doc.font(     this.Font.verse.name )
-                .fontSize( this.Font.verse.size )
+        this.doc.font( this.Font.verse.name, this.Font.verse.size )
                 .text(`${verse}`, verse_opts )
-                .font(     this.Font.text.name )
-                .fontSize( this.Font.text.size )
+                .font( this.Font.text.name, this.Font.text.size )
                 .text(`${entry.text}\n `, this.Text_opts);
       } else {
-        /* No line seperating verses
-         *
-         * No-Break-Space
-         *    represented similarly to a space character, it prevents an
-         *    automatic line break
-         *      &nbsp;  \U00A0
-         *
-         * Figure Space
-         *    a space somewhat equal to the figures (0–9) characters.
-         *      &#8199; \U2007
-         *
-         * Narrow No-Break Space
-         *    used to separate a suffix from a word stem without indicating a
-         *    word boundary. Approximately 1/3 the representative space of a
-         *    normal space though it may vary by font
-         *      &#8239; &nnbsp; \u202f
-         *
-         *  Word-Joiner
-         *    representative by no visible character, it prohibits a line break
-         *    at its position.
-         *      \u2060
-         *
-         * non-breaking, zero-width space
-         *      \uFEFF
-         */
-        this.doc.font(     this.Font.verse.name )
-                .fontSize( this.Font.verse.size )
-                .text(`  ${verse}\u202f`, verse_opts )
-                .font(     this.Font.text.name )
-                .fontSize( this.Font.text.size )
+        // No line seperating verses
+        this.doc.font( this.Font.verse.name, this.Font.verse.size )
+                .text(`  ${verse}`, verse_opts )
+                .font( this.Font.text.name, this.Font.text.size )
                 .text(`${entry.text} `, this.Text_opts);
 
       }
@@ -525,20 +499,20 @@ class MemoryCards {
       left    : 18,   //   1/4"
       width   : 279,  // 3-7/8" (innerWidth  / 2 - margin / 2)
       height  : 117,  // 1-5/8" (innerHeight / 6 - margin / 2)
-      padding : 0,    //
+      padding : 9,    //
       margin  : 18,   //  ~1/16"
 
       header: {
-        top   : 18,   //   1/4"   (card.top  + card.padding)
-        left  : 18,   //   1/4"   (card.left + card.padding)
-        width : 279,  // 3-7/8"
+        top   : 18,   //   1/4"
+        left  : 18,   //   1/4"
+        width : 270,  // 3-3/4"   (card.width - card.padding)
         height: -1,   // computed based upon font size
       },
       text: {
         margin: 12,   //   .166"
         top   : -1,   // header.top + header.height + text.margin
         left  : 18,   //   1/4"
-        width : 279,  // 3-7/8"
+        width : 270,  // 3-3/4"   (card.width - card.padding)
         height: -1,   // card.top + card.height - text.top
       },
     };
@@ -548,9 +522,9 @@ class MemoryCards {
       this.Font.text.size   = opts.baseFont;
 
       if (opts.scaleFonts) {
-        this.Font.verse.size  = Math.round( baseFont * 1.333 );
-        this.Font.header.size = this.Font.verse.size;
-        this.Font.key.size    = this.Font.text.size;
+        this.Font.verse.size  = opts.baseFont * this.Font.verse.scale;
+        this.Font.header.size = opts.baseFont * this.Font.header.scale;
+        this.Font.key.size    = opts.baseFont * this.Font.key.scale;
       }
 
       console.log('=== Adjust fonts: text[ %s ], header[ %s ], verse[ %s ]',
@@ -564,8 +538,7 @@ class MemoryCards {
      *    card0.text.top    = card0.ref.top + height
      *    card0.text.height = card0.height  - height
      */
-    this.doc.font(     this.Font.header.name )
-            .fontSize( this.Font.header.size );
+    this.doc.font( this.Font.header.name, this.Font.header.size );
 
     const width   = this.doc.widthOfString('X');
     const height  = Math.round( this.doc.widthOfString('X', {width} ) );
@@ -607,9 +580,10 @@ class MemoryCards {
     const column    = Math.floor( inPage / this.rows );
     const row       = (inPage % this.rows );
     const margin    = this.card0.margin;
+    const padding   = this.card0.padding;
     const offset    = {
       top : row    * (this.card0.height + margin),
-      left: column * (this.card0.width  + margin),
+      left: column * (this.card0.width  + margin + padding),
       /*
       top : row    * this.card0.height,
       left: column * this.card0.width,
@@ -643,56 +617,55 @@ class MemoryCards {
       features  : [],
       width     : position.text.width,
       height    : position.text.height,
-      continued : true,
+      //continued : true,
     };
     const verse_opts  = { ...text_opts,
-      features  : ['sups'],
+      continued : true,
     };
 
-    this.doc.font(     this.Font.header.name )
-            .fontSize( this.Font.header.size )
+    this.doc.font( this.Font.header.name, this.Font.header.size )
             .text( `${index+1}: ${ref}`,
                     position.header.left, // x
                     position.header.top,  // y
                     header_opts )
-            .font(     this.Font.key.name )
-            .fontSize( this.Font.key.size )
+            .font( this.Font.key.name, this.Font.key.size )
             .text( memKey, { align: 'right' } )
             .moveDown();
 
-    const verses    = Object.entries( memVerse.verses );
-    const count     = verses.length;
-    let   is_first  = true;
+    const verses      = Object.entries( memVerse.verses );
+    const count       = verses.length;
+    const need_verse  = (verses.length > 1);
+    let   is_first    = true;
     verses.forEach( ([verseNum, text], idex) => {
       const is_last = (idex == count -1);
-      const vref    = `  ${verseNum}\u202f`;
       const topts   = {...text_opts};
-      const vopts   = {...verse_opts};
 
-      this.doc.font(     this.Font.verse.name )
-              .fontSize( this.Font.verse.size );
+      if (need_verse) {
+        const vref    = `${verseNum} `;
+        const vopts   = {...verse_opts};
 
-      if (is_first) {
-        console.log('=== first verse');
-        this.doc.text(  vref,
-                        position.text.left, // x
-                        position.text.top,  // y
-                        vopts );
+        this.doc.font( this.Font.verse.name, this.Font.verse.size );
 
-        is_first = false;
+        if (is_first) {
+          console.log('=== first verse');
+          this.doc.text(  vref,
+                          position.text.left, // x
+                          position.text.top,  // y
+                          vopts );
 
-      } else {
-        this.doc.text( vref, vopts );
+        } else {
+          this.doc.text( vref, vopts );
 
+        }
       }
 
+      if (is_first) { is_first = false }
       if (is_last)  {
         console.log('=== last verse');
         topts.continued = false;
       }
 
-      this.doc.font(     this.Font.text.name )
-              .fontSize( this.Font.text.size )
+      this.doc.font( this.Font.text.name, this.Font.text.size )
               .text(`${text} `, topts );
 
       console.log('  %s:', verseNum, text);
