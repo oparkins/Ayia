@@ -579,7 +579,7 @@ class MemoryCards {
    */
   _generateCard( memVerse, index ) {
     const ref       = memVerse.norm_ref;
-    const memKey    = memVerse.key;
+    const memKey    = (memVerse.key || ' ');
     const perPage   = this.rows * this.columns;
     const page      = Math.floor( index / perPage );
     const inPage    = (index % perPage);
@@ -606,8 +606,9 @@ class MemoryCards {
       },
     };
 
-    console.log('%s: %s / %s:',
-                index, ref, memKey);
+    console.log('%s: %s%s',
+                index+1, ref,
+                (memKey !== ' ' ? ` / ${memKey}` : ''));
     /*
     console.log('=== page %d, inPage %d, grid: %d, %d, offset:',
                 page, inPage, column, row, offset);
@@ -653,7 +654,7 @@ class MemoryCards {
         this.doc.font( this.Font.verse.name, this.Font.verse.size );
 
         if (is_first) {
-          console.log('=== first verse');
+          //console.log('=== first verse');
           this.doc.text(  vref,
                           position.text.left, // x
                           position.text.top,  // y
@@ -667,17 +668,17 @@ class MemoryCards {
 
       if (is_first) { is_first = false }
       if (is_last)  {
-        console.log('=== last verse');
+        //console.log('=== last verse');
         topts.continued = false;
       }
 
       this.doc.font( this.Font.text.name, this.Font.text.size )
               .text(`${text} `, topts );
 
-      console.log('  %s:', verseNum, text);
+      //console.log('  %s:', verseNum, text);
     });
 
-    console.log('=======================================================');
+    //console.log('=======================================================');
   }
 
   /**
