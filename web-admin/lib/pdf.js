@@ -143,17 +143,19 @@ class StudyBook {
                           }, opts || {} );
 
     if (opts.baseFont !== this.Font.text.size) {
-      this.Font.text.size    = opts.baseFont;
+      this.Font.text.size  = opts.baseFont;
+
+      // ALWAYS scale verse size since it is in-line with text
+      this.Font.verse.size = opts.baseFont * this.Font.verse.scale;
 
       if (opts.scaleFonts) {
-        // Re-compute font sizes
+        // Optionally re-compute ALL fonts
         this.Font.chapter.size = opts.baseFont * this.Font.chapter.scale;
-        this.Font.verse.size   = opts.baseFont * this.Font.verse.scale;
       }
 
-      console.log('=== Adjust fonts: text[ %s ], chapter[ %s ], verse[ %s ]',
-                  this.Font.text.size, this.Font.chapter.size,
-                  this.Font.verse.size);
+      console.log('=== Adjust fonts: text[ %s ], verse[ %s ], chapter[ %s ]',
+                  this.Font.text.size, this.Font.verse.size,
+                  this.Font.chapter.size);
     }
 
     // Fetch all chapters for the named version
@@ -519,17 +521,21 @@ class MemoryCards {
 
     if (opts.baseFont !== this.Font.text.size) {
       // Re-compute font sizes
-      this.Font.text.size   = opts.baseFont;
+      this.Font.text.size  = opts.baseFont;
+
+      // ALWAYS scale verse size since it is in-line with text
+      this.Font.verse.size = opts.baseFont * this.Font.verse.scale;
 
       if (opts.scaleFonts) {
-        this.Font.verse.size  = opts.baseFont * this.Font.verse.scale;
+        // Optionally re-compute ALL fonts
         this.Font.header.size = opts.baseFont * this.Font.header.scale;
         this.Font.key.size    = opts.baseFont * this.Font.key.scale;
       }
 
-      console.log('=== Adjust fonts: text[ %s ], header[ %s ], verse[ %s ]',
-                  this.Font.text.size, this.Font.header.size,
-                  this.Font.verse.size);
+      console.log('=== Adjust fonts: text[ %s ], verse[ %s ], '
+                  +                 'header[ %s ], key[ %s ]',
+                  this.Font.text.size, this.Font.verse.size,
+                  this.Font.header.size, this.Font.key.size);
     }
 
     /* Measure the height of a header and adjust card0 measurements
