@@ -20,7 +20,7 @@ const yargs = Yargs
   .options({
     p: {
       alias   : 'paragraph',
-      describe: 'Generate each vers as its own paragraph',
+      describe: 'Generate each verse as its own paragraph',
       type    : 'boolean',
       default : false,
     },
