@@ -62,12 +62,24 @@ web_ui: #{
 mongodb: #{
   image: #{
     # :XXX: Use the latest v4 which does NOT require the CPU to support AVX
-    tag: 4.2.21-debian-10-r8
+    # Why this tag? Well Bitnami was acquired by VMware and messed
+    # a lot of things up
+    tag: 4.4.6
   #} mongodb.image
+  persistence: #{
+    size: 5Gi
+  #} persistence
 
+  updateStrategy: #{
+    type: Recreate
+  #} updateStrategy
+  
+  containerPorts: #{
+    mongodb: 27017
+  #} containerPorts
   auth: #{
     username: ayia
-    database: ayia
+    database: admin #I'm leaving this as admin at the moment due to the mongdb container
 
     existingSecret: ayia-mongodb
   #} mongodb.auth

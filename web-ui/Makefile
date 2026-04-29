@@ -5,7 +5,7 @@ APPNAME	:= $(shell awk '/^  "name":/{v=substr($$2,2,length($$2)-3);print v}'\
                        package.json )
 
 # Container image name and tag
-CONTAINER_REPO  := harbor.nibious.com/ayia
+CONTAINER_REPO  := registry.nibious.com/ayia
 CONTAINER_NAME  := $(APPNAME)
 CONTAINER_TAG   := $(VERSION)
 
