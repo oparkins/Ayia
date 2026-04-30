@@ -66,20 +66,25 @@ mongodb: #{
     # a lot of things up
     tag: 4.4.6
   #} mongodb.image
+
   persistence: #{
+    storageClass: '-'
+    accessModes:
+      - ReadWriteOnce
     size: 5Gi
   #} persistence
 
   updateStrategy: #{
     type: Recreate
   #} updateStrategy
-  
+
   containerPorts: #{
     mongodb: 27017
   #} containerPorts
+
   auth: #{
     username: ayia
-    database: admin #I'm leaving this as admin at the moment due to the mongdb container
+    database: ayia
 
     existingSecret: ayia-mongodb
   #} mongodb.auth

@@ -1,0 +1,131 @@
+---
+# VolumeClaim {
+{{- $storageClass := .Values.mongodb.persistence.storageClass }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: #{
+  name: ayia-mongodb
+  labels:
+    app:      ayia-mongodb
+    release:  ayia
+#} VolumeClaim.metadata
+spec: #{
+  accessModes:
+  {{- range .Values.mongodb.persistence.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  resources: #{
+    requests: #{
+      storage: {{ .Values.mongodb.persistence.size | quote }}
+    # } Deployment.spec.volumeClaimTemplate[0].spec.resources.requests
+  # } Deployment.spec.volumeClaimTemplate[0].spec.resources
+  {{- if not (eq "-" $storageClass) }}
+  {{   printf "storageClassName: %s" $storageClass -}}
+  {{  end }}
+# } VolumeClaim.spec
+# } VolumeClaim
+---
+# Deployment {
+apiVersion: apps/v1
+kind: Deployment
+metadata: #{
+  name: ayia-mongodb
+  labels:
+    app:      ayia-mongodb
+    release:  ayia
+# } Deployment.metadata
+spec: #{
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ayia-mongodb
+      release: ayia
+  template: #{
+    metadata:
+      labels:
+        app: ayia-mongodb
+        release: ayia
+    spec: #{
+      securityContext:
+        fsGroup: 1000
+      containers: #{
+        - name: mongodb #{
+          image: mongo:{{ .Values.mongodb.image.tag }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            seccompProfile:
+              type: "RuntimeDefault"
+          env: #{
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mongodb.auth.existingSecret }}
+                  key: root-user
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mongodb.auth.existingSecret }}
+                  key: root-password
+
+            - name: AYIA_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mongodb.auth.existingSecret }}
+                  key: database
+            - name: AYIA_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mongodb.auth.existingSecret }}
+                  key: user
+            - name: AYIA_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mongodb.auth.existingSecret }}
+                  key: password
+          # } Deployment.spec.template.spec.containers[mongodb].env
+          ports:
+            - name: db
+              containerPort: {{ .Values.mongodb.containerPorts.mongodb }}
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+        # } Deployment.spec.template.spec.containers[mongodb]
+      # } Deployment.spec.template.spec.containers
+      volumes: #{
+        - name: data
+          persistentVolumeClaim:
+            claimName: ayia-mongodb
+        - name: init-scripts
+          configMap:
+            name: ayia-mongodb-init
+      # } Deployment.spec.template.spec.volumes
+    # } Deployment.spec.template.spec
+  # } Deployment.spec.template
+# } Deployment.spec
+# } Deployment
+---
+# Service {
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+spec: #{
+  selector:
+    app: ayia-mongodb
+    release: ayia
+  ports:
+    - protocol: TCP
+      port: {{ .Values.mongodb.containerPorts.mongodb }}
+      targetPort: {{ .Values.mongodb.containerPorts.mongodb }}
+# } Service.spec
+# } Service
+
+---
