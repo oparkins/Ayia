@@ -62,8 +62,7 @@ web_ui: #{
 mongodb: #{
   image: #{
     # :XXX: Use the latest v4 which does NOT require the CPU to support AVX
-    # Why this tag? Well Bitnami was acquired by VMware and messed
-    # a lot of things up
+    # Why this tag? ^^^^ that's why
     tag: 4.4.6
   #} mongodb.image
 
@@ -71,7 +70,7 @@ mongodb: #{
     storageClass: '-'
     accessModes:
       - ReadWriteOnce
-    size: 5Gi
+    size: 8Gi
   #} persistence
 
   updateStrategy: #{
