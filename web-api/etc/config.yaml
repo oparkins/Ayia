@@ -13,6 +13,9 @@ mongodb: #{   # file:/secrets/mongodb/password
   user:     ayia                # env:MONGODB_USER
   password: file:etc/mongo-pass #file:/var/run/secrets/mongo/mongodb-root-password
 
+  # :XXX: To authenticate against a *different* database
+  authSource: admin
+
   # A map between internal collection names and the collection within
   # `mongodb.database`.
   collection_map: # {

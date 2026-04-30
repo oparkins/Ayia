@@ -86,6 +86,9 @@ mongodb: #{
     username: ayia
     database: ayia
 
+    # If the authentication source differs from the target database
+    source:   admin
+
     existingSecret: ayia-mongodb
   #} mongodb.auth
 #} mongodb

@@ -23,8 +23,12 @@ async function connect( config ) {
   const user    = config.user;
   const pass    = encodeURIComponent( config.password );
   const dbName  = config.database;
-  const uri     = `mongodb://${user}:${pass}@${config.host}:${config.port}/`
+  let   uri     = `mongodb://${user}:${pass}@${config.host}:${config.port}/`
                 +     dbName;
+  if (config.authSource) {
+    uri += '?authSource='+ encodeURIComponent( config.authSource );
+  }
+
   const outUri	= uri.replace(/:\/\/[^@]*@/, '://***:***@');
 
   // /*

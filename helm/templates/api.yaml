@@ -17,12 +17,13 @@ data: # {
 
     mongodb: # {
       # Using ./etc/mongo-proxy, host == localhost
-      proto:    env:MONGO_PROTO
-      host:     env:MONGO_HOST
-      port:     env:MONGO_PORT
-      database: env:MONGO_DATABASE
-      user:     env:MONGO_USER
-      password: env:MONGO_PASS
+      proto:      env:MONGO_PROTO
+      host:       env:MONGO_HOST
+      port:       env:MONGO_PORT
+      database:   env:MONGO_DATABASE
+      user:       env:MONGO_USER
+      password:   env:MONGO_PASS
+      authSource: env:MONGO_AUTH_SOURCE
 
       # A map between internal collection names and theh collection within
       # `monbodb.database`.
@@ -124,6 +125,11 @@ spec: # {
                 secretKeyRef:
                   name: {{ $mongoSecret }}
                   key:  database
+            - name:   MONGO_AUTH_SOURCE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $mongoSecret }}
+                  key:  authSource
           # } Deployment.spec.template.spec.containers[server].env
 
           volumeMounts: # {
