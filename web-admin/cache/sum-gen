@@ -1,0 +1,14 @@
+#!/bin/bash
+DIR="$(dirname "$0")"
+ROOT="$(dirname $DIR)"
+ETC="$ROOT/etc"
+CACHE="$ROOT/cache"
+
+source $CACHE/versions.sh
+
+echo ">>> Generate md5sums for ${#YVERS_VERSIONS[@]} versions ..."
+for VER in ${YVERS_VERSIONS[@]}; do
+  printf ">>> %-10s ..." "$VER"
+  md5sum $CACHE/$VER/*.json > "$CACHE/$VER.sum"
+  echo " done"
+done
