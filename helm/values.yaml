@@ -7,7 +7,7 @@ global: #{
 
 web_admin: #{
   image: #{
-    tag:        0.2.11
+    tag:        0.2.12
     #pullPolicy: IfNotPresent
   #} web_admin.image
   persistence: #{
@@ -31,7 +31,7 @@ web_admin: #{
 
 web_api: #{
   image: #{
-    tag:  0.2.2
+    tag:  0.2.3
     #pullPolicy: IfNotPresent
   #} web_api.image
 
@@ -49,7 +49,7 @@ web_api: #{
 
 web_ui: #{
   image: #{
-    tag:  0.2.21
+    tag:  0.2.22
     #pullPolicy: IfNotPresent
   #} web_ui.image
 
