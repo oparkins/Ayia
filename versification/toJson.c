@@ -75,8 +75,12 @@ int main( int argc, char* argv ) {
 
     // Old Testament {
     bk = v_cur.ot;
+    is_first  = 1;
     while (bk->chapmax > 0) {
       // A book in the Old Testament
+      if (is_first) { is_first = 0; }
+      else          { printf(","); }
+
       printf("\n    \"%s\": [ ", bk->osis);
 
       // Walk the maximum verses list, indexed by chapter# - 1
@@ -89,14 +93,13 @@ int main( int argc, char* argv ) {
         printf("%3d", vm[vdex]);
       }
 
-      printf(" ],");
+      printf(" ]");
       bk++;
     }
 
     // Old Testament }
     // New Testament {
     bk = v_cur.nt;
-    is_first  = 1;
     while (bk->chapmax > 0) {
       // A book in the New Testament
       if (is_first) { is_first = 0; }
