@@ -23,7 +23,9 @@ web_admin: #{
   #} web_admin.port
 
   ingress: #{
-    host: admin.ayia.nibious.com
+    hosts:
+      - admin.ayia.nibious.com
+      - admin.ayia.app
   #} web_admin.ingress
 #} web_admin
 
@@ -39,7 +41,9 @@ web_api: #{
   #} web_api.port
 
   ingress: #{
-    host: api.ayia.nibious.com
+    hosts:
+      - api.ayia.nibious.com
+      - api.ayia.app
   #} web_api.ingress
 #} web_api
 
@@ -55,7 +59,9 @@ web_ui: #{
   #} web_ui.port
 
   ingress: #{
-    host: ui.ayia.nibious.com
+    hosts:
+      - ui.ayia.nibious.com
+      - ayia.app
   #} web_ui.ingress
 #} web_ui
 

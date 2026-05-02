@@ -181,7 +181,9 @@ spec:
   - name: contour
     namespace: projectcontour
   hostnames:
-  - {{ .Values.web_api.ingress.host }}
+  {{- range .Values.web_api.ingress.hosts }}
+    - {{ . | quote }}
+  {{- end }}
   rules:
   - backendRefs:
     - name: ayia-api

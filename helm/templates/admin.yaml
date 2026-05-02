@@ -213,7 +213,9 @@ spec:
   - name: contour
     namespace: projectcontour
   hostnames:
-  - {{ .Values.web_admin.ingress.host }}
+  {{- range .Values.web_admin.ingress.hosts }}
+    - {{ . | quote }}
+  {{- end }}
   rules:
   - backendRefs:
     - name: ayia-admin
