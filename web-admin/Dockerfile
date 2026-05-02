@@ -20,7 +20,7 @@ RUN npm install
 FROM node:21.6.1-alpine3.19
 MAINTAINER D. Elmo Peele
 
-RUN apk add --no-cache bash make curl vim
+RUN apk add --no-cache bash make curl vim jq
 ADD sys/user.sh   /etc/bash/
 COPY --from=builder --chown=node:node /app /app
 
