@@ -8,8 +8,8 @@ const Version = {
   id:                 9998,
   abbreviation:       'NIV84',
   local_abbreviation: 'NIV84',
-  title:              'New International Version (1984)',
-  local_title:        'New International Version (1984)',
+  title:              'New International Version 1984',
+  local_title:        'New International Version 1984',
   type:               'pdf',
   language: {
     iso_639_1:      'en',
