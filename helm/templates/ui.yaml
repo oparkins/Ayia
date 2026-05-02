@@ -15,7 +15,7 @@ data: # {
       port: {{ .Values.web_ui.port.private }}
 
       api_map: #{
-        versions: https://{{ .Values.web_api.ingress.host }}/api/v2/versions
+        versions: https://{{ first .Values.web_api.ingress.hosts }}/api/v2/versions
       #} web_ui.api_map
     # } web_ui
 # } ConfigMap.data
