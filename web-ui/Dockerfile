@@ -1,6 +1,7 @@
 ###
 #FROM node:21.6.1-bookworm-slim
-FROM node:21.6.1-alpine3.19 AS builder
+#FROM node:21.6.1-alpine3.19 AS builder
+FROM node:20.20.2-alpine3.23 AS builder
 
 ADD --chown=node:node ./  /app
 
@@ -11,7 +12,8 @@ RUN npm install && \
     chown -R node:node .
 
 ###
-FROM node:21.6.1-alpine3.19
+#FROM node:21.6.1-alpine3.19
+FROM node:20.20.2-alpine3.23
 MAINTAINER D. Elmo Peele
 
 COPY --from=builder /app /app

@@ -1,6 +1,7 @@
 ###
 #FROM node:21.6.1-bookworm-slim
-FROM node:21.6.1-alpine3.19 AS builder
+#FROM node:21.6.1-alpine3.19 AS builder
+FROM node:20.20.2-alpine3.23 AS builder
 
 # Explicitly specify files/directories for better control over what we include
 ADD --chown=node:node \
@@ -17,7 +18,8 @@ WORKDIR /app
 RUN npm install
 
 ###
-FROM node:21.6.1-alpine3.19
+#FROM node:21.6.1-alpine3.19
+FROM node:20.20.2-alpine3.23
 MAINTAINER D. Elmo Peele
 
 RUN apk add --no-cache bash make curl vim jq
