@@ -1,0 +1,19 @@
+#!/bin/bash
+DIR="$(dirname "$0")"
+ROOT="$(dirname $DIR)"
+ETC="$ROOT/etc"
+CACHE="$ROOT/cache"
+
+source $CACHE/versions.sh
+
+echo ">>> Check md5sums for ${#YVERS_VERSIONS[@]} versions ..."
+for VER in ${YVERS_VERSIONS[@]}; do
+  printf ">>> %-10s ... " "$VER"
+  md5sum -c "$CACHE/$VER.sum" 2>/dev/null | awk '
+    BEGIN{total=0;ok=0;fail=0}
+    /OK$/{ok++}
+    /FAILED$/{fail++}
+    {total++}
+    END{ printf("%2d books: %2d OK, %2d failed\n",
+                total, ok, fail) }'
+done

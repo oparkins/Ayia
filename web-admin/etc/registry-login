@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Login to registry
+#
+#   This ASSUME you have safely stored your authentication token
+#   (read-only by you) in
+#     ~/.ssh/registry.nibious.com
+#
+podman login --username $USER --password $(cat ~/.ssh/registry.nibious.com) \
+  registry.nibious.com/ayia

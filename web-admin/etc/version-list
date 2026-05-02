@@ -1,8 +1,14 @@
 #!/usr/bin/env node
 const Yargs     = require('yargs');
-const Versions  = require('../versions');
-const Usage     = require('../lib/usage');
-const yargs	= Yargs
+const Path      = require('path');
+const sprintf   = require('sprintf-js').sprintf;
+
+const Versions      = require('../versions');
+const Usage         = require('../lib/usage');
+const load_config   = require('../lib/load_config');
+const mongo_connect = require('../lib/mongo');
+
+const yargs	    = Yargs
 	.usage('List versions')
   .options({
     l: {
@@ -18,6 +24,20 @@ const yargs	= Yargs
       type    : 'string',
     },
 
+    c: {
+      alias   : 'config',
+      describe: 'A YAML configuration file for mongo connection',
+      default : Path.resolve(
+                  Path.join( __dirname, 'config.yaml' )
+                ),
+      type    : 'string',
+    },
+    m: {
+      alias   : 'mongo',
+      describe: 'List versions loaded into mongodb (requires config)',
+      default : false,
+      type    : 'boolean',
+    },
     f: {
       alias   : 'force',
       describe: 'Force (re)fetch of the source',
@@ -42,14 +62,130 @@ main().catch(err => { console.error('*** main:', err) });
 
 async function main() {
   const args      = yargs.parse();
+
+  if (args.mongo) {
+    await from_mongo( args );
+
+  } else {
+    await from_cache( args );
+
+  }
+}
+
+/**
+ *  List available versions from our cache.
+ *
+ *  @method from_cache
+ *  @param  args              The incoming arguments {Object};
+ *  @param  [args.force]      If truthy, fetch even if the data is already
+ *                            cached {Boolean};
+ *  @param  [args.verbosity]  Verbosity level {Number};
+ */
+async function from_cache( args ) {
   const versions  = await Versions.list( args );
 
+  console.log('# From cache');
   versions.forEach( vers => {
+    /*
     console.log('%s : %s : %s',
                 vers.abbreviation.padEnd( 10, ' '),
                 vers.local_abbreviation.padEnd( 10, ' '),
                 vers.title);
+    // */
+    console.log( sprintf('%-10s : %-10s : %-12s : %-3s : %6d : %s',
+                         vers.abbreviation,
+                         vers.local_abbreviation,
+                         vers.type,
+                         vers.language.iso_639_3,
+                         vers.id,
+                         vers.title) );
   });
+}
+
+/**
+ *  List available versions from a mongo database (if available).
+ *
+ *  @method from_mongo
+ *  @param  args              The incoming arguments {Object};
+ *  @param  [args.config]     The mongo configuration {Object};
+ *  @param  [args.verbosity]  Verbosity level {Number};
+ */
+async function from_mongo( args ) {
+  const config  = load_config( args );
+  const mongo   = await mongo_connect( config.mongodb );
+
+  console.log('# From mongodb');
+
+  /*  version {
+   *    id                        : {Number}        (4670)
+   *    abbreviation              : {String}
+   *    title                     : {String}
+   *    local_abbreviation        : {String}
+   *    local_title               : {String}
+   *    audio                     : {Boolean}
+   *    audio_count               : {Number}
+   *    text                      : {Boolean}
+   *    language                  : {
+   *      name                    : {String}        (English)
+   *      local_name              : {String}        (English)
+   *      iso_639_1               : {String}        (en)
+   *      iso_639_3               : {String}        (eng)
+   *      text_direction          : {String}        (ltr)
+   *      language_tag            : {String}        (eng)
+   *      secondary_language_tags : {Array[String]} (null)
+   *    }
+   *    publisher_id              : {Number}        (15200)
+   *    platforms                 : {
+   *      android                 : {Boolean}
+   *      blackberry              : {Boolean}
+   *      ios                     : {Boolean}
+   *      win8                    : {Boolean}
+   *      wp7                     : {Boolean}
+   *      facebook                : {Boolean}
+   *    }
+   *    metadata_build            : {Number}        (8)
+   *    vrs                       : {String}        (eng)
+   *  }
+   */
+  const $versions = mongo.collections.versions
+  const query     = {};
+  const options   = {
+      //sort  : { abbreviasion: 1 },
+      sort  : { abbreviation: 1 },
+      //skip  : ((page - 1) * limit),
+      //limit : limit,
+  };
+  const fields  = {
+    _id               : 0,
+    id                : 1,
+    type              : 1,
+    abbreviation      : 1,
+    language          : 1,
+    local_abbreviation: 1,
+    local_title       : 1,
+    title             : 1,
+    vrs               : 1,
+  };
+
+  const cursor    = $versions.find( query, options ).project( fields );
+  const versions  = await cursor.toArray();
+
+  versions.forEach( version => {
+    console.log( sprintf('%-10s : %-10s : %-12s : %-3s : %6d : %s',
+                         version.abbreviation, version.local_abbreviation,
+                         version.type, version.language.iso_639_3,
+                         version.id,
+                         version.title) );
+
+    /*
+    interlinear
+    console.log('id[ %s ], type[ %s ], abbr[ %s ], lang[ %s ], title[ %s ]',
+                version.id, version.type, version.abbreviation,
+                version.language.iso_639_3, version.title);
+    // */
+  });
+
+  mongo.client.close();
 }
 
 // vi: ft=javascript

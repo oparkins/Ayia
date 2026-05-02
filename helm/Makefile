@@ -1,6 +1,6 @@
 #
-CTX	:= local        # kubectl context
-NS	:= default      # kubectl namespace
+CTX	:= default        # kubectl context
+NS	:= ayia      # kubectl namespace
 REL	:= ayia         # helm release
 KUBECTL := kubectl --context=$(CTX) --namespace=$(NS)
 HELM    := helm --kube-context=$(CTX) --namespace=$(NS)
@@ -53,7 +53,7 @@ helm-upgrade: charts values.yaml
 
 #? Perform an uninstall
 helm-uninstall: charts values.yaml
-	@$(HELM) uninstall $(REL) --values=values.yaml .
+	@$(HELM) uninstall $(REL)  .
 
 #? Package this helm chart
 helm-package: charts values.yaml

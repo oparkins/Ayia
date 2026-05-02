@@ -1,0 +1,14 @@
+#!/bin/bash
+DIR="$(dirname "$0")"
+ROOT="$(dirname $DIR)"
+ETC="$ROOT/etc"
+CACHE="$ROOT/cache"
+
+source $CACHE/versions.sh
+
+echo ">>> Force prepare for ${#YVERS_VERSIONS[@]} versions ..."
+for VER in ${YVERS_VERSIONS[@]}; do
+  echo ">>>> ${VER} ..."
+  $ETC/version-prepare -f $VER
+  echo "--------------------------------------------------------------------"
+done

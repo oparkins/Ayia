@@ -7,7 +7,7 @@ global: #{
 
 web_admin: #{
   image: #{
-    tag:        0.2.9
+    tag:        0.2.10
     #pullPolicy: IfNotPresent
   #} web_admin.image
   persistence: #{
@@ -29,7 +29,7 @@ web_admin: #{
 
 web_api: #{
   image: #{
-    tag:  0.2.1
+    tag:  0.2.2
     #pullPolicy: IfNotPresent
   #} web_api.image
 
@@ -62,12 +62,31 @@ web_ui: #{
 mongodb: #{
   image: #{
     # :XXX: Use the latest v4 which does NOT require the CPU to support AVX
-    tag: 4.2.21-debian-10-r8
+    # Why this tag? ^^^^ that's why
+    tag: 4.4.6
   #} mongodb.image
+
+  persistence: #{
+    storageClass: '-'
+    accessModes:
+      - ReadWriteOnce
+    size: 8Gi
+  #} persistence
+
+  updateStrategy: #{
+    type: Recreate
+  #} updateStrategy
+
+  containerPorts: #{
+    mongodb: 27017
+  #} containerPorts
 
   auth: #{
     username: ayia
     database: ayia
+
+    # If the authentication source differs from the target database
+    source:   admin
 
     existingSecret: ayia-mongodb
   #} mongodb.auth
