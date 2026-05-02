@@ -261,6 +261,14 @@ async function _fixup_versions( config ) {
     3427:   7,  /* TCENT */       3523:   7,  /* NRSVUE */
     3548:   4,  /* RSVCI */       3633:   3,  /* FNVNT */
     3915:   1,  /* OYBCENGL */
+    // 2026-05-02
+    2593:   6,  /* MP1696 */      2660:   3,  /* LSV */
+    4070:   3,  /* OYTORHEG */    4108:   3,  /* YALL */
+    4124:   7,  /* CSBA */        4224:   2,  /* EHV */
+    4249:   2,  /* NLTCE */       4253:   3,  /* AFV */
+    4540:   2,  /* MP1562 */      4557:   1,  /* OYTNKHEG */
+    4669:   4,  /* AFINTLIT */    4670:   8,  /* AFINTEXP */
+    4732:   1,  /* NTFE */
   };
 
   const data          = Fs.readFileSync( config.outPath );
@@ -273,7 +281,8 @@ async function _fixup_versions( config ) {
       const build = known_builds[ id ];
 
       if (build == null) {
-        console.error('*** _fixup_version(): %s (%s) has no known build',
+        console.error('*** _fixup_version(): %s (%s) has no known build. '
+                      + 'Cannot generate offline URL.',
                       version.abbreviation, id);
       } else {
         version.offline = {
