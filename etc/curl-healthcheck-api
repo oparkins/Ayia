@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+BASE_URL='https://api.ayia.app'
+
+curl -Lks "${BASE_URL}/healthcheck"
+echo

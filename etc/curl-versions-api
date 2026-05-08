@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+#BASE_URL='https://api.ayia.app/api/v1/versions'
+BASE_URL='https://api.ayia.app/api/v2/versions'
+
+curl -Lks "${BASE_URL}$*"
